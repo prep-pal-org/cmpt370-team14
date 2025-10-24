@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MealPlanner</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styleDesign.css') }}"> <!-- Linking .css file -->
+
+</head>
+<body>
+    <div class="center"> <!-- call of class center in styleDesign.css, everything between "div" applies to the class. -->
+        <h1>Welcome to Saucy!</h1>
+        <p>Your family meal planner</p>
+        <button id="CreateProfile">Create Profile</button>
+    </div>
+    <script src="{{ url_for('static', filename='eventHandling.js') }}"></script> <!-- Linking the javascript file. -->
+
+</body>
+</html>

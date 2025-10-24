@@ -1,0 +1,37 @@
+/* Set a background. */
+body {
+    background-image: url("home_page_image.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+
+}
+
+/* Welcome header. */
+h1 {
+    color: darkgreen;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Position in the center class. */
+.center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Create a button. */
+button {
+    background-color: darkblue;
+    color: white;
+    font-size: 16px;
+}
+
+/* User feedback on the button. */
+
+button:hover{
+    background-color: black;
+}
+
+
+
