@@ -1,0 +1,19 @@
+# Ignore all word docs
+*.docx
+
+#Ignore all PDFs
+*.pdf
+
+# Ignore all PNG files
+*.png
+
+# Ignore all TXT files
+*.txt
+
+# Ignore all xlsx files
+*.xlsx
+
+# Ignore deleted view and controler files
+Controller/
+View/
+
