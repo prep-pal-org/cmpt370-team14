@@ -74,7 +74,7 @@ def create_tables(connection):
         '''
 
         #user_interaction table - Randi
-        user_interaction = '''
+        create_user_interaction = '''
         CREATE TABLE IF NOT EXISTS user_interaction (
             interaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
@@ -89,11 +89,12 @@ def create_tables(connection):
 
         #Create List of all table creation text
         #TODO - add tables created to this list
-        table_list = [create_calendar_event, create_calendar_schedule, create_user_profile, user_interaction]
+        table_list = [create_calendar_event, create_calendar_schedule, create_user_profile, create_user_interaction]
 
         #Loop through list for execute, actually creating tables
         for table in table_list:
             cursor.execute(table)
+        connection.commit()
 
         #Create Indexes? for easier/quicker searching? not sure if needed.
         #cursor.execute('CREATE INDEX IF NOT EXISTS schedule_user_id ON calendar_schedule (user_id);')
