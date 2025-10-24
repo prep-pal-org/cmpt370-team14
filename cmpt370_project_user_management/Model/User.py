@@ -1,21 +1,17 @@
-from _sqlite3 import Error
+import sqlite3
 
 
 class UserProfile(object):
-    def __init__(self, username, email, password, user_id):
+    def __init__(self):
         """
         Purpose:
             Create a user profile, user.
-        :param username: user's name
-        :param email: user's e-mail
-        :param password: user's password
-        :param user_id: user's ID, numerical number assigned automatically
         Returns nothing
         """
-        self.__username = username
-        self.__email = email
-        self.__password = password
-        self.__user_id = user_id
+        self.__username = ''
+        self.__email = ''
+        self.__password = ''
+        self.__user_id = 0
 
     def setUserName(self, name):
         """
@@ -85,22 +81,32 @@ class UserProfile(object):
         """
         return self.__user_id
 
-    def add_to_database(self, connection):
+    def add_to_database(self,connection):
         """
         Purpose:
             add new user profile to database.
+        :param userProfile:
         :param connection: connection to the database
         returns nothing
         """
+        cursor = None
         try:
+
             cursor = connection.cursor()
-            cursor.execute(''' INSERT INTO user_profile (username,email,password,user_id) VALUES (?, ?, ?,?)''',
-                           (self.getUserName(), self.getEmail(), self.getPassword(), self.getUserId()))
+            cursor.execute(''' INSERT INTO user_profile (user_id, username, email, password) VALUES (?, ?, ?,?)''',
+                           (self.getUserId(), self.getUserName(), self.getEmail(), self.getPassword()))
             connection.commit()
             print("User added to table")
-        except Error as error:
+        except sqlite3.Error as error:
             print("Did not save user:", error)
+        finally:
+            if cursor is not None:
+                cursor.close()
+
 
 # ChatGPT's usage Oct 21. 2025 - used ChatGPT to explain how to connect the user class
 # to the database. Combined what ChatGPT suggesting with W3 schools website to look
 # up the SQLite syntax to understand what I was doing.
+
+
+
