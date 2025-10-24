@@ -1,4 +1,6 @@
+import sqlite3
 import User as U
+from setup_database import database_connection, create_tables
 ############## TESTING ##############
 
 
@@ -39,3 +41,20 @@ if result != expected:
     print("Setting userID failed, expected: ", expected, "got ", result)
 else:
     print("Username is set. expected: ", expected, "result: ", result)
+
+#Add everything to the database
+conn = database_connection("saucyapp.db")
+create_tables(conn)
+#conn.close()
+
+test1.add_to_database(conn)
+
+#connection = sqlite3.connect("saucyapp.db")
+cursor = conn.cursor()
+cursor.execute("SELECT * FROM user_profile")
+rows = cursor.fetchall()
+for row in rows:
+    print(row)
+conn.close()
+
+
