@@ -58,8 +58,36 @@ def create_tables(connection):
 
         #recurring calendar event table - Jordan
 
+        # ------------------------------------------------------------
+        # recipe table - Baraa
+        # Stores all recipe information including name, description, and creator
+        create_recipe_table = '''
+               CREATE TABLE IF NOT EXISTS recipe (
+                   recipe_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                   recipe_name TEXT NOT NULL,
+                   description TEXT,
+                   ingredients TEXT,
+                   instructions TEXT,
+                   category TEXT,
+                   cooking_time INTEGER,
+                   user_id INTEGER,
+                   FOREIGN KEY(user_id) REFERENCES user(user_id)
+               );
+               '''
 
+        # recipe_image table - Baraa
+        # Stores paths or binary data for images linked to a recipe
+        create_recipe_image_table = '''
+               CREATE TABLE IF NOT EXISTS recipe_image (
+                   image_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                   recipe_id INTEGER,
+                   image_path TEXT,
+                   upload_date DATE,
+                   FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id)
+               );
+               '''
 
+        # ------------------------------------------------------------
         #Other tables here \/\/\/
         #TODO - add all other tables
 
@@ -68,7 +96,10 @@ def create_tables(connection):
 
         #Create List of all table creation text
         #TODO - add tables created to this list
-        table_list = [create_calendar_event, create_calendar_schedule]
+        table_list = [create_calendar_event, create_calendar_schedule, create_recipe_table,
+            create_recipe_image_table]
+
+
 
         #Loop through list for execute, actually creating tables
         for table in table_list:
