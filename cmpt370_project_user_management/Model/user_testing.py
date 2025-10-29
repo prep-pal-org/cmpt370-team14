@@ -1,6 +1,6 @@
 import sqlite3
 import User as U
-from setup_database import database_connection, create_tables
+from db.setup_database import database_connection, create_tables
 ############## TESTING ##############
 
 
@@ -43,7 +43,7 @@ else:
     print("Username is set. expected: ", expected, "result: ", result)
 
 #Add everything to the database
-conn = database_connection("saucyapp.db")
+conn = database_connection("../db/saucyapp.db")
 create_tables(conn)
 #conn.close()
 
