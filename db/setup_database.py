@@ -42,7 +42,7 @@ def create_tables(connection):
             recurrence_id INTEGER,
             FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id),
             FOREIGN KEY(recurrence_id) REFERENCES recurring_event (recurrence_id),
-            CONSTRAINT unique_event UNIQUE(event_date, event_time)                
+            FOREIGN KEY(recipe_id) REFERENCES recipe (recipe_id),            
         );
         '''
 
@@ -57,6 +57,18 @@ def create_tables(connection):
         '''
 
         #recurring calendar event table - Jordan
+        create_recurring_event = '''
+                CREATE TABLE IF NOT EXISTS recurring_event (
+                    recurrence_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_id INTEGER,
+                    calendar_id INTEGER,
+                    start_date DATE,
+                    end_date DATE,
+                    frequency TEXT,
+                    FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id),
+                    FOREIGN KEY(event_id) REFERENCES calendar_event (event_id),            
+                );
+                '''
 
 
 
@@ -68,14 +80,12 @@ def create_tables(connection):
 
         #Create List of all table creation text
         #TODO - add tables created to this list
-        table_list = [create_calendar_event, create_calendar_schedule]
+        table_list = [create_calendar_event, create_calendar_schedule, create_recurring_event]
 
         #Loop through list for execute, actually creating tables
         for table in table_list:
             cursor.execute(table)
 
-        #Create Indexes? for easier/quicker searching? not sure if needed.
-        #cursor.execute('CREATE INDEX IF NOT EXISTS schedule_user_id ON calendar_schedule (user_id);')
 
     #If error encountered, print error, return false
     except Error as e:
