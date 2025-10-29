@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Comments</title>
+</head>
+    <style>
+        table, th, td {
+          border:1px solid black;
+        }
+        </style>
+<body>
+        <table style="width:100%">
+            <tr>
+              <th>Comment</th>
+            </tr>
+            {%for participant in com_data%}
+               <tr>
+                 <td>{{participant[2]}}</td> <!-- This shows the comments -->
+                </tr>
+            {%endfor%}
+          </table>
+</html>
