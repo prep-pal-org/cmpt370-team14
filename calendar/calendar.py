@@ -178,15 +178,24 @@ class RecurringEvent(object):
 
 
 
-def insert_calendar_event(CalendarEvent):
+def insert_calendar_event(event):
     connection = sqlite3.connect('../db/saucyapp.db')
     cursor = connection.cursor()
 
     cursor.execute('''
-        INSERT INTO calendar_event(event_name, event_date, event_time, recipe_id, calendar_id, recurrence_id, start_date, end_date, frequency)
-        VALUES (?,?,?,?,?,?,?,?,?)    
+        INSERT INTO calendar_event(event_name, event_date, event_time, recipe_id, calendar_id, recurrence_id)
+        VALUES (?,?,?,?,?,?)    
     
-        ''', CalendarEvent)
+        ''', (event.getEventName(),event.getEventDate(),event.getEventTime(),event.getRecipeID(),event.getCalendarID(),event.getRecurrenceID()))
     connection.commit()
     connection.close()
 
+def insert_recurrence_event(event):
+    connection = sqlite3.connect('../db/saucyapp.db')
+    cursor = connection.cursor()
+
+    cursor.execute('''
+        INSERT INTO recurrence_event(event_id, calendar_id, start_date, end_date, frequency)
+        VALUES (?,?,?,?,?)
+    
+    ''',(event.getEventID, event.getCalendarID(), event.getStartDate(),event.getEndDate(), event.getRecurrenceID()))

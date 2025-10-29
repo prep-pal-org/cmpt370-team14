@@ -42,7 +42,7 @@ def create_tables(connection):
             recurrence_id INTEGER,
             FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id),
             FOREIGN KEY(recurrence_id) REFERENCES recurring_event (recurrence_id),
-            FOREIGN KEY(recipe_id) REFERENCES recipe (recipe_id),            
+            FOREIGN KEY(recipe_id) REFERENCES recipe (recipe_id)            
         );
         '''
 
@@ -51,8 +51,7 @@ def create_tables(connection):
         CREATE TABLE IF NOT EXISTS calendar_schedule (
             calendar_id INTEGER PRIMARY KEY AUTOINCREMENT,
             event_id INTEGER,
-            user_id INTEGER,
-            FOREIGN KEY(event_id) REFERENCES calendar_event (event_id)        
+            user_id INTEGER       
         );
         '''
 
@@ -66,7 +65,7 @@ def create_tables(connection):
                     end_date DATE,
                     frequency TEXT,
                     FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id),
-                    FOREIGN KEY(event_id) REFERENCES calendar_event (event_id),            
+                    FOREIGN KEY(event_id) REFERENCES calendar_event (event_id)            
                 );
                 '''
 
@@ -85,6 +84,8 @@ def create_tables(connection):
         #Loop through list for execute, actually creating tables
         for table in table_list:
             cursor.execute(table)
+        connection.commit()
+        cursor.close()
 
 
     #If error encountered, print error, return false
@@ -110,6 +111,8 @@ def main():
             print('Tables not created')
     else:
         print('Database connection failed')
+    connection.close()
+
 
 
 
