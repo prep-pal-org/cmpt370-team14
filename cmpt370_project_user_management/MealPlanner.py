@@ -1,6 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for
-from Controller.RecipeManager import RecipeManager
-from Model.Recipe import Recipe
 import sqlite3
 
 app = Flask(__name__)
@@ -9,6 +7,48 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return render_template('homePage.html')
+
+# Routing for the grocery list
+@app.route('/grocery-list')
+def grocery_list():
+    current_user_id = 1
+
+    conn = database_connection(DB_NAME)
+    cursor = conn.cursor()
+
+    # Fetch items for the current user
+    cursor.execute("SELECT item_text FROM grocery_list WHERE user_id = ?", (current_user_id,))
+    items_tuples = cursor.fetchall()
+    conn.close()
+
+    # Convert list of tuples to a list of dicts
+    items_list = [{"item_text": row[0]} for row in items_tuples]
+
+    return render_template('grocery_list.html', items=items_list)
+
+
+# Route to add an item to the grocery list
+@app.route('/add_grocery_item', methods=['POST'])
+def add_grocery_item():
+    if request.method == 'POST':
+        item_text = request.form['item_text']
+
+        current_user_id = 1
+
+        if item_text:
+            conn = database_connection(DB_NAME)
+            cursor = conn.cursor()
+            try:
+                cursor.execute("INSERT INTO grocery_list (user_id, item_text) VALUES (?, ?)",
+                               (current_user_id, item_text))
+                conn.commit()
+            except sqlite3.Error as e:
+                print("Error adding grocery item:", e)
+            finally:
+                conn.close()
+
+        # Redirect back to the grocery list page
+        return redirect(url_for('grocery_list'))
 
 @app.route('/create_profile', methods=['GET', 'POST'])
 def createProfile():
@@ -69,4 +109,9 @@ def add_recipe():
 
 
 if __name__ == '__main__':
+    # First, make sure all tables exist before running the app
+    conn = database_connection(DB_NAME)
+    if conn is not None:
+        create_tables(conn)
+        conn.close()
     app.run(debug=True)
