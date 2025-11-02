@@ -1,5 +1,5 @@
-import sqlite3
 
+#Calendar class object - Jordan
 class Calendar(object):
 
     def __init__(self, calendar_id,user_id):
@@ -30,7 +30,7 @@ class Calendar(object):
         """
         return self.__user_id
 
-
+#Calendar Event class object - Jordan
 class CalendarEvent(object):
 
     def __init__(self, event_id, event_name, event_date, event_time, recipe_id, calendar_id, recurrence_id):
@@ -109,6 +109,7 @@ class CalendarEvent(object):
         """
         return self.__recurrence_id
 
+#Recurring Event class object - Jordan
 class RecurringEvent(object):
     def __init__(self, event_id, calendar_id, recurrence_id, start_date, end_date, frequency):
         """
@@ -176,26 +177,3 @@ class RecurringEvent(object):
         """
         return self.__frequency
 
-
-
-def insert_calendar_event(event):
-    connection = sqlite3.connect('../db/saucyapp.db')
-    cursor = connection.cursor()
-
-    cursor.execute('''
-        INSERT INTO calendar_event(event_name, event_date, event_time, recipe_id, calendar_id, recurrence_id)
-        VALUES (?,?,?,?,?,?)    
-    
-        ''', (event.getEventName(),event.getEventDate(),event.getEventTime(),event.getRecipeID(),event.getCalendarID(),event.getRecurrenceID()))
-    connection.commit()
-    connection.close()
-
-def insert_recurrence_event(event):
-    connection = sqlite3.connect('../db/saucyapp.db')
-    cursor = connection.cursor()
-
-    cursor.execute('''
-        INSERT INTO recurrence_event(event_id, calendar_id, start_date, end_date, frequency)
-        VALUES (?,?,?,?,?)
-    
-    ''',(event.getEventID, event.getCalendarID(), event.getStartDate(),event.getEndDate(), event.getRecurrenceID()))
