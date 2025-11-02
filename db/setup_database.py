@@ -50,7 +50,6 @@ def create_tables(connection):
         create_calendar_schedule = '''
         CREATE TABLE IF NOT EXISTS calendar_schedule (
             calendar_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            event_id INTEGER,
             user_id INTEGER       
         );
         '''

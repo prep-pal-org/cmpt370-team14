@@ -10,7 +10,6 @@ class Calendar(object):
         :param user_id: SQL user ID associated with the calendar
         """
         self.__calendar_id = calendar_id
-        self.__event_id = None
         self.__user_id = user_id
 
     def setUserID(self, user_id):
