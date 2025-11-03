@@ -1,4 +1,4 @@
-/* Set a background. */
+/* Set a background. - Randi*/
 body {
     background-image: url("home_page_image.jpg");
     background-repeat: no-repeat;
@@ -6,14 +6,14 @@ body {
 
 }
 
-/* Welcome header. */
+/* Welcome header. - Randi */
 h1 {
     color: darkgreen;
     align-items: center;
     justify-content: center;
 }
 
-/* Position in the center class. */
+/* Position in the center class. - Randi */
 .center {
     display: flex;
     align-items: center;
@@ -51,7 +51,7 @@ h1 {
     border: 1px solid #ddd;
 }
 
-/* Create a button. */
+/* Create a button. - Randi */
 button {
     background-color: darkblue;
     color: white;
@@ -62,7 +62,7 @@ button {
     cursor: pointer;
 }
 
-/* User feedback on the button. */
+/* User feedback on the button. - Randi */
 
 button:hover{
     background-color: black;

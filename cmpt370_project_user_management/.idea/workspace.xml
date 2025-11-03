@@ -5,39 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="657f8d82-87d5-40e5-bd2c-c1ad0b71f01a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../.gitignore_backup" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../SQLite/sqldiff.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../SQLite/sqlite3.def" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../SQLite/sqlite3.dll" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../SQLite/sqlite3.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../SQLite/sqlite3_analyzer.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../SQLite/sqlite3_rsync.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Model/Recipe.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Model/User_Interaction.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Templates/grocery_list.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Templates/recipe_add.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Templates/recipe_list.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/saucyapp.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/flask_test.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../flask_test/Flask.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../flask_test/Static/js.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../flask_test/Static/style.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../flask_test/Templates/test.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../home_page_image.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/cmpt370_project_user_management.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/cmpt370_project_user_management.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MealPlanner.py" beforeDir="false" afterPath="$PROJECT_DIR$/MealPlanner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Static/eventHandling.js" beforeDir="false" afterPath="$PROJECT_DIR$/Static/eventHandling.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Static/styleDesign.css" beforeDir="false" afterPath="$PROJECT_DIR$/Static/styleDesign.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/add_reaction.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/add_reaction.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/create_comment.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/create_comment.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/create_profile.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/create_profile.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Templates/homePage.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/homePage.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/setup_database.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/setup_database.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/view_comments.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/view_comments.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/view_reaction.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/view_reaction.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/saucyapp.db" beforeDir="false" afterPath="$PROJECT_DIR$/db/saucyapp.db" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,10 +50,11 @@
     "DefaultHtmlFileTemplate": "HTML File",
     "Python.MealPlanner.executor": "Run",
     "Python.User.executor": "Run",
+    "Python.cmpt370_project_user_management.executor": "Run",
     "Python.setup_database.executor": "Run",
     "Python.user_testing.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "Merging User__Management",
+    "git-widget-placeholder": "User__Management",
     "ignore.virus.scanning.warn.message": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -168,6 +147,7 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/cmpt370_project_user_management$User.coverage" NAME="User Coverage Results" MODIFIED="1761752493238" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Model" />
     <SUITE FILE_PATH="coverage/cmpt370_project_user_management$setup_database.coverage" NAME="setup_database Coverage Results" MODIFIED="1760731969463" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/cmpt370_project_user_management$cmpt370_project_user_management.coverage" NAME="cmpt370_project_user_management Coverage Results" MODIFIED="1762140024921" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/cmpt370_project_user_management$user_testing.coverage" NAME="user_testing Coverage Results" MODIFIED="1761752506832" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Model" />
     <SUITE FILE_PATH="coverage/cmpt370_project_user_management$MealPlanner.coverage" NAME="MealPlanner Coverage Results" MODIFIED="1762135229971" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>

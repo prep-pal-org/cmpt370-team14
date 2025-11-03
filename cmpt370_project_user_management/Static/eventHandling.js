@@ -1,3 +1,4 @@
+// Linking the user and comments buttons - Randi
 document.addEventListener('DOMContentLoaded', function(){
     const button1 = document.getElementById('CreateProfile')
     const button2 = document.getElementById('SeeUsers')
