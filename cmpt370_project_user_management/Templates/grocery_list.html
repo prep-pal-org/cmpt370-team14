@@ -4,13 +4,28 @@
     <meta charset="UTF-8">
     <title>Grocery List</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styleDesign.css') }}">
+    <style>
+        .grocery-items li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remove-form {
+            display: inline;
+        }
+    </style>
 </head>
 <body>
-    <div class="center-column"> <h1>My Grocery List</h1>
+    <div class="center-column">
+        <h1>My Grocery List</h1>
 
         <form action="{{ url_for('add_grocery_item') }}" method="POST">
             <label for="item_text">New Item:</label>
             <input type="text" id="item_text" name="item_text" required>
+
+            <label for="quantity">Quantity:</label>
+            <input type="text" id="quantity" name="quantity" style="width: 50px;">
+
             <button type="submit">Add Item</button>
         </form>
 
@@ -18,7 +33,19 @@
             <h2>Items:</h2>
             <ul>
                 {% for item in items %}
-                    <li>{{ item.item_text }}</li>
+                    <li>
+                        <span>
+                            {% if item.quantity %}
+                                {{ item.quantity }} -
+                            {% endif %}
+                            {{ item.item_text }}
+                        </span>
+
+                        <form action="{{ url_for('remove_grocery_item') }}" method="POST" class="remove-form">
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <button type="submit">Remove</button>
+                        </form>
+                    </li>
                 {% endfor %}
             </ul>
         </div>
