@@ -1,12 +1,12 @@
 import sqlite3
-from _sqlite3 import Error
+from sqlite3 import Error
 from calendar_class import CalendarEvent
 
 class CalendarService:
 
     def __init__(self):
         # Connect to database
-        connection = None
+        self.connection = None
         database = '../db/saucyapp.db'
         try:
             # Connect to SQLite database file
@@ -38,7 +38,7 @@ class CalendarService:
                 return calendar_exists[0]
             else:
                 #create new calendar_schedule entry with user_id
-                self.cursor.execute("INSERT INTO calendar_schedule (user_id) VALUES (?)", (user_id))
+                self.cursor.execute("INSERT INTO calendar_schedule (user_id) VALUES (?)", (user_id,))
                 self.connection.commit()
                 self.cursor.execute("SELECT calendar_id FROM calendar_schedule WHERE user_id = ?", (user_id,))
                 calendar_exists = self.cursor.fetchone()
@@ -46,6 +46,7 @@ class CalendarService:
 
         except Error as e:
             print('Error creating calendar', e)
+            return False
 
 
     def insert_calendar_event(self, recipe_id, calendar_id, event_name, event_date, event_time ):
@@ -66,12 +67,12 @@ class CalendarService:
             print(f"Inserted - event_id: {event_id}")
             return event_id
         except Error as e:
-            print('Error while connecting to database', e)
+            print('Error while inserting to database', e)
 
     def get_calendar_events(self, calendar_id):
         if self.connection is None:
             print('No database connection')
-            return None
+            return []
         try:
 
             self.cursor.execute('''
@@ -84,7 +85,7 @@ class CalendarService:
             return [CalendarEvent(*events) for events in events]
 
         except Error as e:
-            print('Error while connecting to database', e)
+            print('Error while getting events from database', e)
 
     def delete_calendar_event(self, event_id):
         if self.connection is None:
@@ -102,4 +103,8 @@ class CalendarService:
                 return CalendarEvent(*deleted_event)
 
         except Error as e:
-            print('Error while connecting to database', e)
+            print('Error while deleting from database', e)
+
+    def close(self):
+        if self.connection is not None:
+            self.connection.close()

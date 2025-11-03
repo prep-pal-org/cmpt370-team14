@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div id="calendar"></div>
+
 <!-- Add Event Modal-->
 <div id="addModal" class="modal hidden">
     <div class="modal-content">
@@ -33,15 +34,15 @@
 </div>
 
 <!-- View/Delete Modal -->
-<div id="deleteModal" class="modal hidden">
+<div id="viewModal" class="modal hidden">
     <div class="modal-content">
-        <h3>View Event</h3>`
+        <h3 id="viewTitle"></h3>
         <p>Date: <span id="viewDate"></span></p>
         <p>Time: <span id="viewTime"></span></p>
         <p>Recipe ID: <span id="viewRecipe"></span></p>
         <button type="button" id="deleteBtn">Delete</button>
         <br><br>
-        <button type="button" id="cancelBtn">Close</button>
+        <button type="button" id="viewClose">Close</button>
     </div>
 
 </div>

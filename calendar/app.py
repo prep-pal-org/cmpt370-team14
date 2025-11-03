@@ -1,7 +1,9 @@
-from calendar_service import*
+import os
+from calendar_service import CalendarService
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
 service = CalendarService()
 
 #Basic temporary index before integrating with user login function
@@ -14,14 +16,6 @@ def index():
     else:
         return render_template("index.html")
 
-#Calendar View route
-@app.route('/calendar')
-def calendar_view():
-    if "user_id" in session:
-        return redirect(url_for("index"))
-    else:
-        return render_template("calendar.html")
-
 #Helper method to get calendar id
 def get_calendar():
     user_id = session.get("user_id")
@@ -30,6 +24,14 @@ def get_calendar():
     calendar_id = service.create_new_calendar(user_id)
     return calendar_id
 
+#Calendar View route
+@app.route('/calendar')
+def calendar_view():
+    if "user_id" not in session:
+        return redirect(url_for("index"))
+    else:
+        calendar_id = get_calendar()
+        return render_template("calendar.html",calendar_id=calendar_id)
 
 #API - Get Events for current calendar
 @app.route("/api/events")
@@ -39,7 +41,7 @@ def api_events():
     #Get calendar_id for user_id, then get corresponding calendar events
     calendar_id = get_calendar()
     if calendar_id is None:
-        return jsonify([]) #no events for no user_id
+        return jsonify({"error": "User not logged in"}), 401
     events = service.get_calendar_events(calendar_id)
 
     #Convert to FullCalendar JSON format
@@ -79,8 +81,8 @@ def api_add_event():
 def api_delete_event(event_id):
     deleted_event = service.delete_calendar_event(event_id)
     if deleted_event is None:
-        return jsonify({"event deleted": False}), 404
-    return jsonify({"event deleted": True})
+        return jsonify({"event_deleted": False}), 404
+    return jsonify({"event_deleted": True})
 
 if __name__ == "__main__":
     app.run(debug=True)
