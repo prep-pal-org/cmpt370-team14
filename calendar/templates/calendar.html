@@ -1,0 +1,51 @@
+<!--Calender template block, to define Modal Box layouts - Jordan -->
+{% extends 'base.html' %}
+{% block content %}
+<div id="calendar"></div>
+
+<!-- Add Event Modal-->
+<div id="addModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Add to Calendar</h3>
+        <form id="addForm">
+            <label>Date: <input type="date" id="addDate" required></label>
+            <br>
+
+            <label>Time Slot:
+                <select id="addTimeSlot">
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Snack">Snack</option>
+                </select>
+            </label>
+            <br>
+
+            <label>Recipe ID: <input type="number" id="addRecipe" required></label>
+            <br>
+
+            <label>Recipe Name: <input type="text" id="addRecipeName" required></label>
+            <br>
+
+            <button type="submit">Submit</button>
+            <button type="button" id="addCancel">Cancel</button>
+
+        </form>
+    </div>
+</div>
+
+<!-- View/Delete Modal -->
+<div id="viewModal" class="modal hidden">
+    <div class="modal-content">
+        <h3 id="viewTitle"></h3>
+        <p>Date: <span id="viewDate"></span></p>
+        <p>Time: <span id="viewTime"></span></p>
+        <p>Recipe ID: <span id="viewRecipe"></span></p>
+        <button type="button" id="deleteBtn">Delete</button>
+        <br><br>
+        <button type="button" id="viewClose">Close</button>
+    </div>
+
+</div>
+
+{% endblock %}
