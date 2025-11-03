@@ -1,14 +1,22 @@
 /* Set a background. */
 body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background-image: url("home_page_image.jpg");
     background-repeat: no-repeat;
     background-size: cover;
+    background-position: center;
 
 }
 
 /* Welcome header. */
 h1 {
     color: darkgreen;
+    font-size: 20pt;
     align-items: center;
     justify-content: center;
 }
@@ -20,17 +28,23 @@ h1 {
     justify-content: center;
 }
 
+.box {
+  width: 300px;
+  padding: 50px;
+  margin: 20px;
+}
+
 /* Create a button. */
 button {
-    background-color: darkblue;
-    color: white;
+    background-color: lightgray;
+    color: black;
     font-size: 16px;
 }
 
 /* User feedback on the button. */
 
 button:hover{
-    background-color: black;
+    background-color: darkgray;
 }
 
 
