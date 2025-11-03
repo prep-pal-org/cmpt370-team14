@@ -1,3 +1,6 @@
+#Flask application setup and route definitions - Jordan
+#Todo: Integrate with main web application Flask script
+#Todo: debug threading error with CalendarService
 import os
 from calendar_service import CalendarService
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
@@ -36,7 +39,6 @@ def calendar_view():
 #API - Get Events for current calendar
 @app.route("/api/events")
 def api_events():
-
 
     #Get calendar_id for user_id, then get corresponding calendar events
     calendar_id = get_calendar()

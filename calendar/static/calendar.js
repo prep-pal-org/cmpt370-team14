@@ -1,3 +1,9 @@
+/**
+ * Calendar event listener system - uses FullCalender addon and event listeners to handle all interactions on Calendar and Modal Boxes
+ * Todo: Still requires UI/handlers for repeating events
+ * Implemented by Jordan
+ */
+
 document.addEventListener('DOMContentLoaded',function(){
     //declare instance variable of the calendar element
     const calendarEl = document.getElementById('calendar');
@@ -107,10 +113,12 @@ document.addEventListener('DOMContentLoaded',function(){
         if (!confirm('Delete this event?')){
             return;
         }
+        //Send delete request
         const response = await fetch(`/api/events/${eventId}`,{
             method: 'DELETE'
         });
 
+        //Check response if successful, remove event
         if (response.ok){
             const event_delete = calendar.getEventById(eventId);
             if(event_delete){

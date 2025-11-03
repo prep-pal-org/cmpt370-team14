@@ -1,3 +1,7 @@
+"""
+Calendar Service scripts - acting as API for calendar functions to contain all SQL query text - Jordan
+Todo: finish doc strings - debug threading issue with flask app
+"""
 import sqlite3
 from sqlite3 import Error
 from calendar_class import CalendarEvent
@@ -7,7 +11,7 @@ class CalendarService:
     def __init__(self):
         # Connect to database
         self.connection = None
-        database = '../db/saucyapp.db'
+        database = '../cmpt370_project_user_management/db/saucyapp.db'
         try:
             # Connect to SQLite database file
             self.connection = sqlite3.connect(database)
