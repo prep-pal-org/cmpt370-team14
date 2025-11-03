@@ -4,7 +4,41 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="657f8d82-87d5-40e5-bd2c-c1ad0b71f01a" name="Changes" comment="" />
+    <list default="true" id="657f8d82-87d5-40e5-bd2c-c1ad0b71f01a" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../.gitignore_backup" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SQLite/sqldiff.exe" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SQLite/sqlite3.def" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SQLite/sqlite3.dll" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SQLite/sqlite3.exe" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SQLite/sqlite3_analyzer.exe" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SQLite/sqlite3_rsync.exe" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Model/Recipe.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Model/User_Interaction.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Templates/grocery_list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Templates/recipe_add.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Templates/recipe_list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/saucyapp.db" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/flask_test.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../flask_test/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../flask_test/Flask.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../flask_test/Static/js.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../flask_test/Static/style.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../flask_test/Templates/test.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../home_page_image.jpg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/cmpt370_project_user_management.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/cmpt370_project_user_management.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MealPlanner.py" beforeDir="false" afterPath="$PROJECT_DIR$/MealPlanner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Static/styleDesign.css" beforeDir="false" afterPath="$PROJECT_DIR$/Static/styleDesign.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/homePage.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/homePage.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/setup_database.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/setup_database.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -33,23 +67,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;Python.MealPlanner.executor&quot;: &quot;Run&quot;,
-    &quot;Python.User.executor&quot;: &quot;Run&quot;,
-    &quot;Python.setup_database.executor&quot;: &quot;Run&quot;,
-    &quot;Python.user_testing.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "Python.MealPlanner.executor": "Run",
+    "Python.User.executor": "Run",
+    "Python.setup_database.executor": "Run",
+    "Python.user_testing.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "Merging User__Management",
+    "ignore.virus.scanning.warn.message": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Python.cmpt370_project_user_management">
     <configuration name="MealPlanner" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="cmpt370_project_user_management" />

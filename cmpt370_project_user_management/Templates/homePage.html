@@ -12,8 +12,16 @@
         <p>Your family meal planner</p>
         <button id="CreateProfile">Create Profile</button>
         <button id="SeeUsers">See Users</button>
-        <button id="comment">Add Comment</button>
-        <button id="viewcomment">View Comments</button>
+        <!-- Add recipe and view recipe -->
+         <br><br>
+        <a href="{{ url_for('add_recipe') }}">➕ Add Recipe</a>
+        <br>
+        <a href="{{ url_for('recipe_list') }}">🍲 View Recipes</a>
+
+
+        <a href="{{ url_for('grocery_list') }}" style="margin-left: 10px;">
+            <button id="GroceryList">My Grocery List</button>
+        </a>
     </div>
 
     <script src="{{ url_for('static', filename='eventHandling.js') }}"></script> <!-- Linking the javascript file. -->

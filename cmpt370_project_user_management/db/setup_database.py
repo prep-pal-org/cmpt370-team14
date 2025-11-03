@@ -110,15 +110,23 @@ def create_tables(connection):
 
 
         #Other tables here \/\/\/
-        #TODO - add all other tables
 
-
+        # grocery_list table - Soham
+        create_grocery_list = '''
+                CREATE TABLE IF NOT EXISTS grocery_list (
+                    item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
+                    item_text TEXT NOT NULL,
+                    quantity TEXT, 
+                    FOREIGN KEY(user_id) REFERENCES user_profile (user_id)
+                );
+                '''
 
 
         #Create List of all table creation text
         #TODO - add tables created to this list
         table_list = [create_calendar_event, create_calendar_schedule, create_user_profile, create_user_interaction, create_recipe_table,
-            create_recipe_image_table]
+            create_recipe_image_table, create_grocery_list]
 
 
         #Loop through list for execute, actually creating tables
@@ -137,23 +145,51 @@ def create_tables(connection):
     return True
 
 
+def update_tables(connection):
+    """
+    Safely adds new columns to existing tables without deleting data.
+    """
+    try:
+        cursor = connection.cursor()
+
+        # Try to add the 'quantity' column to 'grocery_list'
+        # This will fail if the column already exists, which is fine.
+        try:
+            cursor.execute("ALTER TABLE grocery_list ADD COLUMN quantity TEXT")
+            print("Added 'quantity' column to grocery_list.")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" in str(e):
+                pass  # Column already exists, do nothing
+            else:
+                raise  # Re-raise other errors
+
+        connection.commit()
+        return True
+
+    except Error as e:
+        print('Error while updating tables', e)
+        return False
+
 
 def main():
-    #Connect to database
+    # Connect to database
     database = 'saucyapp.db'
     connection = database_connection(database)
 
-    #Check connection established
+    # Check connection established
     if connection is not None:
-        #If successful, try to create tables
+        # If successful, try to create tables
         if create_tables(connection):
             print('Tables created')
+            # Also update tables
+            if update_tables(connection):
+                print("Tables updated")
+            else:
+                print("Tables not updated")
         else:
             print('Tables not created')
     else:
         print('Database connection failed')
-
-
 
 if __name__ == '__main__':
     main()

@@ -1,22 +1,14 @@
 /* Set a background. */
 body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     background-image: url("home_page_image.jpg");
     background-repeat: no-repeat;
     background-size: cover;
-    background-position: center;
 
 }
 
 /* Welcome header. */
 h1 {
     color: darkgreen;
-    font-size: 20pt;
     align-items: center;
     justify-content: center;
 }
@@ -28,23 +20,52 @@ h1 {
     justify-content: center;
 }
 
-.box {
-  width: 300px;
-  padding: 50px;
-  margin: 20px;
+/* for a centered column layout - Soham */
+.center-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8); /* Added semi-transparent white background */
+    width: 50%;
+    margin: 20px auto;
+    border-radius: 8px;
+}
+
+/* Styles for the grocery list - Soham */
+.grocery-items {
+    margin-top: 20px;
+    width: 300px;
+}
+.grocery-items ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.grocery-items li {
+    background-color: #f9f9f9;
+    margin-bottom: 5px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
 }
 
 /* Create a button. */
 button {
-    background-color: lightgray;
-    color: black;
+    background-color: darkblue;
+    color: white;
     font-size: 16px;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
 /* User feedback on the button. */
 
 button:hover{
-    background-color: darkgray;
+    background-color: black;
 }
 
 
