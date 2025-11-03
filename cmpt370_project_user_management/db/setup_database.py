@@ -91,8 +91,8 @@ def create_tables(connection):
         create_user_profile = '''
         CREATE TABLE IF NOT EXISTS user_profile (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT not Null UNIQUE,
             email TEXT not Null UNIQUE,
+            username TEXT not Null UNIQUE,
             password TEXT not Null
         );
         '''

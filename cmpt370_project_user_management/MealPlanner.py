@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
+import bcrypt
 
 from db.setup_database import database_connection, create_tables, update_tables
 
@@ -83,10 +84,12 @@ def createProfile():
         userName = request.form['username']
         email = request.form['email']
         password = request.form['password']
+
+        hash_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
         with sqlite3.connect('db/saucyapp.db') as conn:
             cur = conn.cursor()
             cur.execute(" INSERT INTO user_profile (username, email, password) VALUES (?, ?,?)",
-                           (userName,email,password))
+                           (userName,email,hash_password))
             conn.commit()
         return render_template('homePage.html')
     else:
@@ -99,6 +102,29 @@ def user_list_for_testing():
     cur.execute(" SELECT * FROM user_profile")
     rows = cur.fetchall()
     return render_template("user_list_for_testing.html", data=rows)
+
+@app.route('/create_comment',methods=['GET', 'POST'])
+def create_comment():
+    if request.method == 'POST':
+        # add a line to get the name of the commenter
+        comment = request.form['comment']
+        with sqlite3.connect('db/saucyapp.db') as conn:
+            cur = conn.cursor()
+            cur.execute(" INSERT INTO user_interaction (comment) VALUES (?)",
+                        (comment,))
+            conn.commit()
+        return render_template('homePage.html')
+    else:
+        return render_template('create_comment.html')
+
+@app.route('/view_comments')
+def view_comment():
+    connect = sqlite3.connect('db/saucyapp.db')
+    cur = connect.cursor()
+    cur.execute(" SELECT * FROM user_interaction")
+    com_rows = cur.fetchall()
+    return render_template("view_comments.html", com_data=com_rows)
+
 
 # -------------------------------------
 # ROUTE: View Recipe List
