@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>List of users (for testing)</title>
+</head>
+    <style>
+        table, th, td {
+          border:1px solid black;
+        }
+        </style>
+<body>
+        <table style="width:100%">
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Password</th>
+            </tr>
+            {%for participant in data%}
+               <tr>
+                 <td>{{participant[2]}}</td> <!-- This shows the username -->
+                 <td>{{participant[1]}}</td> <!-- This shows the password -->
+                 <td>{{participant[3]}}</td>
+                </tr>
+            {%endfor%}
+          </table>
+
+</body>
+</html>
