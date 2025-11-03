@@ -1,7 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 
+from db.setup_database import database_connection, create_tables, update_tables
+
 app = Flask(__name__)
+DB_NAME = "db/aucyapp.db"
 
 # Routing to a home page.
 @app.route('/')
@@ -17,12 +20,14 @@ def grocery_list():
     cursor = conn.cursor()
 
     # Fetch items for the current user
-    cursor.execute("SELECT item_text FROM grocery_list WHERE user_id = ?", (current_user_id,))
+    cursor.execute("SELECT item_id, item_text, quantity FROM grocery_list WHERE user_id = ?", (current_user_id,))
     items_tuples = cursor.fetchall()
     conn.close()
 
     # Convert list of tuples to a list of dicts
-    items_list = [{"item_text": row[0]} for row in items_tuples]
+    items_list = []
+    for row in items_tuples:
+        items_list.append({"id": row[0], "item_text": row[1], "quantity": row[2]})
 
     return render_template('grocery_list.html', items=items_list)
 
@@ -33,14 +38,16 @@ def add_grocery_item():
     if request.method == 'POST':
         item_text = request.form['item_text']
 
+        quantity = request.form['quantity']
+
         current_user_id = 1
 
         if item_text:
             conn = database_connection(DB_NAME)
             cursor = conn.cursor()
             try:
-                cursor.execute("INSERT INTO grocery_list (user_id, item_text) VALUES (?, ?)",
-                               (current_user_id, item_text))
+                cursor.execute("INSERT INTO grocery_list (user_id, item_text, quantity) VALUES (?, ?, ?)",
+                               (current_user_id, item_text, quantity))
                 conn.commit()
             except sqlite3.Error as e:
                 print("Error adding grocery item:", e)
@@ -49,6 +56,26 @@ def add_grocery_item():
 
         # Redirect back to the grocery list page
         return redirect(url_for('grocery_list'))
+
+
+@app.route('/remove_grocery_item', methods=['POST'])
+def remove_grocery_item():
+    if request.method == 'POST':
+        item_id = request.form['item_id']
+
+        conn = database_connection(DB_NAME)
+        cursor = conn.cursor()
+        try:
+            # Delete the item based on its unique item_id
+            cursor.execute("DELETE FROM grocery_list WHERE item_id = ?", (item_id,))
+            conn.commit()
+        except sqlite3.Error as e:
+            print("Error removing grocery item:", e)
+        finally:
+            conn.close()
+
+    # Redirect back to the grocery list page
+    return redirect(url_for('grocery_list'))
 
 @app.route('/create_profile', methods=['GET', 'POST'])
 def createProfile():
@@ -113,5 +140,6 @@ if __name__ == '__main__':
     conn = database_connection(DB_NAME)
     if conn is not None:
         create_tables(conn)
+        update_tables(conn)
         conn.close()
     app.run(debug=True)
