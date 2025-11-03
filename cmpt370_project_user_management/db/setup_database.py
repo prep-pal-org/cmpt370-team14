@@ -117,6 +117,7 @@ def create_tables(connection):
                     item_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER,
                     item_text TEXT NOT NULL,
+                    quantity TEXT, 
                     FOREIGN KEY(user_id) REFERENCES user_profile (user_id)
                 );
                 '''
@@ -144,23 +145,51 @@ def create_tables(connection):
     return True
 
 
+def update_tables(connection):
+    """
+    Safely adds new columns to existing tables without deleting data.
+    """
+    try:
+        cursor = connection.cursor()
+
+        # Try to add the 'quantity' column to 'grocery_list'
+        # This will fail if the column already exists, which is fine.
+        try:
+            cursor.execute("ALTER TABLE grocery_list ADD COLUMN quantity TEXT")
+            print("Added 'quantity' column to grocery_list.")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" in str(e):
+                pass  # Column already exists, do nothing
+            else:
+                raise  # Re-raise other errors
+
+        connection.commit()
+        return True
+
+    except Error as e:
+        print('Error while updating tables', e)
+        return False
+
 
 def main():
-    #Connect to database
+    # Connect to database
     database = 'saucyapp.db'
     connection = database_connection(database)
 
-    #Check connection established
+    # Check connection established
     if connection is not None:
-        #If successful, try to create tables
+        # If successful, try to create tables
         if create_tables(connection):
             print('Tables created')
+            # Also update tables
+            if update_tables(connection):
+                print("Tables updated")
+            else:
+                print("Tables not updated")
         else:
             print('Tables not created')
     else:
         print('Database connection failed')
-
-
 
 if __name__ == '__main__':
     main()
