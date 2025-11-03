@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 import sqlite3
+import bcrypt
 
 app = Flask(__name__)
 
@@ -14,10 +15,12 @@ def createProfile():
         userName = request.form['username']
         email = request.form['email']
         password = request.form['password']
+
+        hash_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
         with sqlite3.connect('db/saucyapp.db') as conn:
             cur = conn.cursor()
             cur.execute(" INSERT INTO user_profile (username, email, password) VALUES (?, ?,?)",
-                           (userName,email,password))
+                           (userName,email,hash_password))
             conn.commit()
         return render_template('homePage.html')
     else:
