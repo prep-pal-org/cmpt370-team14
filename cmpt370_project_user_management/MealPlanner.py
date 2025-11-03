@@ -5,9 +5,9 @@ import bcrypt
 from db.setup_database import database_connection, create_tables, update_tables
 
 app = Flask(__name__)
-DB_NAME = "db/aucyapp.db"
+DB_NAME = "db/saucyapp.db"
 
-# Routing to a home page.
+# Routing to a home page - Randi.
 @app.route('/')
 def home():
     return render_template('homePage.html')
@@ -78,6 +78,7 @@ def remove_grocery_item():
     # Redirect back to the grocery list page
     return redirect(url_for('grocery_list'))
 
+# User profile creation -Randi
 @app.route('/create_profile', methods=['GET', 'POST'])
 def createProfile():
     if request.method == 'POST':
@@ -95,6 +96,7 @@ def createProfile():
     else:
         return render_template('create_profile.html')
 
+# User list for testing purposes - Randi
 @app.route('/user_list_for_testing')
 def user_list_for_testing():
     connect = sqlite3.connect('db/saucyapp.db')
@@ -103,6 +105,7 @@ def user_list_for_testing():
     rows = cur.fetchall()
     return render_template("user_list_for_testing.html", data=rows)
 
+# Create a comment - Randi
 @app.route('/create_comment',methods=['GET', 'POST'])
 def create_comment():
     if request.method == 'POST':
@@ -117,6 +120,7 @@ def create_comment():
     else:
         return render_template('create_comment.html')
 
+# View a comment - Randi
 @app.route('/view_comments')
 def view_comment():
     connect = sqlite3.connect('db/saucyapp.db')
