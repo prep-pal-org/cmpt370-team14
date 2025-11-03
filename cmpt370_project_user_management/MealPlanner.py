@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
+from Controller.RecipeManager import RecipeManager
+from Model.Recipe import Recipe
 import sqlite3
 
 app = Flask(__name__)
@@ -30,6 +32,41 @@ def user_list_for_testing():
     cur.execute(" SELECT * FROM user_profile")
     rows = cur.fetchall()
     return render_template("user_list_for_testing.html", data=rows)
+
+# -------------------------------------
+# ROUTE: View Recipe List
+# -------------------------------------
+@app.route('/recipes')
+def recipe_list():
+    """Display the recipe list page."""
+    # For now, just a placeholder page
+    # Later we can connect this to RecipeManager
+    return render_template('recipe_list.html')
+
+
+# -------------------------------------
+# ROUTE: Add a Recipe
+# -------------------------------------
+@app.route('/recipes/add', methods=['GET', 'POST'])
+def add_recipe():
+    """Display the add recipe form and handle submission."""
+    if request.method == 'POST':
+        # For now, just print to console instead of saving
+        name = request.form['name']
+        ingredients = request.form['ingredients']
+        instructions = request.form['instructions']
+
+        print(f"Recipe added: {name}")
+        print(f"Ingredients: {ingredients}")
+        print(f"Instructions: {instructions}")
+
+        # After adding, go back to list
+        return redirect(url_for('recipe_list'))
+
+    # On GET, just show the form
+    return render_template('recipe_add.html')
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
