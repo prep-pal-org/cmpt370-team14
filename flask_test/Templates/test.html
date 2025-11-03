@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"
+<head>
+    <meta charset="UTF-8">
+    <title>Saucy App</title>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='style.css')}}">
+</head>
+<body>
+    <h2>Welcome to Saucy!</h2>
+    <p>This is a basic example</p>
+    <div class="center">
+        <h1>Did this work?</h1>
+    </div>
+    <button id="showTableButton">Click Me</button>
+    <table id="myTable">
+        <tr>
+            <th>Name</th>
+            <th>Age</th>
+        </tr>
+        <tr>
+            <td>Alice</td>
+            <td>25</td>
+        </tr>
+        <tr>
+            <td>Bob</td>
+            <td>30</td>
+        </tr>
+    </table>
+    <script src="{{ url_for('static', filename='js.js') }}"></script>
+
+
+</body>
+</html>
