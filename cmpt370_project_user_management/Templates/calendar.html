@@ -1,3 +1,30 @@
+<!--Todo: move calendar block bach into base code - work on consistent style, fix Modal background transparency -->
+
+<!--Temporary base html template for testing/running calendar feature - Jordan -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Meal Planning App</title>
+    <!--CSS Style  -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='calendar_style.css') }}">
+    <!--FullCalendar core and month view import  -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+
+</head>
+<body>
+    <header>
+        <h1>Meal Planning App</h1>
+    </header>
+    <main>
+        {% block content %} {% endblock %}
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>
+
+</body>
+</html>
+
 <!--Calender template block, to define Modal Box layouts - Jordan -->
 {% extends 'base.html' %}
 {% block content %}
