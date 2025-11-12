@@ -96,6 +96,27 @@ def createProfile():
     else:
         return render_template('create_profile.html')
 
+@app.route('/login_page', methods=['GET', 'POST'])
+def login():
+    message = ''
+    if request.method == 'POST':
+        userName = request.form['username']
+        entered_password = request.form['password']
+
+        with sqlite3.connect('db/saucyapp.db') as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT password FROM user_profile WHERE username = ?", (userName,))
+            result = cur.fetchone()
+        if result is None:
+            message = 'Invalid username or password'
+        elif entered_password == result[0]:
+            message = "YAY! you logged in!"
+        else:
+            message = "YOU ARE NOT LOGGED IN!"
+        print(message)
+    return render_template('login_page.html',message=message)
+
+
 # User list for testing purposes - Randi
 @app.route('/user_list_for_testing')
 def user_list_for_testing():

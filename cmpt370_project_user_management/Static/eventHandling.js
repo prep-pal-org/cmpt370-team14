@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const button2 = document.getElementById('SeeUsers')
     const button3 = document.getElementById('comment')
     const button4 = document.getElementById('viewcomment')
+    const button5 = document.getElementById('login')
 
     button1.addEventListener('click',function() {
         window.location.href = "/create_profile";
@@ -20,6 +21,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
     button4.addEventListener('click', function (){
         window.location.href = "/view_comments";
+    });
+
+    button5.addEventListener('click',function(){
+        window.location.href = "/login_page";
     });
 
 });
