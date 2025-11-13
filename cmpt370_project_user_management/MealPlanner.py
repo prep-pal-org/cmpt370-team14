@@ -10,7 +10,7 @@ DB_NAME = "db/saucyapp.db"
 # Routing to a home page - Randi.
 @app.route('/')
 def home():
-    return render_template('homePage.html')
+    return render_template('use_home_page.html')
 
 # Routing for the grocery list
 @app.route('/grocery-list')

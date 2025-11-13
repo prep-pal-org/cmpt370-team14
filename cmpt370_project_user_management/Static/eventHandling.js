@@ -1,29 +1,34 @@
 // Linking the user and comments buttons - Randi
 document.addEventListener('DOMContentLoaded', function(){
     const button1 = document.getElementById('CreateProfile')
-    const button2 = document.getElementById('SeeUsers')
+    const button2 = document.getElementById('see_users')
     const button3 = document.getElementById('comment')
-    const button4 = document.getElementById('viewcomment')
+    const button4 = document.getElementById('home')
     const button5 = document.getElementById('login')
 
-    button1.addEventListener('click',function() {
+    button1.addEventListener('click',function(event) {
+        event.preventDefault()
         window.location.href = "/create_profile";
 
     });
 
-    button2.addEventListener('click',function() {
+    button2.addEventListener('click',function(event) {
+        event.preventDefault()
         window.location.href = "/user_list_for_testing";
     });
 
-    button3.addEventListener('click',function(){
-        window.location.href = "/create_comment";
+    button3.addEventListener('click',function(event){
+        event.preventDefault()
+        window.location.href = "/use_home_page";
     });
 
-    button4.addEventListener('click', function (){
+    button4.addEventListener('click', function (event){
+        event.preventDefault()
         window.location.href = "/view_comments";
     });
 
-    button5.addEventListener('click',function(){
+    button5.addEventListener('click',function(event){
+        event.preventDefault()
         window.location.href = "/login_page";
     });
 

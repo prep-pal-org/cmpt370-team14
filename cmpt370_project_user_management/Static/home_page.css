@@ -1,0 +1,76 @@
+/* Home page image - Randi */
+body {
+    margin: 0;
+    padding: 0;
+    background-image: url("home_page_image.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    box-sizing: content-box;
+
+}
+/* Top navigation bar. - Randi */
+.topnav {
+    position: fixed;
+    overflow: hidden;
+    background: transparent;
+}
+
+/* Navigation bar links. - Randi */
+.topnav a {
+    float: right;
+    display: block;
+    color: black;
+    font-weight: bold;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+/* Navigation link feedback. - Randi */
+.topnav a:hover {
+    text-decoration: underline;
+}
+
+/* Body content location and spacing
+of the home page - Randi */
+.content {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 10pt;
+
+}
+
+h1 {
+    color: darkgreen;
+    font-size: 40pt;
+    margin-bottom: 0pt;
+
+    /*align-items: center;
+    justify-content: center;*/
+}
+
+p1 {
+    margin-top: 0pt;
+    font-size: 20pt;
+}
+
+button {
+    background-color: darkgreen;
+    color: white;
+    font-size: 16px;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+/* User feedback on the button. - Randi */
+
+button:hover{
+    text-decoration: underline;
+}
