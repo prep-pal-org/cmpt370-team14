@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const button2 = document.getElementById('SeeUsers')
     const button3 = document.getElementById('comment')
     const button4 = document.getElementById('viewcomment')
+    const button_calendar = document.getElementById('calendar_view')
 
     button1.addEventListener('click',function() {
         window.location.href = "/create_profile";
@@ -21,6 +22,10 @@ document.addEventListener('DOMContentLoaded', function(){
     button4.addEventListener('click', function (){
         window.location.href = "/view_comments";
     });
+
+    button_calendar.addEventListener('click', function(){
+        window.location.href = "/calendar";
+    })
 
 });
 
@@ -68,8 +73,9 @@ document.addEventListener('DOMContentLoaded',function(){
      * @param dateStr - date string YYYY-MM-DD passed from FullCalendar
      */
     function openAddModal(dateStr){
-        document.getElementById('addDate').value = dateStr;
         document.getElementById('addForm').reset();
+        document.getElementById('addDate').value = dateStr;
+
         addModal.classList.remove('hidden');
     }
 
