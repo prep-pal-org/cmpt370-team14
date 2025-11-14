@@ -1,0 +1,40 @@
+<!-- Login page. --Randi -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='form_webpage.css') }}">
+</head>
+<body>
+    <div class="topnav">
+        <a href="/login_page" id="login">Login</a>
+        <a href="/user_list_for_testing" id="see_users">About Us</a>
+        <a href="/" id="home">Home</a>
+    </div>
+
+    <div class="container">
+        <form method="POST" class="login-form" action="{{ url_for('login') }}">
+            <h2>Login</h2>
+          <label for="username">Username:</label><br>
+          <input type="text" id="username" name="username"><br>
+          <label for="password">Password:</label><br>
+          <input type="password" id="password" name="password"><br><br>
+          <input type="submit" value="Submit">
+        </form>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div id="popup" class="popup">
+                <div class="popup-content">
+                    <p>{{ messages[0] }}</p>
+                    <button onclick="closePopup()">Close</button>
+                </div>
+            </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>
+</body>
+</html>

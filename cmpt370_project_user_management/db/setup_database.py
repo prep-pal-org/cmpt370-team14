@@ -109,6 +109,18 @@ def create_tables(connection):
         '''
 
 
+        #connect one calender to different users -Randi
+        #calendar_users = '''
+        #CREATE TABLE IF NOT EXISTS calendar_users (
+        #    mealID INTEGER PRIMARY KEY AUTOINCREMENT,
+        #    calendar_id INTEGER NOT NULL,
+        #    user_id INTEGER NOT NULL,
+        #    FOREIGN KEY(calendar_id) REFERENCES calendar_schedular (calender_id)
+        #    FOREIGN KEY(user_id) REFERENCES user_profile (user_id)
+        #);
+        #'''
+
+
         #Other tables here \/\/\/
 
         # grocery_list table - Soham

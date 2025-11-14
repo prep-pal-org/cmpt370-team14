@@ -1,0 +1,30 @@
+<!-- New home page. -Randi -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width-device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='home_page.css') }}">
+</head>
+<body>
+
+    <!-- Link to the top navigation bar. - Randi -->
+    <div class="topnav">
+        <a href="/login_page" id="login">Login</a>
+        <a href="/user_list_for_testing" id="see_users">About Us</a>
+        <a href="/" id="home">Home</a>
+        <a href="/old_home" id="old_home">Old Home Page</a>
+    </div>
+
+    <!-- Set the page content. -Randi -->
+    <div class="content">
+        <h1>WELCOME!</h1>
+        <p1>Your family meal planner!</p1>
+        <button id="CreateProfile">SIGN UP NOW!</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>
+
+</body>
+</html>

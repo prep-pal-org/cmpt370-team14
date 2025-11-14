@@ -1,28 +1,48 @@
 // Linking the user and comments buttons - Randi
 document.addEventListener('DOMContentLoaded', function(){
     const button1 = document.getElementById('CreateProfile')
-    const button2 = document.getElementById('SeeUsers')
+    const button2 = document.getElementById('try_again')
     const button3 = document.getElementById('comment')
-    const button4 = document.getElementById('viewcomment')
+    const button4 = document.getElementById('home')
+    const button5 = document.getElementById('login')
+    const button6 = document.getElementById('logout')
 
-    button1.addEventListener('click',function() {
+    button1.addEventListener('click',function(event) {
+        event.preventDefault()
         window.location.href = "/create_profile";
 
     });
 
-    button2.addEventListener('click',function() {
-        window.location.href = "/user_list_for_testing";
+    button2.addEventListener('click',function(event) {
+        event.preventDefault()
+        window.location.href = "/login_page";
     });
 
-    button3.addEventListener('click',function(){
-        window.location.href = "/create_comment";
+    button3.addEventListener('click',function(event){
+        event.preventDefault()
+        window.location.href = "/use_home_page";
     });
 
-    button4.addEventListener('click', function (){
+    button4.addEventListener('click', function (event){
+        event.preventDefault()
         window.location.href = "/view_comments";
     });
 
+    button5.addEventListener('click',function(event){
+        event.preventDefault()
+        window.location.href = "/login_page";
+    });
+
+    button6.addEventListener('click',function (event){
+        event.preventDefault()
+        window.location.href = "/login_page";
+    });
+
 });
+function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+}
+
 
 /**
  * Calendar event listener system - uses FullCalender addon and event listeners to handle all interactions on Calendar and Modal Boxes
