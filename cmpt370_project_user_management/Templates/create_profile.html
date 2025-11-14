@@ -3,18 +3,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Create Profile</title>
+    <meta name="viewport" content="width-device-width, initial-scale=1.0">
+    <title>Create Profile Page</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='form_webpage.css') }}">
 </head>
 <body>
-    <form method="POST"> <!-- method=POST is what connects the form to SQLite -->
-        <label for = "username">User Name:</label><br>
-        <input type="text" id="username" name="username"><br>
-        <label for = "email">Email:</label><br>
-        <input type="text" id="email" name="email"><br>
-        <label for = "password">Password:</label><br>
-        <input type="text" id="password" name="password"><br>
-        <input type="submit" value="Submit">
-    </form>
+    <div class="topnav">
+        <a href="/login_page" id="login">Login</a>
+        <a href="/user_list_for_testing" id="see_users">About Us</a>
+        <a href="/" id="home">Home</a>
+    </div>
+
+    <div class="container">
+        <form method="POST" class="login-form">
+            <h2>Create Profile</h2>
+            <label for="username">User Name:</label><br>
+            <input type="text" id="username" name="username" required><br>
+
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" required><br>
+
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password" required><br>
+
+            <button type="submit">Submit</button>
+        </form>
+
+        {% with message = get_flashed_messages() %}
+            {% if message %}
+            <div id="popup" class="popup">
+                <div class="popup-content">
+                    <p>{{ message[0] }}</p>
+                    <button onclick="closePopup()">Close</button>
+                </div>
+            </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>
+
 
 </body>
 </html>
