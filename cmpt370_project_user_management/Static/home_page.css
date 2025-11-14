@@ -9,16 +9,22 @@ body {
     box-sizing: content-box;
 
 }
+
 /* Top navigation bar. - Randi */
 .topnav {
     position: fixed;
-    overflow: hidden;
+    top: 0;
+    left: 0;
+    width: 100%;
     background: transparent;
+    padding: 15px;
+    z-index: 1000;
 }
 
-/* Navigation bar links. - Randi */
+
+/* Topnav links. -Randi */
 .topnav a {
-    float: right;
+    float: left;
     display: block;
     color: black;
     font-weight: bold;
@@ -45,6 +51,7 @@ of the home page - Randi */
 
 }
 
+/* Homepage header design. -Randi */
 h1 {
     color: darkgreen;
     font-size: 40pt;
@@ -54,11 +61,13 @@ h1 {
     justify-content: center;*/
 }
 
+/* Home page paragraph design. -Randi */
 p1 {
     margin-top: 0pt;
     font-size: 20pt;
 }
 
+/* Sign up button on home page. -Randi */
 button {
     background-color: darkgreen;
     color: white;

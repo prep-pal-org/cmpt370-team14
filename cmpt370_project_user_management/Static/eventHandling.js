@@ -1,10 +1,11 @@
 // Linking the user and comments buttons - Randi
 document.addEventListener('DOMContentLoaded', function(){
     const button1 = document.getElementById('CreateProfile')
-    const button2 = document.getElementById('see_users')
+    const button2 = document.getElementById('try_again')
     const button3 = document.getElementById('comment')
     const button4 = document.getElementById('home')
     const button5 = document.getElementById('login')
+    const button6 = document.getElementById('logout')
 
     button1.addEventListener('click',function(event) {
         event.preventDefault()
@@ -14,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     button2.addEventListener('click',function(event) {
         event.preventDefault()
-        window.location.href = "/user_list_for_testing";
+        window.location.href = "/login_page";
     });
 
     button3.addEventListener('click',function(event){
@@ -32,7 +33,16 @@ document.addEventListener('DOMContentLoaded', function(){
         window.location.href = "/login_page";
     });
 
+    button6.addEventListener('click',function (event){
+        event.preventDefault()
+        window.location.href = "/login_page";
+    });
+
 });
+function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+}
+
 
 /**
  * Calendar event listener system - uses FullCalender addon and event listeners to handle all interactions on Calendar and Modal Boxes

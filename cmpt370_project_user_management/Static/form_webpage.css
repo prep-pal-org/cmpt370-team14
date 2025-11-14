@@ -1,4 +1,4 @@
-/* Home page image - Randi */
+/* Web page image - Randi */
 body {
     margin: 0;
     padding: 0;
@@ -9,16 +9,22 @@ body {
     box-sizing: content-box;
 
 }
-/* Top navigation bar. - Randi */
+
+/* Top navigation bar style. -Randi */
 .topnav {
     position: fixed;
-    overflow: hidden;
+    top: 0;
+    left: 0;
+    width: 100%;
     background: transparent;
+    padding: 15px;
+    z-index: 1000;
 }
 
-/* Navigation bar links. - Randi */
+
+/* Top navigation bar links. -Randi */
 .topnav a {
-    float: right;
+    float: left;
     display: block;
     color: black;
     font-weight: bold;
@@ -32,27 +38,19 @@ body {
     text-decoration: underline;
 }
 
-body, html {
-  height: 100%;
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
-}
-
-/* Center container using Flexbox */
+/* Center container used to place forms in center of web page -Randi */
 .container {
   display: flex;
-  justify-content: center; /* horizontal center */
-  align-items: center;     /* vertical center */
-  height: 100%;            /* full viewport height */
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }
 
-/* Style the form */
+/* Style the input form. -Randi */
 .login-form {
-  background-color: rgba(200,200,200,0.5);
+  background-color: rgba(200,200,200,0.5); /* Used RBGA to add transperancy. */
   padding: 30px;
   border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   width: 300px;
   text-align: center;
 }
@@ -67,12 +65,34 @@ body, html {
 .login-form button {
   width: 100%;
   padding: 10px;
-  background-color: #333;
+  background-color: black;
   color: white;
   border: none;
   cursor: pointer;
 }
 
 .login-form button:hover {
-  background-color: #555;
+  text-decoration: underline;
+}
+
+
+/* Design pop-up for user messages. -Randi */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(200,200,200,0.5); /* RBGA used to add transperancy. */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.popup-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  width: 250px;
 }

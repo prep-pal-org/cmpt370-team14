@@ -8,9 +8,14 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MealPlanner.py" beforeDir="false" afterPath="$PROJECT_DIR$/MealPlanner.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Static/eventHandling.js" beforeDir="false" afterPath="$PROJECT_DIR$/Static/eventHandling.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Static/form_webpage.css" beforeDir="false" afterPath="$PROJECT_DIR$/Static/form_webpage.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Static/home_page.css" beforeDir="false" afterPath="$PROJECT_DIR$/Static/home_page.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Templates/create_profile.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/create_profile.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/login_landing_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/login_landing_page.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Templates/login_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/login_page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/use_home_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/use_home_page.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db/saucyapp.db" beforeDir="false" afterPath="$PROJECT_DIR$/db/saucyapp.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/setup_database.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/setup_database.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -139,7 +144,7 @@
       <workItem from="1762176896183" duration="644000" />
       <workItem from="1762187484727" duration="3383000" />
       <workItem from="1762352553271" duration="6187000" />
-      <workItem from="1762956917576" duration="23154000" />
+      <workItem from="1762956917576" duration="47206000" />
     </task>
     <servers />
   </component>
@@ -149,7 +154,7 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/cmpt370_project_user_management$User.coverage" NAME="User Coverage Results" MODIFIED="1761752493238" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Model" />
     <SUITE FILE_PATH="coverage/cmpt370_project_user_management$setup_database.coverage" NAME="setup_database Coverage Results" MODIFIED="1760731969463" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/cmpt370_project_user_management$cmpt370_project_user_management.coverage" NAME="cmpt370_project_user_management Coverage Results" MODIFIED="1763076797130" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/cmpt370_project_user_management$cmpt370_project_user_management.coverage" NAME="cmpt370_project_user_management Coverage Results" MODIFIED="1763155057694" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/cmpt370_project_user_management$user_testing.coverage" NAME="user_testing Coverage Results" MODIFIED="1761752506832" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Model" />
     <SUITE FILE_PATH="coverage/cmpt370_project_user_management$MealPlanner.coverage" NAME="MealPlanner Coverage Results" MODIFIED="1762135229971" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>

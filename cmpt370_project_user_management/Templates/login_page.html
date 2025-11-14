@@ -1,3 +1,4 @@
+<!-- Login page. --Randi -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +14,7 @@
     </div>
 
     <div class="container">
-        <form method="POST" class="login-form">
+        <form method="POST" class="login-form" action="{{ url_for('login') }}">
             <h2>Login</h2>
           <label for="username">Username:</label><br>
           <input type="text" id="username" name="username"><br>
@@ -21,15 +22,19 @@
           <input type="password" id="password" name="password"><br><br>
           <input type="submit" value="Submit">
         </form>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div id="popup" class="popup">
+                <div class="popup-content">
+                    <p>{{ messages[0] }}</p>
+                    <button onclick="closePopup()">Close</button>
+                </div>
+            </div>
+            {% endif %}
+        {% endwith %}
     </div>
+
     <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>
-
-    {% if message %}
-  <p>{{ message }}</p>
-  <script>
-    console.log("{{ message }}");
-  </script>
-{% endif %}
-
 </body>
 </html>

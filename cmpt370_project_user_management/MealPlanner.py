@@ -1,16 +1,22 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import sqlite3
 import bcrypt
 
 from db.setup_database import database_connection, create_tables, update_tables
 
 app = Flask(__name__)
+app.secret_key = "saucy"
 DB_NAME = "db/saucyapp.db"
 
 # Routing to a home page - Randi.
 @app.route('/')
 def home():
     return render_template('use_home_page.html')
+
+# Rout to the old home page -Randi
+@app.route('/old_home')
+def old_home():
+    return render_template('homePage.html')
 
 # Routing for the grocery list
 @app.route('/grocery-list')
@@ -81,21 +87,28 @@ def remove_grocery_item():
 # User profile creation -Randi
 @app.route('/create_profile', methods=['GET', 'POST'])
 def createProfile():
+    message = ''
     if request.method == 'POST':
         userName = request.form['username']
         email = request.form['email']
         password = request.form['password']
 
         hash_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-        with sqlite3.connect('db/saucyapp.db') as conn:
-            cur = conn.cursor()
-            cur.execute(" INSERT INTO user_profile (username, email, password) VALUES (?, ?,?)",
+        try:
+            with sqlite3.connect('db/saucyapp.db') as conn:
+                cur = conn.cursor()
+                cur.execute(" INSERT INTO user_profile (username, email, password) VALUES (?, ?,?)",
                            (userName,email,hash_password))
-            conn.commit()
-        return render_template('homePage.html')
-    else:
-        return render_template('create_profile.html')
+                conn.commit()
+                flash("Profile created successfully")
+                return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            flash("Username already taken.")
+            return redirect(url_for('createProfile'))
 
+    return render_template('create_profile.html')
+
+# Login page -Randi
 @app.route('/login_page', methods=['GET', 'POST'])
 def login():
     message = ''
@@ -108,13 +121,32 @@ def login():
             cur.execute("SELECT password FROM user_profile WHERE username = ?", (userName,))
             result = cur.fetchone()
         if result is None:
-            message = 'Invalid username or password'
-        elif entered_password == result[0]:
-            message = "YAY! you logged in!"
+            flash('Invalid username or password')
+
         else:
-            message = "YOU ARE NOT LOGGED IN!"
-        print(message)
-    return render_template('login_page.html',message=message)
+            stored_hash = result[0]
+            if isinstance(stored_hash, str):
+                stored_hash = stored_hash.encode("utf-8")
+
+            if bcrypt.checkpw(entered_password.encode("utf-8"), stored_hash):
+                session['username'] = userName
+                return render_template('login_landing_page.html')
+            else:
+                flash("Invalid username or password")
+    return render_template('login_page.html')
+
+# Login landing page -Randi
+@app.route('/login_landing_page')
+def login_landing_page():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('login_landing_page.html')
+
+# User logout. -Randi
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
 
 # User list for testing purposes - Randi
