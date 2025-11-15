@@ -40,9 +40,8 @@ def create_tables(connection):
             recipe_id INTEGER,
             calendar_id INTEGER,
             recurrence_id INTEGER,
-            FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id),
-            FOREIGN KEY(recurrence_id) REFERENCES recurring_event (recurrence_id),
-            CONSTRAINT unique_event UNIQUE(event_date, event_time)                
+            FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id)  
+            UNIQUE(event_date, event_time)            
         );
         '''
 
@@ -50,9 +49,7 @@ def create_tables(connection):
         create_calendar_schedule = '''
         CREATE TABLE IF NOT EXISTS calendar_schedule (
             calendar_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            event_id INTEGER,
-            user_id INTEGER,
-            FOREIGN KEY(event_id) REFERENCES calendar_event (event_id)        
+            user_id INTEGER        
         );
         '''
 

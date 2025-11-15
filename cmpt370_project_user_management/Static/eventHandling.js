@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const button4 = document.getElementById('home')
     const button5 = document.getElementById('login')
     const button6 = document.getElementById('logout')
+    const button7 = document.getElementById('calendar_view')
 
     button1.addEventListener('click',function(event) {
         event.preventDefault()
@@ -37,6 +38,11 @@ document.addEventListener('DOMContentLoaded', function(){
         event.preventDefault()
         window.location.href = "/login_page";
     });
+    button7.addEventListener('click', function(event){
+        event.preventDefault()
+        window.location.href = "/calendar";
+    })
+
 
 });
 function closePopup() {
@@ -88,8 +94,8 @@ document.addEventListener('DOMContentLoaded',function(){
      * @param dateStr - date string YYYY-MM-DD passed from FullCalendar
      */
     function openAddModal(dateStr){
-        document.getElementById('addDate').value = dateStr;
         document.getElementById('addForm').reset();
+        document.getElementById('addDate').value = dateStr;
         addModal.classList.remove('hidden');
     }
 
