@@ -3,7 +3,8 @@ import sqlite3
 import bcrypt
 
 from db.setup_database import database_connection, create_tables, update_tables
-from cmpt370_project_user_management.Model.calendar_service import CalendarService
+from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
+from werkzeug.exceptions import Conflict
 
 app = Flask(__name__)
 app.secret_key = "saucy"
@@ -234,7 +235,7 @@ def calendar_view():
             print("user_id is None - calendar_view function")
             return redirect(url_for("home"))
         else: #Else get/create the calendar_id for this user and set session variable, render calendar
-            calendar_id = calendar_service.create_new_calendar(connection, user_id[0])
+            calendar_id = calendar_service.create_or_get_calendar(connection, user_id[0])
             session["calendar_id"] = calendar_id
             return render_template("calendar.html", calendar_id=calendar_id)
     except sqlite3.Error as e:
@@ -299,8 +300,9 @@ def api_add_event():
             event_time=data["event_time"]
         )
         return jsonify({"event_id": event_id})
-    except sqlite3.Error as e:
-        print("Error adding event:", e)
+    except CalendarError as e:
+
+        return jsonify({"error": str(e)}), 409
     finally:
         #Close connection when done
         connection.close()

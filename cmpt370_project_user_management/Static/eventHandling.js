@@ -87,7 +87,10 @@ document.addEventListener('DOMContentLoaded',function(){
     //Declare Modal instance variables
     const addModal = document.getElementById('addModal');
     const viewModal = document.getElementById('viewModal');
-
+    const alertModal = document.getElementById('alertModal');
+    const alertTitle = document.getElementById('alert_title');
+    const alertMessage = document.getElementById('alert_message');
+    const alertClose = document.getElementById('alert_close');
     /**
      * openAddModal function, used to show the UI for adding an event
      * Form is cleared on opening, other than date parameter
@@ -97,6 +100,13 @@ document.addEventListener('DOMContentLoaded',function(){
         document.getElementById('addForm').reset();
         document.getElementById('addDate').value = dateStr;
         addModal.classList.remove('hidden');
+
+    }
+
+    function showAlert(message, title = 'Error'){
+        alertTitle.textContent = title;
+        alertMessage.textContent = message;
+        alertModal.classList.remove('hidden');
     }
 
     //Set up Submit and Close listeners to the AddModal
@@ -121,24 +131,23 @@ document.addEventListener('DOMContentLoaded',function(){
         //Check response of adding event, if ok - update calendar and hide modal
         if (response.ok){
             const data = await response.json();
-            calendar.addEvent({
-                id: data.event_id,
-                title: payload.event_name,
-                start: payload.event_date,
-                extendedProps: {
-                    timeSlot: payload.event_time,
-                    recipe_id: payload.recipe_id
-                }
-            });
+            calendar.refetchEvents();
             addModal.classList.add('hidden');
         }
+        else if (response.status === 409){
+            const err = await response.json();
+            showAlert(err.error, 'Duplicate event.')
+        }
         else{
-            alert('Failed to add event.')
+            alert('Failed to add Event.');
         }
     });
     document.getElementById('addCancel').addEventListener('click',() =>{
         addModal.classList.add('hidden');
     });
+    alertClose.addEventListener('click', () =>{
+        alertModal.classList.add('hidden');
+    })
 
     /**
      * openViewModal function - used to show calendar event details and option to delete
