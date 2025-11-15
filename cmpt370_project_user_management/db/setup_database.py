@@ -30,7 +30,7 @@ def create_tables(connection):
         #Create cursor for database operations
         cursor = connection.cursor()
 
-        #calendar_event table - Jordan Todo: update tables
+        #calendar_event table - Jordan
         create_calendar_event = '''
         CREATE TABLE IF NOT EXISTS calendar_event (
             event_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,7 +40,8 @@ def create_tables(connection):
             recipe_id INTEGER,
             calendar_id INTEGER,
             recurrence_id INTEGER,
-            FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id)              
+            FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id)  
+            UNIQUE(event_date, event_time)            
         );
         '''
 
