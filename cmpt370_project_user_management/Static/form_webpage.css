@@ -1,0 +1,98 @@
+/* Web page image - Randi */
+body {
+    margin: 0;
+    padding: 0;
+    background-image: url("home_page_image.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    box-sizing: content-box;
+
+}
+
+/* Top navigation bar style. -Randi */
+.topnav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: transparent;
+    padding: 15px;
+    z-index: 1000;
+}
+
+
+/* Top navigation bar links. -Randi */
+.topnav a {
+    float: left;
+    display: block;
+    color: black;
+    font-weight: bold;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+/* Navigation link feedback. - Randi */
+.topnav a:hover {
+    text-decoration: underline;
+}
+
+/* Center container used to place forms in center of web page -Randi */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+/* Style the input form. -Randi */
+.login-form {
+  background-color: rgba(200,200,200,0.5); /* Used RBGA to add transperancy. */
+  padding: 30px;
+  border-radius: 8px;
+  width: 300px;
+  text-align: center;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  box-sizing: border-box;
+}
+
+.login-form button {
+  width: 100%;
+  padding: 10px;
+  background-color: black;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.login-form button:hover {
+  text-decoration: underline;
+}
+
+
+/* Design pop-up for user messages. -Randi */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(200,200,200,0.5); /* RBGA used to add transperancy. */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.popup-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  width: 250px;
+}

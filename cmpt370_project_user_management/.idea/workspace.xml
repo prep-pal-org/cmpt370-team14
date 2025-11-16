@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="657f8d82-87d5-40e5-bd2c-c1ad0b71f01a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MealPlanner.py" beforeDir="false" afterPath="$PROJECT_DIR$/MealPlanner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Static/eventHandling.js" beforeDir="false" afterPath="$PROJECT_DIR$/Static/eventHandling.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Static/form_webpage.css" beforeDir="false" afterPath="$PROJECT_DIR$/Static/form_webpage.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Static/home_page.css" beforeDir="false" afterPath="$PROJECT_DIR$/Static/home_page.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/create_profile.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/create_profile.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/login_landing_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/login_landing_page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/login_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/login_page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/use_home_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/use_home_page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/saucyapp.db" beforeDir="false" afterPath="$PROJECT_DIR$/db/saucyapp.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/setup_database.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/setup_database.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JavaScript File" />
+        <option value="Python Script" />
+        <option value="HTML File" />
+        <option value="CSS File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="34CWMQDImZ4Jn2mVPs1WBcfdJPx" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "Python.MealPlanner.executor": "Run",
+    "Python.User.executor": "Run",
+    "Python.cmpt370_project_user_management.executor": "Run",
+    "Python.setup_database.executor": "Run",
+    "Python.user_testing.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "User__Management",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/rscan/OneDrive/Fall_2025/CMPT_370/calendar",
+    "list.type.of.created.stylesheet": "CSS",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="Python.cmpt370_project_user_management">
+    <configuration name="MealPlanner" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="cmpt370_project_user_management" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/MealPlanner.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cmpt370_project_user_management" type="PythonConfigurationType" factoryName="Python">
+      <module name="cmpt370_project_user_management" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/MealPlanner.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-1d06a55b98c1-91d5c284f522-JavaScript-PY-241.15989.155" />
+        <option value="bundled-python-sdk-babbdf50b680-7c6932dee5e4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-241.15989.155" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="657f8d82-87d5-40e5-bd2c-c1ad0b71f01a" name="Changes" comment="" />
+      <created>1760717987152</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1760717987152</updated>
+      <workItem from="1760718003927" duration="8518000" />
+      <workItem from="1761068454446" duration="6007000" />
+      <workItem from="1761150392200" duration="1150000" />
+      <workItem from="1761151962119" duration="2039000" />
+      <workItem from="1761315922243" duration="17125000" />
+      <workItem from="1761673602736" duration="4788000" />
+      <workItem from="1761681661319" duration="5606000" />
+      <workItem from="1761749701449" duration="4021000" />
+      <workItem from="1761756554802" duration="2171000" />
+      <workItem from="1762052389666" duration="7754000" />
+      <workItem from="1762176896183" duration="644000" />
+      <workItem from="1762187484727" duration="3383000" />
+      <workItem from="1762352553271" duration="6187000" />
+      <workItem from="1762956917576" duration="47206000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/cmpt370_project_user_management$User.coverage" NAME="User Coverage Results" MODIFIED="1761752493238" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Model" />
+    <SUITE FILE_PATH="coverage/cmpt370_project_user_management$setup_database.coverage" NAME="setup_database Coverage Results" MODIFIED="1760731969463" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/cmpt370_project_user_management$cmpt370_project_user_management.coverage" NAME="cmpt370_project_user_management Coverage Results" MODIFIED="1763155057694" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/cmpt370_project_user_management$user_testing.coverage" NAME="user_testing Coverage Results" MODIFIED="1761752506832" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Model" />
+    <SUITE FILE_PATH="coverage/cmpt370_project_user_management$MealPlanner.coverage" NAME="MealPlanner Coverage Results" MODIFIED="1762135229971" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+  </component>
+</project>

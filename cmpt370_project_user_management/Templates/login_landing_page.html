@@ -1,0 +1,27 @@
+<!-- landing page after the user logs into the meal planner. -Randi -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='landing_page.css') }}">
+</head>
+<body>
+    <div class="topnav">
+        <a href="/login_page" id="logout">Logout</a>
+        <a href="/user_list_for_testing" id="see_users">About Us</a>
+        <a href="/" id="home">Home</a>
+    </div>
+
+    <div class="content">
+        <div class="sidenav">
+            <a href="{{ url_for('add_recipe') }}">Add Recipe</a>
+            <a href="{{ url_for('recipe_list') }}">View Recipe</a>
+            <a href="{{ url_for('grocery_list') }}">Grocery List</a>
+            <a href="{{ url_for('calendar_view') }}">Calendar</a>
+        </div>
+
+    </div>
+
+</body>
+</html>

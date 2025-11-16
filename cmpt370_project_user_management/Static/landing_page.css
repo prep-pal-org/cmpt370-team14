@@ -1,0 +1,74 @@
+/* Topnav bar. -Randi */
+.topnav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: transparent;
+    padding: 15px;
+    z-index: 1000;
+}
+
+
+/* Topnav links. -Randi */
+.topnav a {
+    float: left;
+    display: block;
+    color: black;
+    font-weight: bold;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+/* Topnav link feedback for the user. -Randi */
+.topnav a:hover {
+    text-decoration: underline;
+}
+
+/* Space so content appears below the topnav. - Randi */
+body {
+    margin: 0;
+    padding-top: 30px;
+    background-image: url("home_page_image.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+/* Content screen that holds the sidnav and calender. - Randi */
+.content {
+    display: flex;
+    width: 90%;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    gap: 20px;
+}
+
+/* Sidebar navigation. - Randi */
+.sidenav {
+    width: 200px;
+    display: flex;
+    background-color: lightgreen;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Sidebar links a user to options. -Randi */
+.sidenav a {
+    margin: 0 20px;
+    font-weight: bold;
+    color: black;
+    text-decoration: none;
+}
+
+/* Sidebar links feedback. - Randi */
+.sidenav a:hover {
+    text-decoration: underline;
+}
+
+/* Calender location. - Randi */
+.sidecontent {
+    flex: 1;
+}
