@@ -1,5 +1,12 @@
+import os
 import sqlite3
 from _sqlite3 import Error
+
+# ✅ Build a consistent path: cmpt370_project_user_management/db/saucyapp.db
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "saucyapp.db")
+print("🗂 Using database at:", DB_PATH)
+
 
 """
 database_connection function - used to create a connection to a SQLite database
@@ -40,8 +47,9 @@ def create_tables(connection):
             recipe_id INTEGER,
             calendar_id INTEGER,
             recurrence_id INTEGER,
-            FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id)  
-            UNIQUE(event_date, event_time)            
+            FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id),
+            FOREIGN KEY(recurrence_id) REFERENCES recurring_event (recurrence_id),
+            CONSTRAINT unique_event UNIQUE(event_date, event_time)                
         );
         '''
 
@@ -49,7 +57,9 @@ def create_tables(connection):
         create_calendar_schedule = '''
         CREATE TABLE IF NOT EXISTS calendar_schedule (
             calendar_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER        
+            event_id INTEGER,
+            user_id INTEGER,
+            FOREIGN KEY(event_id) REFERENCES calendar_event (event_id)        
         );
         '''
 
@@ -59,18 +69,17 @@ def create_tables(connection):
         # recipe table - Baraa
         # Stores all recipe information including name, description, and creator
         create_recipe_table = '''
-               CREATE TABLE IF NOT EXISTS recipe (
-                   recipe_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                   recipe_name TEXT NOT NULL,
-                   description TEXT,
-                   ingredients TEXT,
-                   instructions TEXT,
-                   category TEXT,
-                   cooking_time INTEGER,
-                   user_id INTEGER,
-                   FOREIGN KEY(user_id) REFERENCES user(user_id)
-               );
-               '''
+        CREATE TABLE IF NOT EXISTS recipe (
+            recipe_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            recipe_name TEXT NOT NULL,
+            ingredients TEXT NOT NULL,
+            instructions TEXT NOT NULL,
+            category TEXT DEFAULT '',
+            cooking_time INTEGER DEFAULT 0,
+            user_id INTEGER,
+            FOREIGN KEY(user_id) REFERENCES user_profile(user_id)
+        );
+        '''
 
         # recipe_image table - Baraa
         # Stores paths or binary data for images linked to a recipe
@@ -88,8 +97,8 @@ def create_tables(connection):
         create_user_profile = '''
         CREATE TABLE IF NOT EXISTS user_profile (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT not Null UNIQUE,
             username TEXT not Null UNIQUE,
+            email TEXT not Null UNIQUE,
             password TEXT not Null
         );
         '''
@@ -106,36 +115,16 @@ def create_tables(connection):
         '''
 
 
-        #connect one calender to different users -Randi
-        #calendar_users = '''
-        #CREATE TABLE IF NOT EXISTS calendar_users (
-        #    mealID INTEGER PRIMARY KEY AUTOINCREMENT,
-        #    calendar_id INTEGER NOT NULL,
-        #    user_id INTEGER NOT NULL,
-        #    FOREIGN KEY(calendar_id) REFERENCES calendar_schedular (calender_id)
-        #    FOREIGN KEY(user_id) REFERENCES user_profile (user_id)
-        #);
-        #'''
-
-
         #Other tables here \/\/\/
+        #TODO - add all other tables
 
-        # grocery_list table - Soham
-        create_grocery_list = '''
-                CREATE TABLE IF NOT EXISTS grocery_list (
-                    item_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER,
-                    item_text TEXT NOT NULL,
-                    quantity TEXT, 
-                    FOREIGN KEY(user_id) REFERENCES user_profile (user_id)
-                );
-                '''
+
 
 
         #Create List of all table creation text
         #TODO - add tables created to this list
         table_list = [create_calendar_event, create_calendar_schedule, create_user_profile, create_user_interaction, create_recipe_table,
-            create_recipe_image_table, create_grocery_list]
+            create_recipe_image_table]
 
 
         #Loop through list for execute, actually creating tables
@@ -154,51 +143,23 @@ def create_tables(connection):
     return True
 
 
-def update_tables(connection):
-    """
-    Safely adds new columns to existing tables without deleting data.
-    """
-    try:
-        cursor = connection.cursor()
-
-        # Try to add the 'quantity' column to 'grocery_list'
-        # This will fail if the column already exists, which is fine.
-        try:
-            cursor.execute("ALTER TABLE grocery_list ADD COLUMN quantity TEXT")
-            print("Added 'quantity' column to grocery_list.")
-        except sqlite3.OperationalError as e:
-            if "duplicate column name" in str(e):
-                pass  # Column already exists, do nothing
-            else:
-                raise  # Re-raise other errors
-
-        connection.commit()
-        return True
-
-    except Error as e:
-        print('Error while updating tables', e)
-        return False
-
 
 def main():
-    # Connect to database
-    database = 'saucyapp.db'
+    #Connect to database
+    database = DB_PATH
     connection = database_connection(database)
 
-    # Check connection established
+    #Check connection established
     if connection is not None:
-        # If successful, try to create tables
+        #If successful, try to create tables
         if create_tables(connection):
             print('Tables created')
-            # Also update tables
-            if update_tables(connection):
-                print("Tables updated")
-            else:
-                print("Tables not updated")
         else:
             print('Tables not created')
     else:
         print('Database connection failed')
+
+
 
 if __name__ == '__main__':
     main()

@@ -3,8 +3,7 @@ import sqlite3
 import bcrypt
 
 from db.setup_database import database_connection, create_tables, update_tables
-from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
-
+from Model.calendar_service import CalendarService
 
 app = Flask(__name__)
 app.secret_key = "saucy"
@@ -95,6 +94,8 @@ def createProfile():
         userName = request.form['username']
         email = request.form['email']
         password = request.form['password']
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        DB_PATH = os.path.join(BASE_DIR, "db", "saucyapp.db")
 
         hash_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
         try:
@@ -187,18 +188,43 @@ def view_comment():
 
 
 # -------------------------------------
-# ROUTE: View Recipe List
+# ROUTE: View Recipe List (Added Search Functionality - Soham)
 # -------------------------------------
 @app.route('/recipes')
 def recipe_list():
     """Display the recipe list page."""
     # For now, just a placeholder page
     # Later we can connect this to RecipeManager
+    manager = RecipeManager()
+    recipes = manager.getAllRecipes()
     return render_template('recipe_list.html')
 
+    conn = database_connection(DB_NAME)
+    cursor = conn.cursor()
+
+    recipes_list = []
+    try:
+        if search_query:
+            search_term = f"%{search_query}%"
+            cursor.execute(
+                "SELECT recipe_id, recipe_name, description FROM recipe WHERE recipe_name LIKE ? OR ingredients LIKE ?",
+                (search_term, search_term)
+            )
+        else:
+            cursor.execute("SELECT recipe_id, recipe_name, description FROM recipe")
+
+        recipes_list = cursor.fetchall()
+
+    except sqlite3.Error as e:
+        print(f"Error searching recipes: {e}")
+        flash("An error occurred while searching for recipes.")  # Let the user know
+    finally:
+        conn.close()
+
+    return render_template('recipe_list.html', recipes=recipes_list, search_query=search_query)
 
 # -------------------------------------
-# ROUTE: Add a Recipe
+# ROUTE: Add a Recipe - Baraa
 # -------------------------------------
 @app.route('/recipes/add', methods=['GET', 'POST'])
 def add_recipe():
@@ -213,11 +239,37 @@ def add_recipe():
         print(f"Ingredients: {ingredients}")
         print(f"Instructions: {instructions}")
 
+        new_recipe = Recipe(None, name, ingredients, instructions)
+        manager = RecipeManager()
+        manager.addRecipe(new_recipe)
+
         # After adding, go back to list
         return redirect(url_for('recipe_list'))
 
     # On GET, just show the form
     return render_template('recipe_add.html')
+
+# -------------------------------------
+# ROUTE: Edit Recipe - Baraa
+# -------------------------------------
+@app.route('/recipes/edit/<int:recipe_id>', methods=['GET', 'POST'])
+def edit_recipe(recipe_id):
+    manager = RecipeManager()
+    recipe = manager.getRecipeById(recipe_id)
+
+    if recipe is None:
+        return "Recipe not found", 404
+
+    if request.method == 'POST':
+        name = request.form['name']
+        ingredients = request.form['ingredients']
+        instructions = request.form['instructions']
+
+        updated_recipe = Recipe(recipe_id, name, ingredients, instructions)
+        manager.editRecipe(recipe_id, updated_recipe)
+
+        return redirect(url_for('recipe_list'))
+    return render_template('recipe_edit.html', recipe=recipe)
 
 
 #Calendar View route - Jordan
@@ -276,6 +328,7 @@ def api_events():
     finally:
         #Close connection when done
         connection.close()
+
 
 #API - Add new event - Jordan
 @app.route("/api/events", methods=["POST"])
@@ -349,6 +402,39 @@ def api_update_event(event_id):
     finally:
         #Close connection when done
         connection.close()
+
+# -------------------------------------
+# ROUTE: Delete a Recipe - Baraa
+# -------------------------------------
+@app.route('/delete_recipe/<int:recipe_id>', methods=['POST'])
+def delete_recipe(recipe_id):
+    """Delete a recipe from the database by ID and reload the recipe list."""
+    manager = RecipeManager()
+    manager.deleteRecipe(recipe_id)
+    return redirect(url_for('recipe_list'))
+
+# -------------------------------------
+# ROUTE: Upload Recipe Image - Baraa
+# -------------------------------------
+@app.route('/recipes/<int:recipe_id>/upload_image', methods=['POST'])
+def upload_image(recipe_id):
+    image = request.files['image']
+
+    if image.filename == "":
+        return "No file selected", 400
+
+    save_path = os.path.join('Static', 'images', image.filename)
+    image.save(save_path)
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("INSERT INTO recipe_image (recipe_id, image_path) VALUES (?, ?)",
+                    (recipe_id, save_path))
+        conn.commit()
+
+    return redirect(url_for('edit_recipe', recipe_id=recipe_id))
+
+
 
 
 if __name__ == '__main__':
