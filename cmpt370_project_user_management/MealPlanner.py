@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import sqlite3
 import bcrypt
+import os
 
-from db.setup_database import database_connection, create_tables, update_tables
-from Model.calendar_service import CalendarService
+from db.setup_database import database_connection, create_tables
+from Model.calendar_service import CalendarService, CalendarError
 
 app = Flask(__name__)
 app.secret_key = "saucy"
@@ -377,6 +378,8 @@ def api_delete_event(event_id):
     finally:
         #Close connection when done
         connection.close()
+
+#API - Update event - Jordan
 @app.route("/api/events/<int:event_id>", methods=["PATCH"])
 def api_update_event(event_id):
     # Open database connection
@@ -442,6 +445,6 @@ if __name__ == '__main__':
     conn = database_connection(DB_NAME)
     if conn is not None:
         create_tables(conn)
-        update_tables(conn)
+        #update_tables(conn)
         conn.close()
     app.run(debug=True)
