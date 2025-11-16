@@ -9,7 +9,7 @@ from Model.Recipe import Recipe
 import sqlite3
 import bcrypt
 
-from db.setup_database import database_connection, create_tables, update_tables
+from db.setup_database import database_connection, create_tables #update_tables
 from Model.calendar_service import CalendarService
 
 app = Flask(__name__)
@@ -423,6 +423,6 @@ if __name__ == '__main__':
     conn = database_connection(DB_NAME)
     if conn is not None:
         create_tables(conn)
-        update_tables(conn)
+        #update_tables(conn)
         conn.close()
     app.run(debug=True)
