@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Recipe</title>
+</head>
+
+<body>
+<h2>Edit Recipe</h2>
+
+<form method="POST">
+    <label>Name:</label><br>
+    <input type="text" name="name" value="{{ recipe.name }}"><br><br>
+
+    <label>Ingredients:</label><br>
+    <textarea name="ingredients">{{ recipe.ingredients }}</textarea><br><br>
+
+    <label>Instructions:</label><br>
+    <textarea name="instructions">{{ recipe.instructions }}</textarea><br><br>
+
+    <button type="submit">Save Changes</button>
+</form>
+
+</body>
+</html>

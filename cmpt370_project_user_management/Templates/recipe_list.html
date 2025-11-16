@@ -17,14 +17,23 @@
                 <th>Name</th>
                 <th>Ingredients</th>
                 <th>Instructions</th>
+                <th>Edit</th>
                 <th>Delete</th>
             </tr>
+
             {% for r in recipes %}
             <tr>
                 <td>{{ r.recipe_id }}</td>
                 <td>{{ r.name }}</td>
                 <td>{{ r.ingredients }}</td>
                 <td>{{ r.instructions }}</td>
+
+                <!-- EDIT BUTTON -->
+                <td>
+                    <a href="{{ url_for('edit_recipe', recipe_id=r.recipe_id) }}">✏️ Edit</a>
+                </td>
+
+                <!-- DELETE BUTTON -->
                 <td>
                     <form action="{{ url_for('delete_recipe', recipe_id=r.recipe_id) }}" method="post">
                         <button type="submit">🗑️ Delete</button>
@@ -32,9 +41,6 @@
                 </td>
             </tr>
             {% endfor %}
+
         </table>
     {% else %}
-        <p>No recipes found. Try adding one!</p>
-    {% endif %}
-</body>
-</html>

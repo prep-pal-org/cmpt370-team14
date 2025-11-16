@@ -1,5 +1,12 @@
+import os
 import sqlite3
 from _sqlite3 import Error
+
+# ✅ Build a consistent path: cmpt370_project_user_management/db/saucyapp.db
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "saucyapp.db")
+print("🗂 Using database at:", DB_PATH)
+
 
 """
 database_connection function - used to create a connection to a SQLite database
@@ -62,18 +69,17 @@ def create_tables(connection):
         # recipe table - Baraa
         # Stores all recipe information including name, description, and creator
         create_recipe_table = '''
-               CREATE TABLE IF NOT EXISTS recipe (
-                   recipe_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                   recipe_name TEXT NOT NULL,
-                   description TEXT,
-                   ingredients TEXT,
-                   instructions TEXT,
-                   category TEXT,
-                   cooking_time INTEGER,
-                   user_id INTEGER,
-                   FOREIGN KEY(user_id) REFERENCES user(user_id)
-               );
-               '''
+        CREATE TABLE IF NOT EXISTS recipe (
+            recipe_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            recipe_name TEXT NOT NULL,
+            ingredients TEXT NOT NULL,
+            instructions TEXT NOT NULL,
+            category TEXT DEFAULT '',
+            cooking_time INTEGER DEFAULT 0,
+            user_id INTEGER,
+            FOREIGN KEY(user_id) REFERENCES user_profile(user_id)
+        );
+        '''
 
         # recipe_image table - Baraa
         # Stores paths or binary data for images linked to a recipe
@@ -140,7 +146,7 @@ def create_tables(connection):
 
 def main():
     #Connect to database
-    database = 'saucyapp.db'
+    database = DB_PATH
     connection = database_connection(database)
 
     #Check connection established

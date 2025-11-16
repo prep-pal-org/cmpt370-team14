@@ -13,7 +13,6 @@
 # Ignore all xlsx files
 *.xlsx
 
-# Ignore deleted view and controler files
+# Ignore ONLY the Controller folder
 Controller/
-View/
 
