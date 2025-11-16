@@ -112,7 +112,7 @@ class CalendarService:
         :param event_id: event_id associated with the calendar event being updated
         :param new_date: new date for the calendar event
         :param new_time: new time for the calendar event
-        :return: event_id - Integer for existing updated event
+        :return: none
         """
         cursor = connection.cursor()
         #Get the calendar_id to see if new time/date is taken
@@ -143,4 +143,3 @@ class CalendarService:
             """, (new_date, new_time, event_id)
         )
         connection.commit()
-        return event_id

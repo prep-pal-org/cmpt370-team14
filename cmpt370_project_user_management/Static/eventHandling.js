@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded',function(){
             event_time: document.getElementById('addTimeSlot').value
         };
 
-        //Send payload
+        //Send post request - await response
         const response = await fetch('/api/events',{
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -157,18 +157,27 @@ document.addEventListener('DOMContentLoaded',function(){
      * @param eventObj - event object clicked on in calendar view
      */
     function openViewModal(eventObj){
+        //Pull event details from the FullCalendar event object
         document.getElementById('viewTitle').textContent = eventObj.title;
         document.getElementById('viewDate').textContent = eventObj.startStr;
         document.getElementById('viewTime').textContent = eventObj.extendedProps.timeSlot;
         document.getElementById('viewRecipe').textContent = eventObj.extendedProps.recipe_id;
 
+        //Store event_id with delete and edit buttons, edit stores original date and time
         const deleteButton = document.getElementById('deleteBtn');
         deleteButton.dataset.eventId = eventObj.id;
+        const editButton = document.getElementById('editBtn');
+        editButton.dataset.eventId = eventObj.id;
+        editButton.dataset.originalDate = eventObj.startStr;
+        editButton.dataset.originalTime = eventObj.extendedProps.timeSlot;
+
+        //Make viewable
         viewModal.classList.remove('hidden');
     }
 
-    //Add view modal event listeners for delete and close buttons
+    //Add view modal event listener for delete button
     document.getElementById('deleteBtn').addEventListener('click', async (e) =>{
+        //pull event_id
         const eventId = e.target.dataset.eventId;
         if (!eventId){
             return;
@@ -176,17 +185,18 @@ document.addEventListener('DOMContentLoaded',function(){
         if (!confirm('Delete this event?')){
             return;
         }
-        //Send delete request
+        //Send delete request - await response
         const response = await fetch(`/api/events/${eventId}`,{
             method: 'DELETE'
         });
 
-        //Check response if successful, remove event
+        //Check response if successful, remove event from FullCalendar
         if (response.ok){
             const event_delete = calendar.getEventById(eventId);
             if(event_delete){
                 event_delete.remove();
             }
+            //Hide viewModal
             viewModal.classList.add('hidden');
         }
         else{
@@ -194,8 +204,69 @@ document.addEventListener('DOMContentLoaded',function(){
         }
 
     });
+    //Add viewModal event listener for edit button
+    document.getElementById('editBtn').addEventListener('click', e=>{
+        //Pull data from edit button
+        const eventId = e.target.dataset.eventId;
+        const date = e.target.dataset.originalDate;
+        const time = e.target.dataset.originalTime;
+
+        //Prepopulate the form
+        document.getElementById('editDate').value = date;
+        document.getElementById('editTimeSlot').value = time;
+        document.getElementById('editForm');
+        editForm.dataset.eventId = eventId;
+
+        //Show edit modal
+        editModal.classList.remove('hidden');
+    });
+
+    //Add viewModal event listener for close button
     document.getElementById('viewClose').addEventListener('click', () =>{
         viewModal.classList.add('hidden');
+    });
+
+    //Add editModal event listener for submit button
+    document.getElementById('editForm').addEventListener('submit', async e=>{
+        e.preventDefault();
+
+        //pull data from edit button
+        const editForm = e.target;
+        const eventId = editForm.dataset.eventId;
+        const newDate = document.getElementById('editDate').value;
+        const newTime = document.getElementById('editTimeSlot').value;
+
+        //build payload
+        const payload = {
+            event_date: newDate,
+            event_time: newTime
+        };
+
+        //Send patch request
+        const response = await fetch(`/api/events/${eventId}`,{
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        //Check response
+        if (response.ok){ //Refresh and hide modals
+            calendar.refetchEvents();
+            editModal.classList.add('hidden');
+            viewModal.classList.add('hidden');
+        }
+        else if(response.status === 409){
+            const error = await response.json();
+            showAlert(error, 'Duplicate Event.');
+        }
+        else{
+            alert('Failed to add Event.');
+        }
+    })
+
+    //Add editModal event listener for cancel button
+    document.getElementById('editCancel').addEventListener('click', () =>{
+        editModal.classList.add('hidden');
     });
 
 });

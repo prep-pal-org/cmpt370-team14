@@ -324,6 +324,30 @@ def api_delete_event(event_id):
     finally:
         #Close connection when done
         connection.close()
+@app.route("/api/events/<int:event_id>", methods=["PATCH"])
+def api_update_event(event_id):
+    # Open database connection
+    connection = sqlite3.connect(DB_NAME)
+    try:
+        #Get calendar_id from session
+        if "calendar_id" not in session:
+            print("Redirect for no calendar_id - api_update_event")
+            return redirect(url_for('home'))
+        #Get request data
+        data = request.json
+        new_date = data.get("event_date")
+        new_time = data.get("event_time")
+        print(new_date, new_time)
+        #try to update event
+        calendar_service.update_event(connection, event_id, new_date, new_time)
+
+    except CalendarError as e:
+        return jsonify({"error": str(e)}), 409
+    except sqlite3.Error as e:
+        print("Error updating event:", e)
+    finally:
+        #Close connection when done
+        connection.close()
 
 
 if __name__ == '__main__':
