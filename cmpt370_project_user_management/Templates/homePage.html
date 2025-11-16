@@ -3,36 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>MealPlanner</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styleDesign.css') }}"> <!-- Linking .css file -->
-
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styleDesign.css') }}">
 </head>
+
 <body>
-    <div class="box"> <!-- call of class center in styleDesign.css, everything between "div" applies to the class. Started by Randi -->
+    <div class="center">
         <h1>Welcome to Saucy!</h1>
         <p>Your family meal planner</p>
+
         <button id="CreateProfile">Create Profile</button>
-        <button id="SeeUsers">See Users</button>
-        <button id="comment">Add Comment</button>
-        <button id="viewcomment">See Comments</button>
-        <button id="login">Login</button>
-        <!-- Add recipe and view recipe Baraa -->
-         <br><br>
-        <a href="{{ url_for('add_recipe') }}">➕ Add Recipe</a>
-        <br>
-        <a href="{{ url_for('recipe_list') }}">🍲 View Recipes</a>
 
-        <!-- Create grocery list -Soham -->
-        <a href="{{ url_for('grocery_list') }}" style="margin-left: 10px;">
-            <button id="GroceryList">My Grocery List</button>
-        </a>
-        <!-- Calendar view - Jordan -->
-        <br>
-        <button id="calendar_view">View Calendar</button>
-        <br>
-
+        <!-- Removed Add Recipe and View Recipes buttons -->
     </div>
 
-    <script src="{{ url_for('static', filename='eventHandling.js') }}"></script> <!-- Linking the javascript file. -->
-
+    <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>
 </body>
 </html>
