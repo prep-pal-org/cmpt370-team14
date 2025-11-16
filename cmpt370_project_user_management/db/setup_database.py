@@ -93,6 +93,19 @@ def create_tables(connection):
                );
                '''
 
+        #steps table -Kayo
+        #stores each step of a linked recipe
+        create_steps_table = '''
+            CREATE TABLE IF NOT EXISTS recipe_steps (
+                step_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                recipe_id INTEGER,
+                step_number INTEGER,
+                step TEXT,
+                duration INTEGER DEFAULT 0,
+                FOREIGN KEY (recipe_id) REFERENCES recipe(recipe_id) 
+            );
+            '''
+
         #user_profile table - Randi
         create_user_profile = '''
         CREATE TABLE IF NOT EXISTS user_profile (
