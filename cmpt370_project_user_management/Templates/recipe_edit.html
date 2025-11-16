@@ -1,3 +1,5 @@
+<!-- Edit Recipe Page - Baraa -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,19 +8,27 @@
 </head>
 
 <body>
+
 <h2>Edit Recipe</h2>
 
+<!-- Form used to update an existing recipe -->
 <form method="POST">
+
+    <!-- Recipe Name -->
     <label>Name:</label><br>
     <input type="text" name="name" value="{{ recipe.name }}"><br><br>
 
+    <!-- Recipe Ingredients -->
     <label>Ingredients:</label><br>
     <textarea name="ingredients">{{ recipe.ingredients }}</textarea><br><br>
 
+    <!-- Recipe Instructions -->
     <label>Instructions:</label><br>
     <textarea name="instructions">{{ recipe.instructions }}</textarea><br><br>
 
+    <!-- Submit changes to server -->
     <button type="submit">Save Changes</button>
+
 </form>
 
 </body>
