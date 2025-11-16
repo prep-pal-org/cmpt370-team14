@@ -338,8 +338,9 @@ def api_update_event(event_id):
         new_date = data.get("event_date")
         new_time = data.get("event_time")
         print(new_date, new_time)
-        #try to update event
+        #try to update event and return True
         calendar_service.update_event(connection, event_id, new_date, new_time)
+        return jsonify({"event_updated": True}), 200
 
     except CalendarError as e:
         return jsonify({"error": str(e)}), 409

@@ -61,8 +61,8 @@ document.addEventListener('DOMContentLoaded',function(){
     const calendarEl = document.getElementById('calendar');
 
     /**
-     * Initialize FullCalendar
-     * Monthly grid of days, local timezone, header, API events
+     * Initialize FullCalendar - set top toolbar options for navigation, set events API and connection between FC events and event handlers below
+     * Monthly grid of days, local timezone, Events ordered by time slot (Breakfast->Lunch->Dinner->Snack)
      * @type {FullCalendar.Calendar}
      */
     const calendar = new FullCalendar.Calendar(calendarEl,{
@@ -79,6 +79,12 @@ document.addEventListener('DOMContentLoaded',function(){
         },
         eventClick: function (info){
             openViewModal(info.event)
+        },
+        eventOrder: function( a, b){
+            const order = {"Breakfast": 1, "Lunch": 2, "Dinner": 3, "Snack": 4};
+            const timeA = order[a.extendedProps.timeSlot] || 999;
+            const timeB = order[b.extendedProps.timeSlot] || 999;
+            return timeA - timeB;
         }
     });
     //Show calendar
@@ -256,8 +262,8 @@ document.addEventListener('DOMContentLoaded',function(){
             viewModal.classList.add('hidden');
         }
         else if(response.status === 409){
-            const error = await response.json();
-            showAlert(error, 'Duplicate Event.');
+            const errorObj = await response.json();
+            showAlert(errorObj.error, 'Duplicate Event.');
         }
         else{
             alert('Failed to add Event.');
