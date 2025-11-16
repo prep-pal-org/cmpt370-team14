@@ -123,7 +123,7 @@ def user_list_for_testing():
     return render_template("user_list_for_testing.html", data=rows)
 
 # -------------------------------------
-# ROUTE: View Recipe List
+# ROUTE: View Recipe List (Added Search Functionality - Soham)
 # -------------------------------------
 @app.route('/recipes')
 def recipe_list():
@@ -134,6 +134,29 @@ def recipe_list():
     recipes = manager.getAllRecipes()
     return render_template('recipe_list.html')
 
+    conn = database_connection(DB_NAME)
+    cursor = conn.cursor()
+
+    recipes_list = []
+    try:
+        if search_query:
+            search_term = f"%{search_query}%"
+            cursor.execute(
+                "SELECT recipe_id, recipe_name, description FROM recipe WHERE recipe_name LIKE ? OR ingredients LIKE ?",
+                (search_term, search_term)
+            )
+        else:
+            cursor.execute("SELECT recipe_id, recipe_name, description FROM recipe")
+
+        recipes_list = cursor.fetchall()
+
+    except sqlite3.Error as e:
+        print(f"Error searching recipes: {e}")
+        flash("An error occurred while searching for recipes.")  # Let the user know
+    finally:
+        conn.close()
+
+    return render_template('recipe_list.html', recipes=recipes_list, search_query=search_query)
 
 # -------------------------------------
 # ROUTE: Add a Recipe - Baraa
