@@ -56,7 +56,7 @@ class CalendarService:
             event_id = cursor.lastrowid
             return event_id
         except sqlite3.IntegrityError as e:
-            raise CalendarError("Added Recipes must have a unique time and date - no duplicates.") from e
+            raise CalendarError("Added Recipes must have a unique time and date - One Recipe per time slot.") from e
 
     def get_calendar_events(self, connection:sqlite3.Connection, calendar_id: int):
         '''
@@ -104,3 +104,43 @@ class CalendarService:
             connection.commit()
             #return true for confirmation of successful deletion
             return cursor.rowcount > 0
+
+    def update_event(self, connection: sqlite3.Connection, event_id: int, new_date: str, new_time: str):
+        """
+        update_event function - updates a calendar event for an event_id
+        :param connection: connection to sqlite3 database
+        :param event_id: event_id associated with the calendar event being updated
+        :param new_date: new date for the calendar event
+        :param new_time: new time for the calendar event
+        :return: event_id - Integer for existing updated event
+        """
+        cursor = connection.cursor()
+        #Get the calendar_id to see if new time/date is taken
+        cursor.execute(
+            "SELECT calendar_id FROM calendar_event WHERE event_id = ?", (event_id,)
+        )
+        calendar_id = cursor.fetchone()[0]
+        if calendar_id is None:
+            raise CalendarError("Calendar ID not found - update_event function")
+
+        #Make sure new time slot is available
+        cursor.execute(
+            """SELECT 1 FROM calendar_event 
+                   WHERE calendar_id = ?
+                   AND event_date = ?
+                   AND event_time = ?
+                   AND event_id <> ?            
+            """, (calendar_id, new_date, new_time, event_id)
+        )
+        if cursor.fetchone() is not None:
+            raise CalendarError("Added Recipes must have a unique time and date - One Recipe per time slot.")
+
+        #Update the event
+        cursor.execute(
+            """UPDATE calendar_event 
+               SET event_date = ?, event_time = ? 
+               WHERE event_id = ?
+            """, (new_date, new_time, event_id)
+        )
+        connection.commit()
+        return event_id

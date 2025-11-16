@@ -64,6 +64,10 @@ input, select{
     border-radius: 3px;
     font-size: 0.9rem;
 }
+input[readonly]{
+    cursor: not-allowed;
+    background-color: #d3d3d3;
+}
 /*
 Modals
  */

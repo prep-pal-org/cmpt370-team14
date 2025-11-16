@@ -52,7 +52,7 @@ function closePopup() {
 
 /**
  * Calendar event listener system - uses FullCalender addon and event listeners to handle all interactions on Calendar and Modal Boxes
- * Todo: Still requires UI/handlers for repeating events - testing with user system...
+ * Todo: Still requires UI/handlers for repeating events
  * Implemented by Jordan
  */
 
@@ -98,7 +98,9 @@ document.addEventListener('DOMContentLoaded',function(){
      */
     function openAddModal(dateStr){
         document.getElementById('addForm').reset();
-        document.getElementById('addDate').value = dateStr;
+        const dateInput = document.getElementById('addDate');
+        dateInput.value = dateStr;
+        dateInput.setAttribute('readonly',true);
         addModal.classList.remove('hidden');
 
     }

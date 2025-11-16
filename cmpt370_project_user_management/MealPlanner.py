@@ -4,7 +4,7 @@ import bcrypt
 
 from db.setup_database import database_connection, create_tables, update_tables
 from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
-from werkzeug.exceptions import Conflict
+
 
 app = Flask(__name__)
 app.secret_key = "saucy"

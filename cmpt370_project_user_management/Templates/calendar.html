@@ -25,7 +25,7 @@
             <div class="modal-content">
                 <h3>Add to Calendar</h3>
                 <form id="addForm">
-                    <label>Date: <input type="date" id="addDate" required></label>
+                    <label>Date: <input type="date" id="addDate" readonly></label>
                     <br>
 
                     <label>Time Slot:
@@ -58,9 +58,34 @@
                 <p>Date: <span id="viewDate"></span></p>
                 <p>Time: <span id="viewTime"></span></p>
                 <p>Recipe ID: <span id="viewRecipe"></span></p>
+                <br>
                 <button type="button" id="deleteBtn">Delete</button>
                 <br><br>
+                <button type="button" id="editBtn">Edit</button>
+                <br>
                 <button type="button" id="viewClose">Close</button>
+            </div>
+        </div>
+
+        <div id="editModal" class="modal hidden">
+            <div class="modal-content">
+                <h3>Edit Event:</h3>
+                <form id="editForm">
+                    <label>Date:
+                        <input type="date" id="editDate" required></label>
+                    <br>
+                    <label>Time Slot:
+                        <select id="editTimeSlot" required>
+                            <option value="Breakfast">Breakfast</option>
+                            <option value="Lunch">Lunch</option>
+                            <option value="Dinner">Dinner</option>
+                            <option value="Snack">Snack</option>
+                        </select>
+                    </label>
+                    <br>
+                    <button type="submit">Save</button>
+                    <button type="button" id="editCancel">Cancel</button>
+                </form>
             </div>
         </div>
 
