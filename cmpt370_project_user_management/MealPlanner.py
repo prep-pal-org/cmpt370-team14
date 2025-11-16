@@ -186,15 +186,38 @@ def view_comment():
 
 
 # -------------------------------------
-# ROUTE: View Recipe List
+# ROUTE: View Recipe List (Added Search Functionality - Soham)
 # -------------------------------------
 @app.route('/recipes')
 def recipe_list():
     """Display the recipe list page."""
     # For now, just a placeholder page
     # Later we can connect this to RecipeManager
-    return render_template('recipe_list.html')
+    search_query = request.args.get('search_query', '')
 
+    conn = database_connection(DB_NAME)
+    cursor = conn.cursor()
+
+    recipes_list = []
+    try:
+        if search_query:
+            search_term = f"%{search_query}%"
+            cursor.execute(
+                "SELECT recipe_id, recipe_name, description FROM recipe WHERE recipe_name LIKE ? OR ingredients LIKE ?",
+                (search_term, search_term)
+            )
+        else:
+            cursor.execute("SELECT recipe_id, recipe_name, description FROM recipe")
+
+        recipes_list = cursor.fetchall()
+
+    except sqlite3.Error as e:
+        print(f"Error searching recipes: {e}")
+        flash("An error occurred while searching for recipes.")  # Let the user know
+    finally:
+        conn.close()
+
+    return render_template('recipe_list.html', recipes=recipes_list, search_query=search_query)
 
 # -------------------------------------
 # ROUTE: Add a Recipe
