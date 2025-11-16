@@ -52,7 +52,7 @@ function closePopup() {
 
 /**
  * Calendar event listener system - uses FullCalender addon and event listeners to handle all interactions on Calendar and Modal Boxes
- * Todo: Still requires UI/handlers for repeating events - testing with user system...
+ * Todo: Still requires UI/handlers for repeating events
  * Implemented by Jordan
  */
 
@@ -61,8 +61,8 @@ document.addEventListener('DOMContentLoaded',function(){
     const calendarEl = document.getElementById('calendar');
 
     /**
-     * Initialize FullCalendar
-     * Monthly grid of days, local timezone, header, API events
+     * Initialize FullCalendar - set top toolbar options for navigation, set events API and connection between FC events and event handlers below
+     * Monthly grid of days, local timezone, Events ordered by time slot (Breakfast->Lunch->Dinner->Snack)
      * @type {FullCalendar.Calendar}
      */
     const calendar = new FullCalendar.Calendar(calendarEl,{
@@ -79,6 +79,12 @@ document.addEventListener('DOMContentLoaded',function(){
         },
         eventClick: function (info){
             openViewModal(info.event)
+        },
+        eventOrder: function( a, b){
+            const order = {"Breakfast": 1, "Lunch": 2, "Dinner": 3, "Snack": 4};
+            const timeA = order[a.extendedProps.timeSlot] || 999;
+            const timeB = order[b.extendedProps.timeSlot] || 999;
+            return timeA - timeB;
         }
     });
     //Show calendar
@@ -87,7 +93,10 @@ document.addEventListener('DOMContentLoaded',function(){
     //Declare Modal instance variables
     const addModal = document.getElementById('addModal');
     const viewModal = document.getElementById('viewModal');
-
+    const alertModal = document.getElementById('alertModal');
+    const alertTitle = document.getElementById('alert_title');
+    const alertMessage = document.getElementById('alert_message');
+    const alertClose = document.getElementById('alert_close');
     /**
      * openAddModal function, used to show the UI for adding an event
      * Form is cleared on opening, other than date parameter
@@ -95,8 +104,17 @@ document.addEventListener('DOMContentLoaded',function(){
      */
     function openAddModal(dateStr){
         document.getElementById('addForm').reset();
-        document.getElementById('addDate').value = dateStr;
+        const dateInput = document.getElementById('addDate');
+        dateInput.value = dateStr;
+        dateInput.setAttribute('readonly',true);
         addModal.classList.remove('hidden');
+
+    }
+
+    function showAlert(message, title = 'Error'){
+        alertTitle.textContent = title;
+        alertMessage.textContent = message;
+        alertModal.classList.remove('hidden');
     }
 
     //Set up Submit and Close listeners to the AddModal
@@ -111,7 +129,7 @@ document.addEventListener('DOMContentLoaded',function(){
             event_time: document.getElementById('addTimeSlot').value
         };
 
-        //Send payload
+        //Send post request - await response
         const response = await fetch('/api/events',{
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -121,24 +139,23 @@ document.addEventListener('DOMContentLoaded',function(){
         //Check response of adding event, if ok - update calendar and hide modal
         if (response.ok){
             const data = await response.json();
-            calendar.addEvent({
-                id: data.event_id,
-                title: payload.event_name,
-                start: payload.event_date,
-                extendedProps: {
-                    timeSlot: payload.event_time,
-                    recipe_id: payload.recipe_id
-                }
-            });
+            calendar.refetchEvents();
             addModal.classList.add('hidden');
         }
+        else if (response.status === 409){
+            const err = await response.json();
+            showAlert(err.error, 'Duplicate event.')
+        }
         else{
-            alert('Failed to add event.')
+            alert('Failed to add Event.');
         }
     });
     document.getElementById('addCancel').addEventListener('click',() =>{
         addModal.classList.add('hidden');
     });
+    alertClose.addEventListener('click', () =>{
+        alertModal.classList.add('hidden');
+    })
 
     /**
      * openViewModal function - used to show calendar event details and option to delete
@@ -146,18 +163,27 @@ document.addEventListener('DOMContentLoaded',function(){
      * @param eventObj - event object clicked on in calendar view
      */
     function openViewModal(eventObj){
+        //Pull event details from the FullCalendar event object
         document.getElementById('viewTitle').textContent = eventObj.title;
         document.getElementById('viewDate').textContent = eventObj.startStr;
         document.getElementById('viewTime').textContent = eventObj.extendedProps.timeSlot;
         document.getElementById('viewRecipe').textContent = eventObj.extendedProps.recipe_id;
 
+        //Store event_id with delete and edit buttons, edit stores original date and time
         const deleteButton = document.getElementById('deleteBtn');
         deleteButton.dataset.eventId = eventObj.id;
+        const editButton = document.getElementById('editBtn');
+        editButton.dataset.eventId = eventObj.id;
+        editButton.dataset.originalDate = eventObj.startStr;
+        editButton.dataset.originalTime = eventObj.extendedProps.timeSlot;
+
+        //Make viewable
         viewModal.classList.remove('hidden');
     }
 
-    //Add view modal event listeners for delete and close buttons
+    //Add view modal event listener for delete button
     document.getElementById('deleteBtn').addEventListener('click', async (e) =>{
+        //pull event_id
         const eventId = e.target.dataset.eventId;
         if (!eventId){
             return;
@@ -165,17 +191,18 @@ document.addEventListener('DOMContentLoaded',function(){
         if (!confirm('Delete this event?')){
             return;
         }
-        //Send delete request
+        //Send delete request - await response
         const response = await fetch(`/api/events/${eventId}`,{
             method: 'DELETE'
         });
 
-        //Check response if successful, remove event
+        //Check response if successful, remove event from FullCalendar
         if (response.ok){
             const event_delete = calendar.getEventById(eventId);
             if(event_delete){
                 event_delete.remove();
             }
+            //Hide viewModal
             viewModal.classList.add('hidden');
         }
         else{
@@ -183,8 +210,69 @@ document.addEventListener('DOMContentLoaded',function(){
         }
 
     });
+    //Add viewModal event listener for edit button
+    document.getElementById('editBtn').addEventListener('click', e=>{
+        //Pull data from edit button
+        const eventId = e.target.dataset.eventId;
+        const date = e.target.dataset.originalDate;
+        const time = e.target.dataset.originalTime;
+
+        //Prepopulate the form
+        document.getElementById('editDate').value = date;
+        document.getElementById('editTimeSlot').value = time;
+        document.getElementById('editForm');
+        editForm.dataset.eventId = eventId;
+
+        //Show edit modal
+        editModal.classList.remove('hidden');
+    });
+
+    //Add viewModal event listener for close button
     document.getElementById('viewClose').addEventListener('click', () =>{
         viewModal.classList.add('hidden');
+    });
+
+    //Add editModal event listener for submit button
+    document.getElementById('editForm').addEventListener('submit', async e=>{
+        e.preventDefault();
+
+        //pull data from edit button
+        const editForm = e.target;
+        const eventId = editForm.dataset.eventId;
+        const newDate = document.getElementById('editDate').value;
+        const newTime = document.getElementById('editTimeSlot').value;
+
+        //build payload
+        const payload = {
+            event_date: newDate,
+            event_time: newTime
+        };
+
+        //Send patch request
+        const response = await fetch(`/api/events/${eventId}`,{
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        //Check response
+        if (response.ok){ //Refresh and hide modals
+            calendar.refetchEvents();
+            editModal.classList.add('hidden');
+            viewModal.classList.add('hidden');
+        }
+        else if(response.status === 409){
+            const errorObj = await response.json();
+            showAlert(errorObj.error, 'Duplicate Event.');
+        }
+        else{
+            alert('Failed to add Event.');
+        }
+    })
+
+    //Add editModal event listener for cancel button
+    document.getElementById('editCancel').addEventListener('click', () =>{
+        editModal.classList.add('hidden');
     });
 
 });
