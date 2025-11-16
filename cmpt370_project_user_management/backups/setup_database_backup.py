@@ -63,6 +63,18 @@ def create_tables(connection):
         #Other tables here \/\/\/
         #TODO - add all other tables
 
+        # recipe table - Baraa
+        create_recipe_table = '''
+        CREATE TABLE IF NOT EXISTS recipe (
+            recipe_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            recipe_name TEXT NOT NULL,
+            ingredients TEXT,
+            instructions TEXT,
+            category TEXT,
+            cooking_time INTEGER
+        );
+        '''
+
         #user_profile table - Randi
         create_user_profile = '''
         CREATE TABLE IF NOT EXISTS user_profile (
@@ -89,7 +101,7 @@ def create_tables(connection):
 
         #Create List of all table creation text
         #TODO - add tables created to this list
-        table_list = [create_calendar_event, create_calendar_schedule, create_user_profile, create_user_interaction]
+        table_list = [create_calendar_event, create_calendar_schedule, create_user_profile, create_user_interaction, create_recipe_table]
 
         #Loop through list for execute, actually creating tables
         for table in table_list:
