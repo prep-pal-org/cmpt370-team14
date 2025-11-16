@@ -1,5 +1,6 @@
 /*
 Style for Calendar View - Jordan
+Body styled same as Landing page and rest of site
  */
 body{
     background-image: url("home_page_image.jpg");
@@ -9,30 +10,20 @@ body{
     margin:0;
     padding:0;
 }
-header{
-    background: #0078d7;
-    color: #fff;
-    padding: 1.5rem;
-    text-align: center;
-}
+
 main{
     max-width: 900px;
     margin: 2rem auto;
     padding: 1.5rem;
 }
-.centered{
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    height: 80vh;
-}
+
 #calendar{
-    background: #fff;
+    background: #ffffff;
     border-radius: 6px;
     padding: 1rem;
 }
 /*
-Forms
+Forms - Jordan
  */
 form label{
     display:block;
@@ -41,15 +32,15 @@ form label{
 }
 button{
     margin-top: 0.5rem;
-    background: #0078d7;
-    color: #fff;
+    background: #5487C7;
+    color: #ffffff;
     border: none;
     padding: 0.5rem;
     border-radius: 3px;
     transition: background 0.2s ease;
 }
 button:hover{
-    background: #005fa3;
+    background: #33639E;
 }
 #deleteBtn{
     background: #d9534f;
@@ -64,8 +55,36 @@ input, select{
     border-radius: 3px;
     font-size: 0.9rem;
 }
+input[readonly]{
+    cursor: not-allowed;
+    background-color: #d3d3d3;
+}
 /*
-Modals
+FullCalendar styling - Jordan
+ */
+.fc-daygrid-day{
+    cursor: pointer;
+    background-color: #ededed
+
+}
+.fc-daygrid-day:hover{
+    background-color: #c0c0c0 !important;
+}
+.fc-event{
+    cursor:pointer;
+    background-color: #5487C7
+}
+.fc-event:hover{
+    background-color: #33639E !important;
+}
+.fc-today-button{
+    background-color: #679E33 !important;
+}
+.fc-day-today{
+    background-color: #C3E2A6 !important;
+}
+/*
+Modals - Jordan
  */
 .modal{
     position: fixed;
@@ -89,6 +108,8 @@ Modals
 .hidden{
     display: none;
 }
+
+
 /* Topnav bar. -Randi */
 .topnav {
     position: fixed;

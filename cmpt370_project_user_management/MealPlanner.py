@@ -1,16 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
-from FlaskConnections.RecipeManager import RecipeManager
-import os
-
-from backups.setup_database_backup import database_connection
-from Model.Recipe import Recipe
-
-
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import sqlite3
 import bcrypt
+import os
 
-from db.setup_database import database_connection, create_tables #update_tables
-from Model.calendar_service import CalendarService
+from db.setup_database import database_connection, create_tables
+from Model.calendar_service import CalendarService, CalendarError
 
 app = Flask(__name__)
 app.secret_key = "saucy"
@@ -294,7 +288,7 @@ def calendar_view():
             print("user_id is None - calendar_view function")
             return redirect(url_for("home"))
         else: #Else get/create the calendar_id for this user and set session variable, render calendar
-            calendar_id = calendar_service.create_new_calendar(connection, user_id[0])
+            calendar_id = calendar_service.create_or_get_calendar(connection, user_id[0])
             session["calendar_id"] = calendar_id
             return render_template("calendar.html", calendar_id=calendar_id)
     except sqlite3.Error as e:
@@ -360,8 +354,9 @@ def api_add_event():
             event_time=data["event_time"]
         )
         return jsonify({"event_id": event_id})
-    except sqlite3.Error as e:
-        print("Error adding event:", e)
+    except CalendarError as e:
+
+        return jsonify({"error": str(e)}), 409
     finally:
         #Close connection when done
         connection.close()
@@ -372,14 +367,41 @@ def api_delete_event(event_id):
     # Open database connection
     connection = sqlite3.connect(DB_NAME)
     try:
-        #Get calender_id from session - not used but kept to ensure still part of the session
+        #Get calendar_id from session - not used but kept to ensure still part of the session
         if "calendar_id" not in session:
-            print("Redirect for no calender_id - api_delete_event")
+            print("Redirect for no calendar_id - api_delete_event")
             return redirect(url_for('home'))
         deleted_event = calendar_service.delete_calendar_event(connection,event_id)
         return jsonify({"event_deleted": True})
     except sqlite3.Error as e:
-        print("Error deleting event:". e)
+        print("Error deleting event:", e)
+    finally:
+        #Close connection when done
+        connection.close()
+
+#API - Update event - Jordan
+@app.route("/api/events/<int:event_id>", methods=["PATCH"])
+def api_update_event(event_id):
+    # Open database connection
+    connection = sqlite3.connect(DB_NAME)
+    try:
+        #Get calendar_id from session
+        if "calendar_id" not in session:
+            print("Redirect for no calendar_id - api_update_event")
+            return redirect(url_for('home'))
+        #Get request data
+        data = request.json
+        new_date = data.get("event_date")
+        new_time = data.get("event_time")
+        print(new_date, new_time)
+        #try to update event and return True
+        calendar_service.update_event(connection, event_id, new_date, new_time)
+        return jsonify({"event_updated": True}), 200
+
+    except CalendarError as e:
+        return jsonify({"error": str(e)}), 409
+    except sqlite3.Error as e:
+        print("Error updating event:", e)
     finally:
         #Close connection when done
         connection.close()
