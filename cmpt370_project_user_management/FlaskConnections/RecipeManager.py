@@ -11,13 +11,9 @@ import os
 import sqlite3
 from cmpt370_project_user_management.Model.Recipe import Recipe
 
-
-
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "db", "saucyapp.db")
 print("🗂 Using database at:", DB_PATH)
-
 
 
 class RecipeManager:
@@ -55,8 +51,8 @@ class RecipeManager:
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("""
-                INSERT INTO recipe (recipe_name, ingredients, instructions, category, cooking_time)
-                VALUES (?, ?, ?, '', 0)
+                INSERT INTO recipe (recipe_name, ingredients, instructions)
+                VALUES (?, ?, ?)
             """, (r.name, r.ingredients, r.instructions))
             conn.commit()
         print(f"✅ Recipe '{r.name}' added successfully!")
@@ -101,7 +97,7 @@ class RecipeManager:
 
     def filterByPreference(self, pref: str) -> list[Recipe]:
         """
-        Returns a filtered list of recipes based on a preference string (e.g., part of the name).
+        Returns a filtered list of recipes based on a preference string.
 
         :param pref: Search string to filter recipe names.
         :return: A list of matching Recipe objects.
@@ -133,6 +129,7 @@ class RecipeManager:
                 FROM recipe WHERE recipe_id = ?
             """, (recipe_id,))
             row = cur.fetchone()
+
         if row:
             print(f"✅ Found recipe ID {recipe_id}.")
             return Recipe(*row)
@@ -144,7 +141,7 @@ class RecipeManager:
 
     def getAllRecipes(self) -> list[Recipe]:
         """
-        Retrieves all recipes from the database and stores them as Recipe objects.
+        Retrieves all recipes from the database.
 
         :return: A list of Recipe objects.
         """
@@ -155,6 +152,7 @@ class RecipeManager:
                 FROM recipe
             """)
             rows = cur.fetchall()
+
         self.recipeList = [Recipe(*row) for row in rows]
         print(f"📖 Loaded {len(self.recipeList)} recipes from the database.")
         return self.recipeList

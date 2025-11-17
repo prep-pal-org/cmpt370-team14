@@ -68,5 +68,69 @@ button:hover{
     background-color: black;
 }
 
+/* ============================================================
+   Styles for Recipe Pages (Add / Edit / List) - Baraa
+   ============================================================ */
+
+/* Background for recipe pages only - Baraa */
+.recipe-background {
+    background-image: url("images/recipe_image.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 100vh;         /* full page height */
+    padding-top: 20px;         /* spacing so content not stuck at top */
+}
+
+/* Form containers for recipe pages - Baraa */
+.recipe-box {
+    background-color: rgba(255, 255, 255, 0.9); /* white box */
+    padding: 20px;
+    width: 60%;
+    margin: 40px auto;
+    border-radius: 12px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.2);     /* soft shadow */
+}
+
+/* Recipe form inputs - Baraa */
+.recipe-input, .recipe-textarea {
+    width: 90%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #bbb;
+    margin-top: 8px;
+    font-size: 15px;
+}
+
+/* Recipe list table - Baraa */
+.recipe-table {
+    width: 90%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.recipe-table th, .recipe-table td {
+    padding: 12px;
+    border: 1px solid #888;
+    text-align: center;
+}
+
+.recipe-table th {
+    background-color: darkgreen;
+    color: white;
+}
+
+/* Button-style links - Baraa */
+.btn-link {
+    background-color: darkblue;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.btn-link:hover {
+    background-color: black;
+}
 
 
