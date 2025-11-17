@@ -156,3 +156,7 @@ class RecipeManager:
         self.recipeList = [Recipe(*row) for row in rows]
         print(f"📖 Loaded {len(self.recipeList)} recipes from the database.")
         return self.recipeList
+
+    #kayo -
+    #todo write class to convert instructions to individual steps and the getSteps.
+

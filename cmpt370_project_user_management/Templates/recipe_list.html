@@ -6,29 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipe List</title>
 
-    <!-- Baraa global styling -->
+    <!-- Global Styling -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styleDesign.css') }}">
 
-    <!-- Their inline styling (keep this) -->
     <style>
         body { font-family: sans-serif; margin: 2em; }
         .recipe-search { margin-bottom: 20px; }
         .recipe-search input[type="text"] { padding: 8px; width: 300px; }
         .recipe-search button { padding: 8px 12px; }
-        .recipe-list { list-style: none; padding: 0; }
-        .recipe-item { border: 1px solid #ccc; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-        .recipe-item h3 { margin-top: 0; }
-        .no-recipes { color: #777; }
+        .recipe-table { width: 100%; border-collapse: collapse; }
+        .recipe-table th, .recipe-table td { border: 1px solid #ccc; padding: 8px; }
+        .recipe-table th { background-color: #f2f2f2; }
+        .btn-link { text-decoration: none; color: blue; }
+        button { cursor: pointer; }
     </style>
 </head>
 
 <body>
 
-<div class="recipe-background">
-
 <h1>🍲 Recipe List</h1>
 
-<!-- Their search bar -->
+<!-- Search Bar -->
 <div class="recipe-search">
     <form action="{{ url_for('recipe_list') }}" method="GET">
         <input type="text" name="search_query" placeholder="Search by name or ingredient..." value="{{ search_query }}">
@@ -36,7 +34,7 @@
     </form>
 </div>
 
-<!-- Your recipe table -->
+<!-- Recipe Table -->
 {% if recipes %}
 <table class="recipe-table">
 
@@ -73,8 +71,6 @@
 {% else %}
 <p style="text-align:center;">No recipes found. Try adding one!</p>
 {% endif %}
-
-</div>
 
 </body>
 </html>

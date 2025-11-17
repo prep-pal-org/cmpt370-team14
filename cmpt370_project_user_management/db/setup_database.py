@@ -93,6 +93,19 @@ def create_tables(connection):
                );
                '''
 
+        #steps table -Kayo
+        #stores each step of a linked recipe
+        create_steps_table = '''
+            CREATE TABLE IF NOT EXISTS recipe_steps (
+                step_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                recipe_id INTEGER,
+                step_number INTEGER,
+                step TEXT,
+                duration INTEGER DEFAULT 0,
+                FOREIGN KEY (recipe_id) REFERENCES recipe(recipe_id) 
+            );
+            '''
+
         #user_profile table - Randi
         create_user_profile = '''
         CREATE TABLE IF NOT EXISTS user_profile (
@@ -114,6 +127,17 @@ def create_tables(connection):
         );
         '''
 
+        # grocery_list table - Soham
+        create_grocery_list = '''
+                CREATE TABLE IF NOT EXISTS grocery_list (
+                    item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
+                    item_text TEXT NOT NULL,
+                    quantity TEXT,
+                    FOREIGN KEY(user_id) REFERENCES user_profile(user_id)
+                );
+                '''
+
 
         #Other tables here \/\/\/
         #TODO - add all other tables
@@ -123,8 +147,8 @@ def create_tables(connection):
 
         #Create List of all table creation text
         #TODO - add tables created to this list
-        table_list = [create_calendar_event, create_calendar_schedule, create_user_profile, create_user_interaction, create_recipe_table,
-            create_recipe_image_table]
+        table_list = [create_calendar_event, create_calendar_schedule, create_user_profile, create_user_interaction,
+                      create_recipe_table, create_recipe_image_table, create_grocery_list]
 
 
         #Loop through list for execute, actually creating tables
