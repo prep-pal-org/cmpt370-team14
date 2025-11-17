@@ -1,35 +1,41 @@
 <!-- Edit Recipe Page - Baraa -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Edit Recipe</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleDesign.css') }}">
 </head>
 
 <body>
 
-<h2>Edit Recipe</h2>
+<div class="recipe-background">
 
-<!-- Form used to update an existing recipe -->
-<form method="POST">
+<div class="recipe-box center-column">
 
-    <!-- Recipe Name -->
-    <label>Name:</label><br>
-    <input type="text" name="name" value="{{ recipe.name }}"><br><br>
+    <h2>Edit Recipe</h2>
 
-    <!-- Recipe Ingredients -->
-    <label>Ingredients:</label><br>
-    <textarea name="ingredients">{{ recipe.ingredients }}</textarea><br><br>
+    <form method="POST">
 
-    <!-- Recipe Instructions -->
-    <label>Instructions:</label><br>
-    <textarea name="instructions">{{ recipe.instructions }}</textarea><br><br>
+        <label>Name:</label>
+        <input class="recipe-input" type="text" name="name" value="{{ recipe.name }}">
 
-    <!-- Submit changes to server -->
-    <button type="submit">Save Changes</button>
+        <label>Ingredients:</label>
+        <textarea class="recipe-textarea" name="ingredients" rows="4">{{ recipe.ingredients }}</textarea>
 
-</form>
+        <label>Instructions:</label>
+        <textarea class="recipe-textarea" name="instructions" rows="4">{{ recipe.instructions }}</textarea>
+
+        <button type="submit">Save Changes</button>
+
+    </form>
+
+    <br>
+    <a class="btn-link" href="{{ url_for('recipe_list') }}">⬅ Back</a>
+
+</div>
+
+</div>
 
 </body>
 </html>

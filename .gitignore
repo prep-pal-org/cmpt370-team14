@@ -1,3 +1,4 @@
+.idea/
 # Ignore all word docs
 *.docx
 
@@ -16,3 +17,8 @@
 # Ignore ONLY the Controller folder
 Controller/
 
+# Ignore tests directory under cmpt370_project_user_management
+cmpt370_project_user_management/tests/
+
+# Ignore venv if someone created one inside the project
+cmpt370_project_user_management/venv/

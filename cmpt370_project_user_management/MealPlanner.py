@@ -14,17 +14,22 @@ app.secret_key = "saucy"
 DB_NAME = "db/saucyapp.db"
 calendar_service = CalendarService()
 
-# Routing to a home page - Randi.
+# -------------------------------------------------------------
+# ROUTE: New Updated Home Page - Randi
+# -------------------------------------------------------------
 @app.route('/')
 def home():
     return render_template('use_home_page.html')
 
-# Rout to the old home page -Randi
+# Old home page (legacy)
 @app.route('/old_home')
 def old_home():
     return render_template('homePage.html')
 
-# Routing for the grocery list
+
+# -------------------------------------------------------------
+# ROUTES: Grocery List (Soham + Randi)
+# -------------------------------------------------------------
 @app.route('/grocery-list')
 def grocery_list():
     # Check if user is logged in
@@ -149,7 +154,10 @@ def remove_grocery_item():
     # Redirect back to the grocery list page
     return redirect(url_for('grocery_list'))
 
-# User profile creation -Randi
+
+# -------------------------------------------------------------
+# USER PROFILE / LOGIN
+# -------------------------------------------------------------
 @app.route('/create_profile', methods=['GET', 'POST'])
 def createProfile():
     message = ''
@@ -255,9 +263,6 @@ def view_comment():
 # -------------------------------------
 @app.route('/recipes')
 def recipe_list():
-    """Display the recipe list page."""
-    # For now, just a placeholder page
-    # Later we can connect this to RecipeManager
     search_query = request.args.get('search_query', '')
 
     manager = RecipeManager()
@@ -304,9 +309,10 @@ def add_recipe():
     # On GET, just show the form
     return render_template('recipe_add.html')
 
-# -------------------------------------
-# ROUTE: Edit Recipe - Baraa
-# -------------------------------------
+
+# -------------------------------------------------------------
+# EDIT RECIPE — Baraa
+# -------------------------------------------------------------
 @app.route('/recipes/edit/<int:recipe_id>', methods=['GET', 'POST'])
 def edit_recipe(recipe_id):
     manager = RecipeManager()
@@ -327,7 +333,43 @@ def edit_recipe(recipe_id):
     return render_template('recipe_edit.html', recipe=recipe)
 
 
-#Calendar View route - Jordan
+# -------------------------------------------------------------
+# DELETE RECIPE — Baraa
+# -------------------------------------------------------------
+@app.route('/delete_recipe/<int:recipe_id>', methods=['POST'])
+def delete_recipe(recipe_id):
+    manager = RecipeManager()
+    manager.deleteRecipe(recipe_id)
+    return redirect(url_for('recipe_list'))
+
+
+# -------------------------------------------------------------
+# UPLOAD RECIPE IMAGE — Baraa
+# -------------------------------------------------------------
+@app.route('/recipes/<int:recipe_id>/upload_image', methods=['POST'])
+def upload_image(recipe_id):
+    image = request.files['image']
+
+    if image.filename == "":
+        return "No file selected", 400
+
+    save_path = os.path.join('Static', 'images', image.filename)
+    image.save(save_path)
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO recipe_image (recipe_id, image_path)
+            VALUES (?, ?)
+        """, (recipe_id, save_path))
+        conn.commit()
+
+    return redirect(url_for('edit_recipe', recipe_id=recipe_id))
+
+
+# -------------------------------------------------------------
+# CALENDAR ROUTES — Jordan
+# -------------------------------------------------------------
 @app.route('/calendar')
 def calendar_view():
     # Open database connection
@@ -416,7 +458,7 @@ def api_add_event():
         connection.close()
 
 #API - delete existing event - Jordan
-@app.route("/api/events/<int:event_id>",methods=["DELETE"])
+@app.route("/api/events/<int:event_id>", methods=["DELETE"])
 def api_delete_event(event_id):
     # Open database connection
     connection = sqlite3.connect(DB_NAME)
@@ -493,12 +535,12 @@ def upload_image(recipe_id):
 
 
 
-
+# -------------------------------------------------------------
+# STARTUP
+# -------------------------------------------------------------
 if __name__ == '__main__':
-    # First, make sure all tables exist before running the app
     conn = database_connection(DB_NAME)
     if conn is not None:
         create_tables(conn)
-        #update_tables(conn)
         conn.close()
     app.run(debug=True)
