@@ -258,33 +258,25 @@ def recipe_list():
     """Display the recipe list page."""
     # For now, just a placeholder page
     # Later we can connect this to RecipeManager
+    search_query = request.args.get('search_query', '')
+
     manager = RecipeManager()
-    recipes = manager.getAllRecipes()
-    return render_template('recipe_list.html')
 
-    conn = database_connection(DB_NAME)
-    cursor = conn.cursor()
-
-    recipes_list = []
     try:
+        # Check if a search is being performed
         if search_query:
-            search_term = f"%{search_query}%"
-            cursor.execute(
-                "SELECT recipe_id, recipe_name, description FROM recipe WHERE recipe_name LIKE ? OR ingredients LIKE ?",
-                (search_term, search_term)
-            )
+            # Use the manager's filter method
+            recipes = manager.filterByPreference(search_query)
         else:
-            cursor.execute("SELECT recipe_id, recipe_name, description FROM recipe")
-
-        recipes_list = cursor.fetchall()
+            # If no search, get all recipes
+            recipes = manager.getAllRecipes()
 
     except sqlite3.Error as e:
         print(f"Error searching recipes: {e}")
-        flash("An error occurred while searching for recipes.")  # Let the user know
-    finally:
-        conn.close()
+        flash("An error occurred while searching for recipes.")
+        recipes = []
 
-    return render_template('recipe_list.html', recipes=recipes_list, search_query=search_query)
+    return render_template('recipe_list.html', recipes=recipes, search_query=search_query)
 
 # -------------------------------------
 # ROUTE: Add a Recipe - Baraa
