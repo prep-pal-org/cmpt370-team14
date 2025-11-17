@@ -3,6 +3,9 @@ import sqlite3
 import bcrypt
 import os
 
+from Model.Recipe import Recipe
+from FlaskConnections.RecipeManager import RecipeManager
+
 from db.setup_database import database_connection, create_tables
 from Model.calendar_service import CalendarService, CalendarError
 
@@ -24,15 +27,36 @@ def old_home():
 # Routing for the grocery list
 @app.route('/grocery-list')
 def grocery_list():
-    current_user_id = 1
+    # Check if user is logged in
+    if 'username' not in session:
+        flash("You must be logged in to see your grocery list.")
+        return redirect(url_for('login'))
 
     conn = database_connection(DB_NAME)
     cursor = conn.cursor()
 
-    # Fetch items for the current user
-    cursor.execute("SELECT item_id, item_text, quantity FROM grocery_list WHERE user_id = ?", (current_user_id,))
-    items_tuples = cursor.fetchall()
-    conn.close()
+    try:
+        # Get the user_id from the session username
+        cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+        user_result = cursor.fetchone()
+
+        # If user not found (shouldn't happen if logged in), log them out
+        if not user_result:
+            flash("Error finding user. Please log in again.")
+            return redirect(url_for('logout'))
+
+        current_user_id = user_result[0]
+
+        # Fetch items for the *current* user
+        cursor.execute("SELECT item_id, item_text, quantity FROM grocery_list WHERE user_id = ?", (current_user_id,))
+        items_tuples = cursor.fetchall()
+
+    except sqlite3.Error as e:
+        print("Error fetching grocery list:", e)
+        flash("An error occurred while fetching your list.")
+        items_tuples = []  # Ensure items_tuples is defined even if try fails
+    finally:
+        conn.close()
 
     # Convert list of tuples to a list of dicts
     items_list = []
@@ -45,22 +69,36 @@ def grocery_list():
 # Route to add an item to the grocery list
 @app.route('/add_grocery_item', methods=['POST'])
 def add_grocery_item():
+    # Check if user is logged in
+    if 'username' not in session:
+        flash("You must be logged in to add items.")
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         item_text = request.form['item_text']
-
         quantity = request.form['quantity']
-
-        current_user_id = 1
 
         if item_text:
             conn = database_connection(DB_NAME)
             cursor = conn.cursor()
             try:
+                # Get the user_id from the session username
+                cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+                user_result = cursor.fetchone()
+
+                if not user_result:
+                    flash("Error finding user. Please log in again.")
+                    return redirect(url_for('logout'))
+
+                current_user_id = user_result[0]
+
+                # Insert the item with the *current* user's ID
                 cursor.execute("INSERT INTO grocery_list (user_id, item_text, quantity) VALUES (?, ?, ?)",
                                (current_user_id, item_text, quantity))
                 conn.commit()
             except sqlite3.Error as e:
                 print("Error adding grocery item:", e)
+                flash("Error adding item to list.")
             finally:
                 conn.close()
 
@@ -70,17 +108,41 @@ def add_grocery_item():
 
 @app.route('/remove_grocery_item', methods=['POST'])
 def remove_grocery_item():
+    # Check if user is logged in
+    if 'username' not in session:
+        flash("You must be logged in to remove items.")
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         item_id = request.form['item_id']
 
         conn = database_connection(DB_NAME)
         cursor = conn.cursor()
         try:
-            # Delete the item based on its unique item_id
-            cursor.execute("DELETE FROM grocery_list WHERE item_id = ?", (item_id,))
+            # Get the user_id from the session username
+            cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+            user_result = cursor.fetchone()
+
+            if not user_result:
+                flash("Error finding user. Please log in again.")
+                return redirect(url_for('logout'))
+
+            current_user_id = user_result[0]
+
+            # Securely delete the item
+            # This query ensures a user can ONLY delete their own items
+            cursor.execute("DELETE FROM grocery_list WHERE item_id = ? AND user_id = ?", (item_id, current_user_id))
             conn.commit()
+
+            # Check if any row was actually deleted
+            if cursor.rowcount == 0:
+                flash("Error: Item not found or you do not have permission to remove it.")
+            else:
+                flash("Item removed.")
+
         except sqlite3.Error as e:
             print("Error removing grocery item:", e)
+            flash("Error removing item.")
         finally:
             conn.close()
 
