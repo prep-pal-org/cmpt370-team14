@@ -13,7 +13,7 @@ import sqlite3
 app = Flask(__name__)
 app.secret_key = "saucy"
 DB_NAME = "db/saucyapp.db"
-#calendar_service = CalendarService()
+calendar_service = CalendarService()
 
 
 # Routing to a home page - Randi.
@@ -134,7 +134,7 @@ def recipe_list():
     # Later we can connect this to RecipeManager
     manager = RecipeManager()
     recipes = manager.getAllRecipes()
-    return render_template('recipe_list.html')
+    return render_template('recipe_list.html', recipes=recipes, search_query="")
 
 
 # -------------------------------------
