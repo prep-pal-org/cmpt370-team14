@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-from FlaskConnections.RecipeManager import RecipeManager
+from cmpt370_project_user_management.FlaskConnections.RecipeManager import RecipeManager
+
 import os
 
-from backups.setup_database_backup import database_connection
+from cmpt370_project_user_management.db.setup_database import database_connection
+
 from cmpt370_project_user_management.Model.Recipe import Recipe
 
 
