@@ -287,20 +287,31 @@ def delete_recipe(recipe_id):
     manager.deleteRecipe(recipe_id)
     return redirect(url_for('recipe_list'))
 
-
-# -------------------------------------------------------------
-# UPLOAD RECIPE IMAGE — Baraa
-# -------------------------------------------------------------
+# -------------------------------------
+# ROUTE: Upload Recipe Image - Baraa
+# -------------------------------------
 @app.route('/recipes/<int:recipe_id>/upload_image', methods=['POST'])
 def upload_image(recipe_id):
+    """
+    Handles uploading an image for a recipe.
+    Ensures that images NEVER overwrite each other by generating
+    unique filenames using the recipe ID and original filename.
+    """
     image = request.files['image']
 
+    # If no file was chosen
     if image.filename == "":
         return "No file selected", 400
 
-    save_path = os.path.join('Static', 'images', image.filename)
+    # Create a UNIQUE filename to avoid overwriting
+    # Example: recipe_3_cake.jpg
+    unique_filename = f"recipe_{recipe_id}_{image.filename}"
+
+    # Save under Static/images/
+    save_path = os.path.join('Static', 'images', unique_filename)
     image.save(save_path)
 
+    # Store path in database
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
         cur.execute("""
@@ -309,6 +320,9 @@ def upload_image(recipe_id):
         """, (recipe_id, save_path))
         conn.commit()
 
+    print(f"📸 Image uploaded successfully for recipe {recipe_id}: {unique_filename}")
+
+    # Redirect back to the edit page
     return redirect(url_for('edit_recipe', recipe_id=recipe_id))
 
 
