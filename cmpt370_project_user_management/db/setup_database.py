@@ -49,7 +49,7 @@ def create_tables(connection):
             recurrence_id INTEGER,
             FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id),
             FOREIGN KEY(recurrence_id) REFERENCES recurring_event (recurrence_id),
-            CONSTRAINT unique_event UNIQUE(event_date, event_time)                
+            CONSTRAINT unique_event UNIQUE(event_date, event_time, calendar_id)                
         );
         '''
 
