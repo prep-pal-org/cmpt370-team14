@@ -505,33 +505,33 @@ def api_update_event(event_id):
 # -------------------------------------
 # ROUTE: Delete a Recipe - Baraa
 # -------------------------------------
-@app.route('/delete_recipe/<int:recipe_id>', methods=['POST'])
-def delete_recipe(recipe_id):
-    """Delete a recipe from the database by ID and reload the recipe list."""
-    manager = RecipeManager()
-    manager.deleteRecipe(recipe_id)
-    return redirect(url_for('recipe_list'))
+#@app.route('/delete_recipe/<int:recipe_id>', methods=['POST'])
+#def delete_recipe(recipe_id):
+#    """Delete a recipe from the database by ID and reload the recipe list."""
+#    manager = RecipeManager()
+#    manager.deleteRecipe(recipe_id)
+#    return redirect(url_for('recipe_list'))
 
 # -------------------------------------
 # ROUTE: Upload Recipe Image - Baraa
 # -------------------------------------
-@app.route('/recipes/<int:recipe_id>/upload_image', methods=['POST'])
-def upload_image(recipe_id):
-    image = request.files['image']
+#@app.route('/recipes/<int:recipe_id>/upload_image', methods=['POST'])
+#def upload_image(recipe_id):
+#    image = request.files['image']
 
-    if image.filename == "":
-        return "No file selected", 400
+#    if image.filename == "":
+#        return "No file selected", 400
 
-    save_path = os.path.join('Static', 'images', image.filename)
-    image.save(save_path)
+#    save_path = os.path.join('Static', 'images', image.filename)
+#    image.save(save_path)
 
-    with sqlite3.connect(DB_NAME) as conn:
-        cur = conn.cursor()
-        cur.execute("INSERT INTO recipe_image (recipe_id, image_path) VALUES (?, ?)",
-                    (recipe_id, save_path))
-        conn.commit()
+#    with sqlite3.connect(DB_NAME) as conn:
+#        cur = conn.cursor()
+#        cur.execute("INSERT INTO recipe_image (recipe_id, image_path) VALUES (?, ?)",
+#                    (recipe_id, save_path))
+#        conn.commit()
 
-    return redirect(url_for('edit_recipe', recipe_id=recipe_id))
+#    return redirect(url_for('edit_recipe', recipe_id=recipe_id))
 
 
 
