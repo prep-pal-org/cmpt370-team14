@@ -237,6 +237,12 @@ document.addEventListener('DOMContentLoaded',function(){
         editButton.dataset.originalTime = eventObj.extendedProps.timeSlot;
         editButton.dataset.recipeId = eventObj.extendedProps.recipe_id;
 
+        //Store parameters with recurring button
+        const recurringButton = document.getElementById('recurringBtn');
+        recurringButton.dataset.eventId = eventObj.id;
+        recurringButton.dataset.recipeTitle = eventObj.title;
+        recurringButton.dataset.startDate = eventObj.startStr;
+
         //Make viewable
         viewModal.classList.remove('hidden');
     }
@@ -276,7 +282,7 @@ document.addEventListener('DOMContentLoaded',function(){
         viewModal.classList.add('hidden');
     });
 
-    //Set up Edit button listener for the View Modal - Shows editModal
+    //Set up Edit button listener for the View Modal - Shows editModal Todo: move into openEditModal function for consistency?
     document.getElementById('editBtn').addEventListener('click', e=>{
         //Pull data from edit button
         const eventId = e.target.dataset.eventId;
@@ -289,9 +295,10 @@ document.addEventListener('DOMContentLoaded',function(){
             loadRecipes();
         }
 
-        //Prepopulate the form
+        //Prepopulate the form date and time
         document.getElementById('editDate').value = date;
         document.getElementById('editTimeSlot').value = time;
+        //Prepopulate recipe list with helper function - If recipeId already exists, make it the current selection
         const recipeSelection = document.getElementById('editRecipeSelect');
         populateOptions(recipeSelection,recipeList);
         if (recipeId != null){
@@ -350,6 +357,35 @@ document.addEventListener('DOMContentLoaded',function(){
     document.getElementById('editCancel').addEventListener('click', () =>{
         editModal.classList.add('hidden');
     });
+
+    //Set up Recurring button listener for the View Modal Shows recurringModal Todo: move into openRecurringModal function for consistency?
+    document.getElementById('recurringBtn').addEventListener('click', e =>{
+        //Get data from button
+        const eventId = document.getElementById('recurringBtn').dataset.eventId;
+        const startDate = document.getElementById('recurringBtn').dataset.startDate;
+        const recipeTitle = document.getElementById('recurringBtn').dataset.recipeTitle;
+        const recurringModal = document.getElementById('recurringModal');
+
+        //Send data to modal
+        recurringModal.dataset.eventId = eventId;
+        recurringModal.dataset.startDate = startDate;
+        recurringModal.dataset.recipeTitle = recipeTitle;
+
+        //Refresh the form
+        document.getElementById('recurringForm').reset();
+
+        //Show Modal
+        recurringModal.classList.remove('hidden');
+    });
+
+    //Set up Submit button for recurring modal
+
+
+    //Set up Cancel button for recurring modal
+    document.getElementById('recurringCancel').addEventListener('click', () => {
+        document.getElementById('recurringModal').classList.add('hidden');
+    });
+
 });
 
 

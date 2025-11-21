@@ -147,3 +147,23 @@ class CalendarService:
             """, (new_date, new_time, recipe_id, new_recipe_name[0], event_id)
         )
         connection.commit()
+
+    def insert_recurring_event(self, connection: sqlite3.Connection, parent_event_id: int, frequency: str, duration: str, start_date: str):
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO recurring_event
+            (parent_event_id, frequency, duration, start_date)
+            VALUES (?, ?, ?, ?)
+        """, (parent_event_id, frequency, duration, start_date))
+        connection.commit()
+        recurring_event_id = cursor.lastrowid
+        return recurring_event_id
+
+    def link_event_with_recurrence(self, connection: sqlite3.Connection, event_id: int, recurrence_id: int):
+        cursor = connection.cursor()
+        cursor.execute("""
+            UPDATE calendar_event
+            SET recurrence_id = ?
+            WHERE event_id = ? 
+            """, (recurrence_id, event_id))
+        connection.commit()
