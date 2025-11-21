@@ -3,11 +3,14 @@ import sqlite3
 import bcrypt
 import os
 
-from Model.Recipe import Recipe
-from FlaskConnections.RecipeManager import RecipeManager
+from werkzeug.utils import secure_filename
+from cmpt370_project_user_management.Model.Recipe import Recipe
+from cmpt370_project_user_management.FlaskConnections.RecipeManager import RecipeManager
+from cmpt370_project_user_management.db.setup_database import database_connection, create_tables
+from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
 
-from db.setup_database import database_connection, create_tables
-from Model.calendar_service import CalendarService, CalendarError
+
+
 
 app = Flask(__name__)
 app.secret_key = "saucy"
@@ -283,25 +286,75 @@ def recipe_list():
 
     return render_template('recipe_list.html', recipes=recipes, search_query=search_query)
 
-# -------------------------------------
-# ROUTE: Add a Recipe - Baraa
-# -------------------------------------
+
+# -------------------------------------------------------------
+# ADD RECIPE — Baraa (with validation + optional images)
+# -------------------------------------------------------------
 @app.route('/recipes/add', methods=['GET', 'POST'])
 def add_recipe():
     """Display the add recipe form and handle submission."""
     if request.method == 'POST':
-        # For now, just print to console instead of saving
-        name = request.form['name']
-        ingredients = request.form['ingredients']
-        instructions = request.form['instructions']
+        name = request.form['name'].strip()
+        ingredients = request.form['ingredients'].strip()
+        instructions = request.form['instructions'].strip()
+        diet_tags = request.form.getlist('diet[]')
+        category = ",".join(diet_tags)
 
-        print(f"Recipe added: {name}")
-        print(f"Ingredients: {ingredients}")
-        print(f"Instructions: {instructions}")
+        if not name or not ingredients or not instructions:
+            flash("All fields are required.")
+            return redirect(url_for('add_recipe'))
 
-        new_recipe = Recipe(None, name, ingredients, instructions)
+        # get the logged-in user id
+        conn = database_connection(DB_NAME)
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+        user_id = cur.fetchone()[0]
+        conn.close()
+
+        # create recipe with user_id attached
+        new_recipe = Recipe(
+            recipe_id=None,
+            name=name,
+            ingredients=ingredients,
+            instructions=instructions,
+            image_path="",
+            category=category,
+            user_id=user_id
+        )
+
         manager = RecipeManager()
-        manager.addRecipe(new_recipe)
+        recipe_id = manager.addRecipe(new_recipe)
+
+        # ---------------------------
+        # Handle images
+        # ---------------------------
+        files = request.files.getlist('recipe_images')
+
+        if files:
+            upload_folder = os.path.join(app.static_folder, 'recipe_images')
+            os.makedirs(upload_folder, exist_ok=True)
+
+            with sqlite3.connect(DB_NAME) as conn:
+                cur = conn.cursor()
+                for file in files:
+                    if not file or file.filename == '':
+                        continue
+                    if not allowed_file(file.filename):
+                        continue
+
+                    safe = secure_filename(file.filename)
+                    unique = f"recipe_{recipe_id}_{safe}"
+                    abs_path = os.path.join(upload_folder, unique)
+                    rel_path = f"recipe_images/{unique}"
+
+                    file.save(abs_path)
+
+                    cur.execute("""
+                        INSERT INTO recipe_image (recipe_id, image_path, upload_date)
+                        VALUES (?, ?, DATE('now'))
+                    """, (recipe_id, rel_path))
+
+                conn.commit()
 
         # After adding, go back to list
         return redirect(url_for('recipe_list'))
@@ -310,8 +363,10 @@ def add_recipe():
     return render_template('recipe_add.html')
 
 
+
+
 # -------------------------------------------------------------
-# EDIT RECIPE — Baraa
+# EDIT RECIPE — Baraa (with validation + images list)
 # -------------------------------------------------------------
 @app.route('/recipes/edit/<int:recipe_id>', methods=['GET', 'POST'])
 def edit_recipe(recipe_id):
@@ -322,63 +377,201 @@ def edit_recipe(recipe_id):
         return "Recipe not found", 404
 
     if request.method == 'POST':
-        name = request.form['name']
-        ingredients = request.form['ingredients']
-        instructions = request.form['instructions']
+        name = request.form.get('name', '').strip()
+        ingredients = request.form.get('ingredients', '').strip()
+        instructions = request.form.get('instructions', '').strip()
+
+        if not name or not ingredients or not instructions:
+            flash("All fields (name, ingredients, instructions) are required.")
+            return redirect(url_for('edit_recipe', recipe_id=recipe_id))
 
         updated_recipe = Recipe(recipe_id, name, ingredients, instructions)
         manager.editRecipe(recipe_id, updated_recipe)
 
         return redirect(url_for('recipe_list'))
-    return render_template('recipe_edit.html', recipe=recipe)
+
+    # Load all images for the gallery
+    images = manager.getImagesForRecipe(recipe_id)
+    return render_template('recipe_edit.html', recipe=recipe, images=images)
 
 
 # -------------------------------------------------------------
-# DELETE RECIPE — Baraa
+# DELETE RECIPE — Baraa (also delete images)
 # -------------------------------------------------------------
 @app.route('/delete_recipe/<int:recipe_id>', methods=['POST'])
 def delete_recipe(recipe_id):
+    # Delete images from disk + DB first
+    upload_root = app.static_folder  # e.g., cmpt370_project_user_management/static
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT image_path FROM recipe_image WHERE recipe_id = ?", (recipe_id,))
+        rows = cur.fetchall()
+
+        for (image_path,) in rows:
+            abs_path = os.path.join(upload_root, image_path)
+            if os.path.exists(abs_path):
+                os.remove(abs_path)
+
+        cur.execute("DELETE FROM recipe_image WHERE recipe_id = ?", (recipe_id,))
+        conn.commit()
+
+    # Delete recipe row
     manager = RecipeManager()
     manager.deleteRecipe(recipe_id)
+
+    flash("Recipe and its images deleted.")
     return redirect(url_for('recipe_list'))
 
+
 # -------------------------------------
-# ROUTE: Upload Recipe Image - Baraa
+# ROUTE: Upload Recipe Image(s) - Baraa
 # -------------------------------------
 @app.route('/recipes/<int:recipe_id>/upload_image', methods=['POST'])
 def upload_image(recipe_id):
     """
-    Handles uploading an image for a recipe.
-    Ensures that images NEVER overwrite each other by generating
-    unique filenames using the recipe ID and original filename.
+    Handles uploading one or more images for a recipe.
+    Validates file type and saves to static/recipe_images.
     """
-    image = request.files['image']
+    manager = RecipeManager()
+    if manager.getRecipeById(recipe_id) is None:
+        flash("Recipe not found.")
+        return redirect(url_for('recipe_list'))
 
-    # If no file was chosen
-    if image.filename == "":
-        return "No file selected", 400
+    files = request.files.getlist('recipe_images')
+    if not files:
+        flash("No files selected.")
+        return redirect(url_for('edit_recipe', recipe_id=recipe_id))
 
-    # Create a UNIQUE filename to avoid overwriting
-    # Example: recipe_3_cake.jpg
-    unique_filename = f"recipe_{recipe_id}_{image.filename}"
+    upload_folder = os.path.join(app.static_folder, 'recipe_images')
+    os.makedirs(upload_folder, exist_ok=True)
 
-    # Save under Static/images/
-    save_path = os.path.join('Static', 'images', unique_filename)
-    image.save(save_path)
+    saved_any = False
 
-    # Store path in database
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        for file in files:
+            if not file or file.filename == '':
+                continue
+
+            if not allowed_file(file.filename):
+                flash("Some files were skipped (only .png, .jpg, .jpeg, .gif allowed).")
+                continue
+
+            safe_name = secure_filename(file.filename)
+            unique_name = f"recipe_{recipe_id}_{safe_name}"
+            abs_path = os.path.join(upload_folder, unique_name)
+            rel_path = f"recipe_images/{unique_name}"
+
+            file.save(abs_path)
+
+            cur.execute("""
+                INSERT INTO recipe_image (recipe_id, image_path, upload_date)
+                VALUES (?, ?, DATE('now'))
+            """, (recipe_id, rel_path))
+            saved_any = True
+
+        conn.commit()
+
+    if saved_any:
+        flash("Image(s) uploaded.")
+    else:
+        flash("No valid images uploaded.")
+
+    return redirect(url_for('edit_recipe', recipe_id=recipe_id))
+
+
+# -------------------------------------
+# ROUTE: Delete a single Recipe Image - Baraa
+# -------------------------------------
+@app.route('/recipes/<int:recipe_id>/images/<int:image_id>/delete', methods=['POST'])
+def delete_image(recipe_id, image_id):
+    upload_root = app.static_folder
+
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO recipe_image (recipe_id, image_path)
-            VALUES (?, ?)
-        """, (recipe_id, save_path))
+            SELECT image_path
+            FROM recipe_image
+            WHERE image_id = ? AND recipe_id = ?
+        """, (image_id, recipe_id))
+        row = cur.fetchone()
+
+        if not row:
+            flash("Image not found.")
+            return redirect(url_for('edit_recipe', recipe_id=recipe_id))
+
+        image_path = row[0]
+        abs_path = os.path.join(upload_root, image_path)
+
+        if os.path.exists(abs_path):
+            os.remove(abs_path)
+
+        cur.execute("DELETE FROM recipe_image WHERE image_id = ?", (image_id,))
         conn.commit()
 
-    print(f"📸 Image uploaded successfully for recipe {recipe_id}: {unique_filename}")
-
-    # Redirect back to the edit page
+    flash("Image deleted.")
     return redirect(url_for('edit_recipe', recipe_id=recipe_id))
+
+# -------------------------------------
+# ROUTE: Integrating Grocery list - Baraa
+# -------------------------------------
+@app.route('/add_ingredient_to_list', methods=['POST'])
+def add_ingredient_to_list():
+    if 'username' not in session:
+        flash("Login required.")
+        return redirect(url_for('login'))
+
+    ingredient = request.form['ingredient'].strip()
+
+    if ingredient == "":
+        flash("Invalid ingredient.")
+        return redirect(request.referrer)
+
+    conn = database_connection(DB_NAME)
+    cur = conn.cursor()
+
+    # find the user id
+    cur.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+    user_id = cur.fetchone()[0]
+
+    # insert ingredient as grocery item
+    cur.execute("""
+        INSERT INTO grocery_list (user_id, item_text, quantity)
+        VALUES (?, ?, ?)
+    """, (user_id, ingredient, "1"))
+
+    conn.commit()
+    conn.close()
+
+    flash(f"Added '{ingredient}' to grocery list ✔")
+    return redirect(request.referrer)
+
+# -------------------------------------------------------------
+# MY RECIPES — Only show recipes created by this user
+# -------------------------------------------------------------
+@app.route('/my_recipes')
+def my_recipes():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    # find the logged-in user's ID
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+        result = cur.fetchone()
+
+        if not result:
+            flash("Error: Could not find user.")
+            return redirect(url_for('logout'))
+
+        user_id = result[0]
+
+    manager = RecipeManager()
+    recipes = manager.getRecipesByUser(user_id)
+
+    return render_template('my_recipes.html', recipes=recipes)
+
 
 
 # -------------------------------------------------------------
@@ -546,6 +739,15 @@ def api_update_event(event_id):
 #        conn.commit()
 
 #    return redirect(url_for('edit_recipe', recipe_id=recipe_id))
+
+
+
+# --------- Baraa: Image upload config + validation ---------
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+def allowed_file(filename: str) -> bool:
+    """Check if the file extension is allowed."""
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 
