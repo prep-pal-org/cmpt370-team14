@@ -1,4 +1,3 @@
-import secrets
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import sqlite3
@@ -31,7 +30,7 @@ def old_home():
 
 
 # -------------------------------------------------------------
-# ROUTES: Grocery List (Soham + Randi)
+# ROUTES: Grocery List - Soham
 # -------------------------------------------------------------
 @app.route('/grocery-list')
 def grocery_list():
@@ -159,24 +158,21 @@ def remove_grocery_item():
 
 
 # -------------------------------------------------------------
-# USER PROFILE / LOGIN
+# ROUTES: USER PROFILE / LOGIN - Randi
 # -------------------------------------------------------------
 @app.route('/create_profile', methods=['GET', 'POST'])
 def createProfile():
-    message = ''
     if request.method == 'POST':
         userName = request.form['username']
         email = request.form['email']
         password = request.form['password']
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        DB_PATH = os.path.join(BASE_DIR, "db", "saucyapp.db")
 
         hash_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
         try:
             with sqlite3.connect(DB_NAME) as conn:
                 cur = conn.cursor()
                 cur.execute(" INSERT INTO user_profile (username, email, password) VALUES (?, ?,?)",
-                           (userName,email,hash_password))
+                            (userName, email, hash_password))
                 conn.commit()
                 flash("Profile created successfully")
                 return redirect(url_for('login'))
@@ -186,10 +182,10 @@ def createProfile():
 
     return render_template('create_profile.html')
 
+
 # Login page -Randi
 @app.route('/login_page', methods=['GET', 'POST'])
 def login():
-    message = ''
     if request.method == 'POST':
         userName = request.form['username']
         entered_password = request.form['password']
@@ -199,7 +195,7 @@ def login():
             cur.execute("SELECT password FROM user_profile WHERE username = ?", (userName,))
             result = cur.fetchone()
         if result is None:
-            flash('Invalid username or password')
+            flash('Invalid username. Try again.')
 
         else:
             stored_hash = result[0]
@@ -210,7 +206,7 @@ def login():
                 session['username'] = userName
                 return render_template('login_landing_page.html')
             else:
-                flash("Invalid username or password")
+                flash("Invalid password. Try again.")
     return render_template('login_page.html')
 
 # Login landing page -Randi
@@ -219,6 +215,7 @@ def login_landing_page():
     if 'username' not in session:
         return redirect(url_for('login'))
     return render_template('login_landing_page.html')
+
 
 # User logout. -Randi
 @app.route('/logout')
@@ -236,9 +233,19 @@ def user_list_for_testing():
     rows = cur.fetchall()
     return render_template("user_list_for_testing.html", data=rows)
 
+# -------------------------------------------------------------
+# ROUTES: MEAL PLAN CREATION, VIEWING AND SHARING - Randi
+# -------------------------------------------------------------
+
 # Create a new meal plan - Randi
 @app.route('/create_meal_plan', methods=['GET', 'POST'])
 def create_meal_plan():
+    # Check if user is logged in.
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to create a meal plan.")
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         plan_name = request.form['plan_name']
 
@@ -249,14 +256,21 @@ def create_meal_plan():
                 "SELECT user_id FROM user_profile WHERE username = ?",
                 (session['username'],)
             ).fetchone()
+
+            if creator_id is None:
+                flash("You must be logged in to create meal plan.")
+                return redirect(url_for('login'))
+
             user_id = creator_id[0]
 
-            # Count how many meal plans user already owns
-            count = cur.execute("""
-                SELECT COUNT(*)
-                FROM meal_plan
-                WHERE creator_id = ?
-            """, (user_id,)).fetchone()[0]
+            # Count how many meal plans user has access to.
+            creator_count = cur.execute("""SELECT COUNT(*) FROM meal_plan WHERE creator_id = ?""",
+                                        (user_id,)).fetchone()[0]
+
+            invited_count = cur.execute("""SELECT COUNT(*) FROM meal_plan_access WHERE user_id = ?""",
+                                        (user_id,)).fetchone()[0]
+
+            count = creator_count + invited_count
 
             # Enforce the 6-plan limit
             if count >= 6:
@@ -267,21 +281,17 @@ def create_meal_plan():
             invite_code = generate_invite_code()
 
             # Insert the new plan
-            cur.execute("""
-                INSERT INTO meal_plan (plan_name, creator_id, invite_code)
-                VALUES (?, ?, ?)
-            """, (plan_name, user_id, invite_code))
+            cur.execute("""INSERT INTO meal_plan (plan_name, creator_id, invite_code) VALUES (?, ?, ?)""",
+                        (plan_name, user_id, invite_code))
             meal_plan_id = cur.lastrowid  # <-- get the new meal_plan_id
 
             # Automatically give creator access
-            cur.execute("""
-                INSERT INTO meal_plan_access (meal_plan_id, user_id)
-                VALUES (?, ?)
-            """, (meal_plan_id, user_id))
+            cur.execute("""INSERT INTO meal_plan_access (meal_plan_id, user_id)VALUES (?, ?)""",
+                        (meal_plan_id, user_id))
             conn.commit()
 
         flash("Meal plan created!")
-        return redirect(url_for('list_meal_plans'))
+        return redirect(url_for('view_meal_plan', meal_plan_id=meal_plan_id))
 
     return render_template("create_meal_plan.html")
 
@@ -289,58 +299,71 @@ def create_meal_plan():
 # Generate the invite code - Randi
 def generate_invite_code():
     chars = string.ascii_letters + string.digits
-    return ''.join(random.choices(chars, k=6))
+    code = ''.join(random.choices(chars, k=6))
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        while cur.execute("SELECT 1 FROM meal_plan WHERE invite_code = ?",
+                          (code,)).fetchone():
+            code = ''.join(random.choices(chars, k=6))
+
+    return code
 
 
 # Allowed users view meal plan
 @app.route('/meal_plan/<int:meal_plan_id>')
 def view_meal_plan(meal_plan_id):
-    # Get logged-in user id
-    with sqlite3.connect(DB_NAME) as conn:
-        cur = conn.cursor()
-        user = cur.execute("""
-            SELECT user_id FROM user_profile
-            WHERE username = ?
-        """, (session['username'],)).fetchone()
-
-    if user is None:
-        flash("You must be logged in.")
+    # Check if user is logged in.
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to view a meal plan.")
         return redirect(url_for('login'))
 
-    user_id = user[0]
-
-    # Check access permission
-    if not user_has_access(user_id, meal_plan_id):
-        flash("You do not have permission to view this meal plan.")
-        return redirect(url_for('user_homePage'))
-
-    # If allowed → show the plan
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
-        meal_plan = cur.execute("""
-            SELECT plan_name, creator_id, invite_code
-            FROM meal_plan
-            WHERE meal_plan_id = ?
-        """, (meal_plan_id,)).fetchone()
+        user = cur.execute("""SELECT user_id FROM user_profile WHERE username = ?""",
+                           (session['username'],)).fetchone()
 
-    return render_template("view_meal_plan.html",
-                           meal_plan=meal_plan,
-                           meal_plan_id=meal_plan_id)
+        if user is None:
+            flash("You must be logged in.")
+            return redirect(url_for('login'))
+
+        user_id = user[0]
+
+        # Check access permission
+        if not user_has_access(user_id, meal_plan_id):
+            flash("You do not have permission to view this meal plan.")
+            return redirect(url_for('meal_plan_list'))
+
+        # If allowed → show the plan
+        meal_plan = cur.execute("""SELECT plan_name, creator_id, invite_code FROM meal_plan WHERE meal_plan_id = ?""",
+                                (meal_plan_id,)).fetchone()
+
+        if meal_plan is None:
+            flash("Meal plan no longer exists. Creator may have deleted the plan. Select a different plan.")
+            return redirect(url_for('meal_plan_list'))
+
+    return render_template("view_meal_plan.html", meal_plan=meal_plan, meal_plan_id=meal_plan_id)
+
 
 # Permission Checks - Randi
 def user_has_access(user_id, meal_plan_id):
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
-        result = cur.execute("""
-            SELECT 1
-            FROM meal_plan_access
-            WHERE user_id = ? AND meal_plan_id = ?
-        """, (user_id, meal_plan_id)).fetchone()
+        result = cur.execute("""SELECT 1 FROM meal_plan_access WHERE user_id = ? AND meal_plan_id = ?""",
+                             (user_id, meal_plan_id)).fetchone()
         return result is not None
+
 
 # Join Meal Plan - Randi
 @app.route('/join_meal_plan', methods=['GET', 'POST'])
 def join_meal_plan():
+    # Check if user is logged in.
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to join a meal plan.")
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         code = request.form['invite_code']
 
@@ -348,29 +371,29 @@ def join_meal_plan():
             cur = conn.cursor()
 
             # Find plan by code
-            plan = cur.execute("""
-                SELECT meal_plan_id FROM meal_plan
-                WHERE invite_code = ?
-            """, (code,)).fetchone()
+            plan = cur.execute("""SELECT meal_plan_id FROM meal_plan WHERE invite_code = ?""",
+                               (code,)).fetchone()
 
             if plan is None:
-                flash("Invalid invite code.")
+                flash("Invalid invite code. Please check code and try again.")
                 return redirect(url_for('join_meal_plan'))
 
             meal_plan_id = plan[0]
 
             # Find the user
-            user = cur.execute("""
-                SELECT user_id FROM user_profile
-                WHERE username = ?
-            """, (session['username'],)).fetchone()
+            user = cur.execute("""SELECT user_id FROM user_profile WHERE username = ?""",
+                               (session['username'],)).fetchone()
+
+            if user is None:
+                session.clear()
+                flash("Error: Can not find an existing user. You have been logged out, please log back in.")
+                return redirect(url_for('login'))
+
             user_id = user[0]
 
-            # Add access (ignore duplicates)
-            cur.execute("""
-                INSERT OR IGNORE INTO meal_plan_access (meal_plan_id, user_id)
-                VALUES (?, ?)
-            """, (meal_plan_id, user_id))
+            # Add access and check is access already exists to avoid duplicates.
+            cur.execute("""INSERT OR IGNORE INTO meal_plan_access (meal_plan_id, user_id) VALUES (?, ?)""",
+                        (meal_plan_id, user_id))
 
             conn.commit()
 
@@ -379,40 +402,58 @@ def join_meal_plan():
 
     return render_template('join_meal_plan.html')
 
+
 # List Meal Plans - Randi
 @app.route('/meal_plans')
 def list_meal_plans():
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to view your meal plans.")
+        return redirect(url_for('login'))
+
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
 
         # Get logged-in user ID
-        user = cur.execute("""
-            SELECT user_id FROM user_profile WHERE username = ?
-        """, (session['username'],)).fetchone()
+        user = cur.execute("""SELECT user_id FROM user_profile WHERE username = ?""",
+                           (session['username'],)).fetchone()
+
+        if user is None:
+            flash("You must be logged in to view your meal plans.")
+            return redirect(url_for('login'))
+
         user_id = user[0]
 
         # Meal plans they created
-        created = cur.execute("""
-            SELECT meal_plan_id, plan_name
-            FROM meal_plan
-            WHERE creator_id = ?
-        """, (user_id,)).fetchall()
+        created = cur.execute("""SELECT meal_plan_id, plan_name FROM meal_plan WHERE creator_id = ?""",
+                              (user_id,)).fetchall()
 
         # Meal plans they have access to (invited)
-        invited = cur.execute("""
-            SELECT mp.meal_plan_id, mp.plan_name
-            FROM meal_plan_access mpa
-            JOIN meal_plan mp ON mpa.meal_plan_id = mp.meal_plan_id
-            WHERE mpa.user_id = ?
-        """, (user_id,)).fetchall()
+        invited = cur.execute(""" SELECT mp.meal_plan_id, mp.plan_name FROM meal_plan_access mpa JOIN meal_plan mp 
+                                    ON mpa.meal_plan_id = mp.meal_plan_id WHERE mpa.user_id = ?""",
+                                     (user_id,)).fetchall()
+
+        if not created:
+            flash("You do not own any meal plans")
+
+        if not invited:
+            flash("You have not been invited to any meal plans")
+
 
     return render_template("list_meal_plans.html",
                            created=created,
                            invited=invited)
 
+
 # Delete a meal plan - only creator allowed
 @app.route('/delete_meal_plan/<int:meal_plan_id>', methods=['POST'])
 def delete_meal_plan(meal_plan_id):
+    # Check if user is logged in.
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to delete a meal plan.")
+        return redirect(url_for('login'))
+
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
 
@@ -459,7 +500,9 @@ def delete_meal_plan(meal_plan_id):
     return redirect(url_for('list_meal_plans'))
 
 
-
+# -------------------------------------------------------------
+# ROUTES: CREATE AND VIEW COMMENTS AND REACTIONS - Randi
+# -------------------------------------------------------------
 # Create a comment - Randi
 @app.route('/create_comment/<int:recipe_id>',methods=['GET', 'POST'])
 def create_comment(recipe_id):
@@ -483,20 +526,18 @@ def create_comment(recipe_id):
 
     return render_template('create_comment.html', recipe_id=recipe_id)
 
+
 # View a comment - Randi
 @app.route('/view_comments/<int:recipe_id>')
 def view_comment(recipe_id):
     connect = sqlite3.connect(DB_NAME)
     cur = connect.cursor()
-    cur.execute("""
-        SELECT rc.comment, u.username, rc.created_at
-        FROM recipe_comment rc
-        JOIN user_profile u ON rc.user_id = u.user_id
-        WHERE rc.recipe_id = ?
-        ORDER BY rc.created_at DESC
-    """, (recipe_id,))
-    com_rows = cur.fetchall()
-    return render_template("view_comments.html", com_data=com_rows, recipe_id=recipe_id)
+    comments = cur.execute("""SELECT rc.comment, u.username, rc.created_at FROM recipe_comment rc JOIN user_profile u 
+                            ON rc.user_id = u.user_id WHERE rc.recipe_id = ? ORDER BY rc.created_at DESC """,
+                             (recipe_id,)).fetchall()
+
+    return render_template("view_comments.html", com_data=comments, recipe_id=recipe_id)
+
 
 # Create a reaction - Randi
 @app.route('/create_reaction/<int:recipe_id>',methods=['GET', 'POST'])
@@ -520,18 +561,15 @@ def create_reaction(recipe_id):
         return redirect(url_for('view_recipe', recipe_id=recipe_id))
     return render_template('create_reaction.html', recipe_id=recipe_id)
 
+
 @app.route('/view_reactions/<int:recipe_id>')
 def view_reaction(recipe_id):
     connect = sqlite3.connect(DB_NAME)
     cur = connect.cursor()
-    cur.execute("""
-        SELECT rr.reaction, u.username, rr.created_at
-        FROM recipe_reaction rr
-        JOIN user_profile u ON rr.user_id = u.user_id
-        WHERE rr.recipe_id = ?
-        ORDER BY rr.created_at DESC
-    """, (recipe_id,))
-    react_rows = cur.fetchall()
+    react_rows = cur.execute("""SELECT rr.reaction, u.username, rr.created_at FROM recipe_reaction rr JOIN user_profile u 
+                                        ON rr.user_id = u.user_id WHERE rr.recipe_id = ? ORDER BY rr.created_at DESC""",
+                                        (recipe_id,)).fetchall()
+
     return render_template("view_reactions.html", com_data=react_rows, recipe_id=recipe_id)
 
 # -------------------------------------
