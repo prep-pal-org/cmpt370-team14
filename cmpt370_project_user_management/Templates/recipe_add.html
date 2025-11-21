@@ -9,33 +9,85 @@
 
 <body>
 
-<div class="recipe-background">   <!-- Baraa background wrapper -->
+<!-- nav bar -->
+<div class="topnav">
+    <a href="/login_page">Login</a>
+    <a href="/user_list_for_testing">About Us</a>
+    <a href="/">Home</a>
+    <a href="/old_home">Old Home Page</a>
+</div>
 
-<div class="recipe-box center-column">   <!-- White rounded card -->
+<div class="recipe-background">
 
-    <h1>➕ Add Recipe</h1>
+    <div class="recipe-box">
+        <h1>➕ Add Recipe</h1>
 
-    <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
 
-        <label>Name:</label>
-        <input class="recipe-input" type="text" name="name" required>
+            <label>Name:</label>
+            <input class="recipe-input" type="text" name="name" required>
 
-        <label>Ingredients:</label>
-        <textarea class="recipe-textarea" name="ingredients" rows="4" required></textarea>
+            <label>Ingredients:</label>
+            <textarea class="recipe-textarea" name="ingredients" required></textarea>
 
-        <label>Instructions:</label>
-        <textarea class="recipe-textarea" name="instructions" rows="4" required></textarea>
+            <label>Instructions:</label>
+            <textarea class="recipe-textarea" name="instructions" required></textarea>
 
-        <button type="submit">Add Recipe</button>
+            <label>Upload Image(s):</label>
 
-    </form>
+            <!-- Drag-and-drop zone -->
+            <div id="drop-zone" class="image-drop-zone">
+                <p>Drag & drop recipe images here, or click to select</p>
+            </div>
 
-    <br>
-    <a class="btn-link" href="{{ url_for('recipe_list') }}">⬅ Back to Recipes</a>
+            <!-- Hidden file input for images -->
+            <input id="recipe-images" type="file" name="recipe_images"
+                   accept="image/*" multiple style="display:none;">
+
+            <button type="submit">Add Recipe</button>
+        </form>
+
+        <br>
+        <a class="btn-link" href="{{ url_for('recipe_list') }}">⬅ Back to Recipes</a>
+    </div>
 
 </div>
 
-</div>
+<script>
+    // Simple drag-and-drop in plain JavaScript
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('recipe-images');
+
+    if (dropZone && fileInput) {
+        // Click to open file picker
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover'].forEach(evtName => {
+            dropZone.addEventListener(evtName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(evtName => {
+            dropZone.addEventListener(evtName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('dragover');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                dropZone.querySelector('p').textContent =
+                    files.length + " file(s) selected";
+            }
+        });
+    }
+</script>
 
 </body>
 </html>

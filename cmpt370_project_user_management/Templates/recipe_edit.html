@@ -9,31 +9,140 @@
 
 <body>
 
+<!-- nav bar -->
+<div class="topnav">
+    <a href="/login_page">Login</a>
+    <a href="/user_list_for_testing">About Us</a>
+    <a href="/">Home</a>
+    <a href="/old_home">Old Home Page</a>
+</div>
+
 <div class="recipe-background">
-<div class="recipe-box center-column">
 
-    <h2>Edit Recipe</h2>
+    <div class="recipe-box">
+        <h2>Edit Recipe</h2>
 
-    <form method="POST">
+        <!-- Main recipe edit form -->
+        <form method="POST">
+            <label>Name:</label>
+            <input class="recipe-input" type="text" name="name" value="{{ recipe.name }}">
 
-        <label>Name:</label>
-        <input class="recipe-input" type="text" name="name" value="{{ recipe.name }}">
+            <label>Ingredients:</label>
+            <textarea class="recipe-textarea" name="ingredients">{{ recipe.ingredients }}</textarea>
 
-        <label>Ingredients:</label>
-        <textarea class="recipe-textarea" name="ingredients" rows="4">{{ recipe.ingredients }}</textarea>
+            <!-- ====================================================== -->
+            <!-- Baraa: Add each ingredient to grocery list integration -->
+            <!-- ====================================================== -->
+            <h3>Add Ingredients to Grocery List</h3>
 
-        <label>Instructions:</label>
-        <textarea class="recipe-textarea" name="instructions" rows="4">{{ recipe.instructions }}</textarea>
+            <div class="ingredient-list-block">
+                {% for ing in recipe.ingredients.split('\n') %}
+                    {% if ing.strip() != '' %}
+                        <div class="ing-row">
+                            <span>{{ ing }}</span>
 
-        <button type="submit">Save Changes</button>
+                            <form method="POST"
+                                  action="{{ url_for('add_ingredient_to_list') }}"
+                                  style="display:inline;">
+                                <input type="hidden" name="ingredient" value="{{ ing }}">
+                                <button type="submit" class="small-btn">Add +</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
-    </form>
+            <hr style="width:100%; margin:20px 0;">
 
-    <br>
-    <a class="btn-link" href="{{ url_for('recipe_list') }}">⬅ Back</a>
+            <label>Instructions:</label>
+            <textarea class="recipe-textarea" name="instructions">{{ recipe.instructions }}</textarea>
 
+            <button type="submit">Save Changes</button>
+        </form>
+
+        <hr style="width:100%; margin:20px 0;">
+
+        <h3>Recipe Images</h3>
+
+        <!-- Existing images gallery -->
+        {% if images and images|length > 0 %}
+            <div class="image-gallery">
+                {% for img in images %}
+                    <div class="image-card">
+                        <img src="{{ url_for('static', filename=img.image_path) }}"
+                             class="recipe-img-preview" alt="Recipe image">
+
+                        <form method="POST"
+                              action="{{ url_for('delete_image',
+                                                 recipe_id=recipe.recipe_id,
+                                                 image_id=img.image_id) }}">
+                            <button class="delete-img-btn" type="submit">🗑 Delete</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p><i>No images uploaded yet.</i></p>
+        {% endif %}
+
+        <!-- Upload new images -->
+        <form id="image-upload-form"
+              method="POST"
+              action="{{ url_for('upload_image', recipe_id=recipe.recipe_id) }}"
+              enctype="multipart/form-data">
+
+            <label>Upload New Image(s):</label>
+
+            <div id="drop-zone" class="image-drop-zone">
+                <p>Drag & drop image(s) here, or click to select</p>
+            </div>
+
+            <input id="recipe-images" type="file" name="recipe_images"
+                   accept="image/*" multiple style="display:none;">
+
+            <button type="submit">Upload Image(s)</button>
+        </form>
+
+        <br>
+        <a class="btn-link" href="{{ url_for('recipe_list') }}">⬅ Back</a>
+
+    </div>
 </div>
-</div>
+
+<script>
+    // Drag-and-drop for EDIT page upload form
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('recipe-images');
+
+    if (dropZone && fileInput) {
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover'].forEach(evtName => {
+            dropZone.addEventListener(evtName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(evtName => {
+            dropZone.addEventListener(evtName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('dragover');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                dropZone.querySelector('p').textContent =
+                    files.length + " file(s) selected";
+            }
+        });
+    }
+</script>
 
 </body>
 </html>

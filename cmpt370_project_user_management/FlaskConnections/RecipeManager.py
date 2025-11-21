@@ -41,21 +41,23 @@ class RecipeManager:
 
     # --------------------------------------------------------------
 
-    def addRecipe(self, r: Recipe) -> None:
+    def addRecipe(self, r: Recipe) -> int:
         """
         Adds a new Recipe object to the database.
 
         :param r: A Recipe object to be added.
-        :return: None
+        :return: The new recipe_id (int)
         """
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("""
-                INSERT INTO recipe (recipe_name, ingredients, instructions)
-                VALUES (?, ?, ?)
+                INSERT INTO recipe (recipe_name, ingredients, instructions, category)
+                VALUES (?, ?, ?, ?)
             """, (r.name, r.ingredients, r.instructions))
+            recipe_id = cur.lastrowid
             conn.commit()
-        print(f"✅ Recipe '{r.name}' added successfully!")
+        print(f"✅ Recipe '{r.name}' added successfully with ID {recipe_id}!")
+        return recipe_id
 
     # --------------------------------------------------------------
 
@@ -105,8 +107,21 @@ class RecipeManager:
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("""
-                SELECT recipe_id, recipe_name, ingredients, instructions, '' 
-                FROM recipe WHERE recipe_name LIKE ?
+                SELECT r.recipe_id,
+                       r.recipe_name,
+                       r.ingredients,
+                       r.instructions,
+                       COALESCE(
+                           (
+                               SELECT image_path
+                               FROM recipe_image i
+                               WHERE i.recipe_id = r.recipe_id
+                               ORDER BY upload_date DESC, image_id DESC
+                               LIMIT 1
+                           ), ''
+                       ) AS image_path
+                FROM recipe r
+                WHERE r.recipe_name LIKE ?
             """, (f"%{pref}%",))
             rows = cur.fetchall()
         self.recipeList = [Recipe(*row) for row in rows]
@@ -115,7 +130,7 @@ class RecipeManager:
 
     # --------------------------------------------------------------
 
-    def getRecipeById(self, recipe_id: int) -> Recipe:
+    def getRecipeById(self, recipe_id: int) -> Recipe | None:
         """
         Retrieves a single Recipe object from the database by ID.
 
@@ -125,8 +140,21 @@ class RecipeManager:
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("""
-                SELECT recipe_id, recipe_name, ingredients, instructions, ''
-                FROM recipe WHERE recipe_id = ?
+                SELECT r.recipe_id,
+                       r.recipe_name,
+                       r.ingredients,
+                       r.instructions,
+                       COALESCE(
+                           (
+                               SELECT image_path
+                               FROM recipe_image i
+                               WHERE i.recipe_id = r.recipe_id
+                               ORDER BY upload_date DESC, image_id DESC
+                               LIMIT 1
+                           ), ''
+                       ) AS image_path
+                FROM recipe r
+                WHERE r.recipe_id = ?
             """, (recipe_id,))
             row = cur.fetchone()
 
@@ -148,8 +176,20 @@ class RecipeManager:
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("""
-                SELECT recipe_id, recipe_name, ingredients, instructions, ''
-                FROM recipe
+                SELECT r.recipe_id,
+                       r.recipe_name,
+                       r.ingredients,
+                       r.instructions,
+                       COALESCE(
+                           (
+                               SELECT image_path
+                               FROM recipe_image i
+                               WHERE i.recipe_id = r.recipe_id
+                               ORDER BY upload_date DESC, image_id DESC
+                               LIMIT 1
+                           ), ''
+                       ) AS image_path
+                FROM recipe r
             """)
             rows = cur.fetchall()
 
@@ -157,6 +197,48 @@ class RecipeManager:
         print(f"📖 Loaded {len(self.recipeList)} recipes from the database.")
         return self.recipeList
 
+    # --------------------------------------------------------------
+
+    def getImagesForRecipe(self, recipe_id: int):
+        """
+        Returns all images for a given recipe as a list of dicts:
+        [{ "image_id": ..., "image_path": ...}, ...]
+        """
+        with self._connect() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT image_id, image_path
+                FROM recipe_image
+                WHERE recipe_id = ?
+                ORDER BY upload_date DESC, image_id DESC
+            """, (recipe_id,))
+            rows = cur.fetchall()
+        return [{"image_id": row[0], "image_path": row[1]} for row in rows]
+
+    # --------------------------------------------------------------
+    def getRecipesByUser(self, user_id: int):
+        with self._connect() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT r.recipe_id,
+                       r.recipe_name,
+                       r.ingredients,
+                       r.instructions,
+                       COALESCE(
+                           (SELECT image_path FROM recipe_image i
+                            WHERE i.recipe_id = r.recipe_id
+                            ORDER BY upload_date DESC
+                            LIMIT 1),
+                           ''
+                       ),
+                       r.category
+                FROM recipe r
+                WHERE r.user_id = ?
+            """, (user_id,))
+
+            rows = cur.fetchall()
+
+        return [Recipe(*row) for row in rows]
+
     #kayo -
     #todo write class to convert instructions to individual steps and the getSteps.
-
