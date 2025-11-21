@@ -327,43 +327,49 @@ def upload_image(recipe_id):
 
 
 # -------------------------------------------------------------
-# CALENDAR ROUTES — Jordan
+# ROUTE- Calendar template - Jordan
 # -------------------------------------------------------------
 @app.route('/calendar')
 def calendar_view():
+    # Open database connection
     connection = sqlite3.connect(DB_NAME)
 
     try:
+        # get user_id integer from username in session and user_profile table
         username = session.get('username')
         cursor = connection.cursor()
         cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (username,))
         user_id = cursor.fetchone()
-
+        # Error in username in session or user_profile data
         if not user_id:
             return redirect(url_for("home"))
-
+        # Else get/create the calendar_id for this user and set session variable, render calendar
         calendar_id = calendar_service.create_or_get_calendar(connection, user_id[0])
         session["calendar_id"] = calendar_id
-
         return render_template("calendar.html", calendar_id=calendar_id)
 
     finally:
+        # Close connection when done
         connection.close()
 
-
+# -------------------------------------------------------------
+# ROUTE- Calendar API - load events - Jordan
+# -------------------------------------------------------------
 @app.route("/api/events")
 def api_events():
+    # Open database connection
     connection = sqlite3.connect(DB_NAME)
-
     try:
+        # Get calendar_id from session
         if "calendar_id" not in session:
             return redirect(url_for('home'))
-
         calendar_id = session["calendar_id"]
+        # Pull events from database
         events = calendar_service.get_calendar_events(connection, calendar_id)
-
-        full_calendar_events = [
-            {
+        # Convert events to FullCalendar JSON format
+        full_calendar_events = []
+        for event in events:
+            full_calendar_events.append({
                 "id": event["event_id"],
                 "title": event["event_name"],
                 "start": event["event_date"],
@@ -371,25 +377,27 @@ def api_events():
                     "timeSlot": event["event_time"],
                     "recipe_id": event["recipe_id"]
                 }
-            } for event in events
-        ]
-
+            })
+        # return all calendar events
         return jsonify(full_calendar_events)
     finally:
+        # Close connection when done
         connection.close()
 
-
+# -------------------------------------------------------------
+# ROUTE- Calendar API - add event - Jordan
+# -------------------------------------------------------------
 @app.route("/api/events", methods=["POST"])
 def api_add_event():
+    # Open database connection
     connection = sqlite3.connect(DB_NAME)
-
     try:
+        # Get calendar_id from session
         if "calendar_id" not in session:
             return redirect(url_for('home'))
-
         data = request.json
         calendar_id = session["calendar_id"]
-
+        # Create event using calendar service
         event_id = calendar_service.insert_calendar_event(
             connection,
             recipe_id=data["recipe_id"],
@@ -398,38 +406,45 @@ def api_add_event():
             event_date=data["event_date"],
             event_time=data["event_time"]
         )
-
         return jsonify({"event_id": event_id})
     except CalendarError as e:
         return jsonify({"error": str(e)}), 409
     finally:
+        # Close connection when done
         connection.close()
 
-
+# -------------------------------------------------------------
+# ROUTE- Calendar API - deleted event - Jordan
+# -------------------------------------------------------------
 @app.route("/api/events/<int:event_id>", methods=["DELETE"])
 def api_delete_event(event_id):
+    # Open database connection
     connection = sqlite3.connect(DB_NAME)
-
     try:
+        # Get calendar_id from session - not required but check for still in session
         if "calendar_id" not in session:
             return redirect(url_for('home'))
-
-        calendar_service.delete_calendar_event(connection, event_id)
+        deleted_event = calendar_service.delete_calendar_event(connection, event_id)
         return jsonify({"event_deleted": True})
     finally:
+        # Close connection when done
         connection.close()
 
-
+# -------------------------------------------------------------
+# ROUTE- Calendar API - Update event - Jordan
+# -------------------------------------------------------------
 @app.route("/api/events/<int:event_id>", methods=["PATCH"])
 def api_update_event(event_id):
+    # Open database connection
     connection = sqlite3.connect(DB_NAME)
 
     try:
+        # Get calendar_id from session
         if "calendar_id" not in session:
             return redirect(url_for('home'))
-
+        # Get request update data
         data = request.json
-
+        # Update event and return True
         calendar_service.update_event(
             connection,
             event_id,
@@ -443,6 +458,7 @@ def api_update_event(event_id):
         return jsonify({"error": str(e)}), 409
 
     finally:
+        # Close connection when done
         connection.close()
 
 

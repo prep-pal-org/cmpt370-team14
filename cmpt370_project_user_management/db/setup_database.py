@@ -64,6 +64,17 @@ def create_tables(connection):
         '''
 
         #recurring calendar event table - Jordan
+        create_recurring_event = '''
+        CREATE TABLE IF NOT EXISTS recurring_event (
+        recurring_event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        parent_event_id INTEGER,
+        frequency TEXT,
+        occurences INTEGER,
+        start_date DATE,
+        end_date DATE,
+        FOREIGN KEY (parent_event_id) REFERENCES calendar_event (event_id)
+        );
+        '''
 
         # ------------------------------------------------------------
         # recipe table - Baraa
