@@ -9,9 +9,6 @@ from cmpt370_project_user_management.FlaskConnections.RecipeManager import Recip
 from cmpt370_project_user_management.db.setup_database import database_connection, create_tables
 from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
 
-
-
-
 app = Flask(__name__)
 app.secret_key = "saucy"
 DB_NAME = "db/saucyapp.db"
@@ -311,16 +308,16 @@ def add_recipe():
         user_id = cur.fetchone()[0]
         conn.close()
 
-        # create recipe with user_id attached
+        # create recipe WITHOUT image_path in constructor
         new_recipe = Recipe(
             recipe_id=None,
             name=name,
             ingredients=ingredients,
-            instructions=instructions,
-            image_path="",
-            category=category,
-            user_id=user_id
+            instructions=instructions
         )
+        # attach extra attributes so RecipeManager can still use them
+        new_recipe.category = category
+        new_recipe.user_id = user_id
 
         manager = RecipeManager()
         recipe_id = manager.addRecipe(new_recipe)
@@ -361,8 +358,6 @@ def add_recipe():
 
     # On GET, just show the form
     return render_template('recipe_add.html')
-
-
 
 
 # -------------------------------------------------------------
@@ -531,11 +526,9 @@ def add_ingredient_to_list():
     conn = database_connection(DB_NAME)
     cur = conn.cursor()
 
-    # find the user id
     cur.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
     user_id = cur.fetchone()[0]
 
-    # insert ingredient as grocery item
     cur.execute("""
         INSERT INTO grocery_list (user_id, item_text, quantity)
         VALUES (?, ?, ?)
@@ -546,6 +539,7 @@ def add_ingredient_to_list():
 
     flash(f"Added '{ingredient}' to grocery list ✔")
     return redirect(request.referrer)
+
 
 # -------------------------------------------------------------
 # MY RECIPES — Only show recipes created by this user
@@ -571,7 +565,6 @@ def my_recipes():
     recipes = manager.getRecipesByUser(user_id)
 
     return render_template('my_recipes.html', recipes=recipes)
-
 
 
 # -------------------------------------------------------------
@@ -709,38 +702,6 @@ def api_update_event(event_id):
         #Close connection when done
         connection.close()
 
-# -------------------------------------
-# ROUTE: Delete a Recipe - Baraa
-# -------------------------------------
-#@app.route('/delete_recipe/<int:recipe_id>', methods=['POST'])
-#def delete_recipe(recipe_id):
-#    """Delete a recipe from the database by ID and reload the recipe list."""
-#    manager = RecipeManager()
-#    manager.deleteRecipe(recipe_id)
-#    return redirect(url_for('recipe_list'))
-
-# -------------------------------------
-# ROUTE: Upload Recipe Image - Baraa
-# -------------------------------------
-#@app.route('/recipes/<int:recipe_id>/upload_image', methods=['POST'])
-#def upload_image(recipe_id):
-#    image = request.files['image']
-
-#    if image.filename == "":
-#        return "No file selected", 400
-
-#    save_path = os.path.join('Static', 'images', image.filename)
-#    image.save(save_path)
-
-#    with sqlite3.connect(DB_NAME) as conn:
-#        cur = conn.cursor()
-#        cur.execute("INSERT INTO recipe_image (recipe_id, image_path) VALUES (?, ?)",
-#                    (recipe_id, save_path))
-#        conn.commit()
-
-#    return redirect(url_for('edit_recipe', recipe_id=recipe_id))
-
-
 
 # --------- Baraa: Image upload config + validation ---------
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
@@ -748,7 +709,6 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 def allowed_file(filename: str) -> bool:
     """Check if the file extension is allowed."""
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 
 # -------------------------------------------------------------

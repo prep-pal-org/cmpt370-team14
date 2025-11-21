@@ -5,40 +5,54 @@
     <meta charset="UTF-8">
     <title>Edit Recipe</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styleDesign.css') }}">
+
+    <style>
+        body {
+             background-image: url("{{ url_for('static', filename='home_page_image.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- nav bar -->
+<!-- Nav bar -->
 <div class="topnav">
     <a href="/login_page">Login</a>
     <a href="/user_list_for_testing">About Us</a>
     <a href="/">Home</a>
+    <a href="/recipes">All Recipes</a>
+    {% if session.get('username') %}
+        <a href="/my_recipes">My Recipes</a>
+    {% endif %}
     <a href="/old_home">Old Home Page</a>
 </div>
 
 <div class="recipe-background">
-
     <div class="recipe-box">
+
         <h2>Edit Recipe</h2>
 
-        <!-- Main recipe edit form -->
+        <!-- MAIN EDIT FORM -->
         <form method="POST">
+
             <label>Name:</label>
             <input class="recipe-input" type="text" name="name" value="{{ recipe.name }}">
 
             <label>Ingredients:</label>
             <textarea class="recipe-textarea" name="ingredients">{{ recipe.ingredients }}</textarea>
 
-            <!-- ====================================================== -->
-            <!-- Baraa: Add each ingredient to grocery list integration -->
-            <!-- ====================================================== -->
             <h3>Add Ingredients to Grocery List</h3>
 
+            <!-- One button for EACH ingredient -->
             <div class="ingredient-list-block">
                 {% for ing in recipe.ingredients.split('\n') %}
                     {% if ing.strip() != '' %}
-                        <div class="ing-row">
+                        <div class="ingredient-row">
                             <span>{{ ing }}</span>
 
                             <form method="POST"
@@ -52,25 +66,29 @@
                 {% endfor %}
             </div>
 
-            <hr style="width:100%; margin:20px 0;">
-
             <label>Instructions:</label>
             <textarea class="recipe-textarea" name="instructions">{{ recipe.instructions }}</textarea>
 
             <button type="submit">Save Changes</button>
         </form>
 
-        <hr style="width:100%; margin:20px 0;">
+        <!-- DELETE RECIPE BUTTON -->
+        <form method="POST"
+              action="{{ url_for('delete_recipe', recipe_id=recipe.recipe_id) }}"
+              onsubmit="return confirm('Are you sure you want to delete this recipe?');">
+            <button type="submit" class="delete-recipe-btn">🗑 Delete Recipe</button>
+        </form>
+
+        <hr>
 
         <h3>Recipe Images</h3>
 
-        <!-- Existing images gallery -->
-        {% if images and images|length > 0 %}
+        {% if images %}
             <div class="image-gallery">
                 {% for img in images %}
                     <div class="image-card">
                         <img src="{{ url_for('static', filename=img.image_path) }}"
-                             class="recipe-img-preview" alt="Recipe image">
+                             class="recipe-img-preview">
 
                         <form method="POST"
                               action="{{ url_for('delete_image',
@@ -85,16 +103,16 @@
             <p><i>No images uploaded yet.</i></p>
         {% endif %}
 
-        <!-- Upload new images -->
+        <!-- UPLOAD IMAGES -->
         <form id="image-upload-form"
               method="POST"
               action="{{ url_for('upload_image', recipe_id=recipe.recipe_id) }}"
               enctype="multipart/form-data">
 
-            <label>Upload New Image(s):</label>
+            <label>Upload New Images:</label>
 
             <div id="drop-zone" class="image-drop-zone">
-                <p>Drag & drop image(s) here, or click to select</p>
+                <p>Drag & drop image(s) here or click to select</p>
             </div>
 
             <input id="recipe-images" type="file" name="recipe_images"
@@ -110,30 +128,27 @@
 </div>
 
 <script>
-    // Drag-and-drop for EDIT page upload form
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('recipe-images');
 
     if (dropZone && fileInput) {
         dropZone.addEventListener('click', () => fileInput.click());
 
-        ['dragenter', 'dragover'].forEach(evtName => {
-            dropZone.addEventListener(evtName, (e) => {
+        ['dragenter', 'dragover'].forEach(evt =>
+            dropZone.addEventListener(evt, e => {
                 e.preventDefault();
-                e.stopPropagation();
                 dropZone.classList.add('dragover');
-            });
-        });
+            })
+        );
 
-        ['dragleave', 'drop'].forEach(evtName => {
-            dropZone.addEventListener(evtName, (e) => {
+        ['dragleave', 'drop'].forEach(evt =>
+            dropZone.addEventListener(evt, e => {
                 e.preventDefault();
-                e.stopPropagation();
                 dropZone.classList.remove('dragover');
-            });
-        });
+            })
+        );
 
-        dropZone.addEventListener('drop', (e) => {
+        dropZone.addEventListener('drop', e => {
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 fileInput.files = files;

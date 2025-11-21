@@ -5,6 +5,18 @@
     <meta charset="UTF-8">
     <title>Add Recipe</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styleDesign.css') }}">
+
+    <style>
+        /* backgroud */
+        body {
+            background-image: url("{{ url_for('static', filename='home_page_image.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+    </style>
 </head>
 
 <body>
@@ -14,12 +26,16 @@
     <a href="/login_page">Login</a>
     <a href="/user_list_for_testing">About Us</a>
     <a href="/">Home</a>
+    <a href="/recipes">All Recipes</a>
+    {% if session.get('username') %}
+        <a href="/my_recipes">My Recipes</a>
+    {% endif %}
     <a href="/old_home">Old Home Page</a>
 </div>
 
 <div class="recipe-background">
-
     <div class="recipe-box">
+
         <h1>➕ Add Recipe</h1>
 
         <form method="POST" enctype="multipart/form-data">
@@ -35,50 +51,59 @@
 
             <label>Upload Image(s):</label>
 
-            <!-- Drag-and-drop zone -->
-            <div id="drop-zone" class="image-drop-zone">
-                <p>Drag & drop recipe images here, or click to select</p>
+            <!-- Button + Drag-drop -->
+            <div style="display:flex; gap:10px; align-items:center;">
+
+                <button type="button" id="open-file-picker" class="small-btn">
+                    📎 Select Image(s)
+                </button>
+
+                <div id="drop-zone" class="image-drop-zone" style="flex-grow:1;">
+                    <p>Drag & drop recipe images here</p>
+                </div>
+
             </div>
 
-            <!-- Hidden file input for images -->
+            <!-- Hidden file input -->
             <input id="recipe-images" type="file" name="recipe_images"
                    accept="image/*" multiple style="display:none;">
 
+            <br><br>
             <button type="submit">Add Recipe</button>
         </form>
 
         <br>
         <a class="btn-link" href="{{ url_for('recipe_list') }}">⬅ Back to Recipes</a>
     </div>
-
 </div>
 
 <script>
-    // Simple drag-and-drop in plain JavaScript
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('recipe-images');
+    const openButton = document.getElementById('open-file-picker');
+
+    if (openButton) {
+        openButton.addEventListener('click', () => fileInput.click());
+    }
 
     if (dropZone && fileInput) {
-        // Click to open file picker
         dropZone.addEventListener('click', () => fileInput.click());
 
-        ['dragenter', 'dragover'].forEach(evtName => {
-            dropZone.addEventListener(evtName, (e) => {
+        ['dragenter', 'dragover'].forEach(evt => {
+            dropZone.addEventListener(evt, e => {
                 e.preventDefault();
-                e.stopPropagation();
                 dropZone.classList.add('dragover');
             });
         });
 
-        ['dragleave', 'drop'].forEach(evtName => {
-            dropZone.addEventListener(evtName, (e) => {
+        ['dragleave', 'drop'].forEach(evt => {
+            dropZone.addEventListener(evt, e => {
                 e.preventDefault();
-                e.stopPropagation();
                 dropZone.classList.remove('dragover');
             });
         });
 
-        dropZone.addEventListener('drop', (e) => {
+        dropZone.addEventListener('drop', e => {
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 fileInput.files = files;
