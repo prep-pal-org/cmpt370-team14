@@ -5,37 +5,114 @@
     <meta charset="UTF-8">
     <title>Add Recipe</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styleDesign.css') }}">
+
+    <style>
+        /* backgroud */
+        body {
+            background-image: url("{{ url_for('static', filename='home_page_image.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="recipe-background">   <!-- Baraa background wrapper -->
-
-<div class="recipe-box center-column">   <!-- White rounded card -->
-
-    <h1>➕ Add Recipe</h1>
-
-    <form method="POST">
-
-        <label>Name:</label>
-        <input class="recipe-input" type="text" name="name" required>
-
-        <label>Ingredients:</label>
-        <textarea class="recipe-textarea" name="ingredients" rows="4" required></textarea>
-
-        <label>Instructions:</label>
-        <textarea class="recipe-textarea" name="instructions" rows="4" required></textarea>
-
-        <button type="submit">Add Recipe</button>
-
-    </form>
-
-    <br>
-    <a class="btn-link" href="{{ url_for('recipe_list') }}">⬅ Back to Recipes</a>
-
+<!-- nav bar -->
+<div class="topnav">
+    <a href="/login_page">Login</a>
+    <a href="/user_list_for_testing">About Us</a>
+    <a href="/">Home</a>
+    <a href="/recipes">All Recipes</a>
+    {% if session.get('username') %}
+        <a href="/my_recipes">My Recipes</a>
+    {% endif %}
+    <a href="/old_home">Old Home Page</a>
 </div>
 
+<div class="recipe-background">
+    <div class="recipe-box">
+
+        <h1>➕ Add Recipe</h1>
+
+        <form method="POST" enctype="multipart/form-data">
+
+            <label>Name:</label>
+            <input class="recipe-input" type="text" name="name" required>
+
+            <label>Ingredients:</label>
+            <textarea class="recipe-textarea" name="ingredients" required></textarea>
+
+            <label>Instructions:</label>
+            <textarea class="recipe-textarea" name="instructions" required></textarea>
+
+            <label>Upload Image(s):</label>
+
+            <!-- Button + Drag-drop -->
+            <div style="display:flex; gap:10px; align-items:center;">
+
+                <button type="button" id="open-file-picker" class="small-btn">
+                    📎 Select Image(s)
+                </button>
+
+                <div id="drop-zone" class="image-drop-zone" style="flex-grow:1;">
+                    <p>Drag & drop recipe images here</p>
+                </div>
+
+            </div>
+
+            <!-- Hidden file input -->
+            <input id="recipe-images" type="file" name="recipe_images"
+                   accept="image/*" multiple style="display:none;">
+
+            <br><br>
+            <button type="submit">Add Recipe</button>
+        </form>
+
+        <br>
+        <a class="btn-link" href="{{ url_for('recipe_list') }}">⬅ Back to Recipes</a>
+    </div>
 </div>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('recipe-images');
+    const openButton = document.getElementById('open-file-picker');
+
+    if (openButton) {
+        openButton.addEventListener('click', () => fileInput.click());
+    }
+
+    if (dropZone && fileInput) {
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover'].forEach(evt => {
+            dropZone.addEventListener(evt, e => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(evt => {
+            dropZone.addEventListener(evt, e => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            });
+        });
+
+        dropZone.addEventListener('drop', e => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                dropZone.querySelector('p').textContent =
+                    files.length + " file(s) selected";
+            }
+        });
+    }
+</script>
 
 </body>
 </html>
