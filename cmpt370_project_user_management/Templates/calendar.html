@@ -15,7 +15,7 @@
         <div class="topnav">
         <a href="/login_page" id="login">Login</a>
         <a href="/user_list_for_testing" id="see_users">About Us</a>
-        <a href="/" id="home">Home</a>
+        <a href="/login_landing_page">Home</a>
         </div>
         <br>
         <div id="calendar"></div>
@@ -25,7 +25,9 @@
             <div class="modal-content">
                 <h3>Add to Calendar</h3>
                 <form id="addForm">
-                    <label>Date: <input type="date" id="addDate" readonly></label>
+                    <label>Date:
+                        <input type="date" id="addDate" readonly>
+                    </label>
                     <br>
 
                     <label>Time Slot:
@@ -38,10 +40,12 @@
                     </label>
                     <br>
 
-                    <label>Recipe ID: <input type="number" id="addRecipe" required></label>
-                    <br>
+                    <label>Select Recipe:
+                        <select id="recipeSelect" required>
+                            <!-- Options in eventHandling.js -->
+                        </select>
 
-                    <label>Recipe Name: <input type="text" id="addRecipeName" required></label>
+                    </label>
                     <br>
 
                     <button type="submit">Submit</button>
@@ -59,9 +63,9 @@
                 <p>Time: <span id="viewTime"></span></p>
                 <p>Recipe ID: <span id="viewRecipe"></span></p>
                 <br>
-                <button type="button" id="deleteBtn">Delete</button>
-                <br><br>
                 <button type="button" id="editBtn">Edit</button>
+                <br>
+                <button type="button" id="deleteBtn">Delete</button>
                 <br>
                 <button type="button" id="viewClose">Close</button>
             </div>

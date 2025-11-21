@@ -384,7 +384,7 @@ def upload_image(recipe_id):
 
 
 # -------------------------------------------------------------
-# ROUTE- Calendar template - Jordan
+# ROUTE- Calendar view template - Jordan
 # -------------------------------------------------------------
 @app.route('/calendar')
 def calendar_view():
@@ -397,8 +397,12 @@ def calendar_view():
         cursor = connection.cursor()
         cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (username,))
         user_id = cursor.fetchone()
-        # Error in username in session or user_profile data
+        # get meal_plan_id to show single calendar for grouped meal plan
+        #cursor.execute("SELECT meal_plan_id FROM meal_plan WHERE creator_id = ?", (user_id[0],))
+        #meal_plan_id = cursor.fetchone()
+        # Check for error in getting user_id / meal_plan_id
         if not user_id:
+            print("Error in calendar view route - user_id missing")
             return redirect(url_for("home"))
         # Else get/create the calendar_id for this user and set session variable, render calendar
         calendar_id = calendar_service.create_or_get_calendar(connection, user_id[0])
@@ -410,7 +414,7 @@ def calendar_view():
         connection.close()
 
 # -------------------------------------------------------------
-# ROUTE- Calendar API - load events - Jordan
+# ROUTE- FullCalendar API - load events - Jordan
 # -------------------------------------------------------------
 @app.route("/api/events")
 def api_events():
@@ -442,7 +446,24 @@ def api_events():
         connection.close()
 
 # -------------------------------------------------------------
-# ROUTE- Calendar API - add event - Jordan
+# ROUTE- FullCalendar API - load recipes - Jordan
+# -------------------------------------------------------------
+@app.route("/api/recipes")
+def api_recipes():
+    #Get all recipes from Recipe Manager
+    manager = RecipeManager()
+    recipes = manager.getAllRecipes()
+
+    #Format to required FC JSON format
+    payload = [
+        {"recipe_id": rec.recipe_id, "recipe_name": rec.name
+
+    }for rec in recipes
+    ]
+    return jsonify(payload)
+
+# -------------------------------------------------------------
+# ROUTE- FullCalendar API - add event - Jordan
 # -------------------------------------------------------------
 @app.route("/api/events", methods=["POST"])
 def api_add_event():
@@ -458,7 +479,7 @@ def api_add_event():
             connection,
             recipe_id=data["recipe_id"],
             calendar_id=calendar_id,
-            event_name=data["event_name"],
+            event_name=data["recipe_name"],
             event_date=data["event_date"],
             event_time=data["event_time"]
         )
@@ -471,7 +492,7 @@ def api_add_event():
         connection.close()
 
 # -------------------------------------------------------------
-# ROUTE- Calendar API - deleted event - Jordan
+# ROUTE- FullCalendar API - deleted event - Jordan
 # -------------------------------------------------------------
 @app.route("/api/events/<int:event_id>", methods=["DELETE"])
 def api_delete_event(event_id):
@@ -488,7 +509,7 @@ def api_delete_event(event_id):
         connection.close()
 
 # -------------------------------------------------------------
-# ROUTE- Calendar API - Update event - Jordan
+# ROUTE- FullCalendar API - Update event - Jordan
 # -------------------------------------------------------------
 @app.route("/api/events/<int:event_id>", methods=["PATCH"])
 def api_update_event(event_id):

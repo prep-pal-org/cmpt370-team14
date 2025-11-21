@@ -57,9 +57,8 @@ def create_tables(connection):
         create_calendar_schedule = '''
         CREATE TABLE IF NOT EXISTS calendar_schedule (
             calendar_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            event_id INTEGER,
-            user_id INTEGER,
-            FOREIGN KEY(event_id) REFERENCES calendar_event (event_id)        
+            meal_plan_id INTEGER,
+            FOREIGN KEY(meal_plan_id) REFERENCES meal_plan (creator_id)     
         );
         '''
 
@@ -199,15 +198,9 @@ def create_tables(connection):
                 '''
 
 
-        #Other tables here \/\/\/
-        #TODO - add all other tables
-
-
-
-
         #Create List of all table creation text
         #TODO - add tables created to this list
-        table_list = [create_calendar_event, create_calendar_schedule, create_user_profile, create_recipe_table,
+        table_list = [create_calendar_event, create_calendar_schedule, create_recurring_event, create_user_profile, create_recipe_table,
                       create_recipe_image_table, create_grocery_list, meal_plan, meal_plan_access,
                       recipe_reaction, recipe_comment,]
 
@@ -246,13 +239,13 @@ def main():
         except sqlite3.OperationalError as e:
             print("Error while dropping user_interaction table:", e)
 
-        # Add meal plan id to a calendar event - Randi
+        ''''# Add meal plan id to a calendar event - Randi
         try:
             cursor.execute("""ALTER TABLE calendar_event ADD COLUMN meal_plan_id INTEGER;""")
             connection.commit()
             print("Added meal_plan_id column to calendar_event table")
         except sqlite3.OperationalError as e:
-            print("Error while adding meal_plan_id to calendar_event table", e)
+            print("Error while adding meal_plan_id to calendar_event table", e)'''
 
         #If successful, try to create tables
         if create_tables(connection):
