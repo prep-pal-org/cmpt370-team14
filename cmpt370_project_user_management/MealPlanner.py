@@ -527,9 +527,9 @@ def api_update_event(event_id):
             connection,
             event_id,
             new_date=data.get("event_date"),
-            new_time=data.get("event_time")
+            new_time=data.get("event_time"),
+            recipe_id=data.get("recipe_id")
         )
-
         return jsonify({"event_updated": True})
 
     except CalendarError as e:

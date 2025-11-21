@@ -105,7 +105,7 @@ class CalendarService:
             #return true for confirmation of successful deletion
             return cursor.rowcount > 0
 
-    def update_event(self, connection: sqlite3.Connection, event_id: int, new_date: str, new_time: str):
+    def update_event(self, connection: sqlite3.Connection, event_id: int, new_date: str, new_time: str, recipe_id: int):
         """
         update_event function - updates a calendar event for an event_id
         :param connection: connection to sqlite3 database
@@ -135,11 +135,15 @@ class CalendarService:
         if cursor.fetchone() is not None:
             raise CalendarError("Added Recipes must have a unique time and date - One Recipe per time slot.")
 
+        #Get the new recipe name from recipe_id
+        cursor.execute("SELECT recipe_name FROM recipe WHERE recipe_id = ?", (recipe_id,))
+        new_recipe_name = cursor.fetchone()
+
         #Update the event
         cursor.execute(
             """UPDATE calendar_event 
-               SET event_date = ?, event_time = ? 
+               SET event_date = ?, event_time = ?, recipe_id = ?, event_name = ?
                WHERE event_id = ?
-            """, (new_date, new_time, event_id)
+            """, (new_date, new_time, recipe_id, new_recipe_name[0], event_id)
         )
         connection.commit()

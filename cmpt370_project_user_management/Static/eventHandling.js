@@ -103,30 +103,32 @@ document.addEventListener('DOMContentLoaded',function(){
         const response = await fetch('api/recipes');
 
         //Check response - if ok, send to helper to populate options list
-        if (response.ok){
+        if (response.ok) {
             recipeList = await response.json();
-            populateOptions(recipeList);
+            populateOptions(document.getElementById('recipeSelect'), recipeList);
+            populateOptions(document.getElementById('editRecipeSelect'), recipeList);
         }
+
         else{
             alert("Failed to Load recipes to calendar");
         }
     }
 
     /**
-     * populateOptions helper function - used to iterate through recipeList and populate recipe selections in add Modal
+     * populateOptions helper function - used to iterate through recipeList and populate recipe selections in add/edit Modal
+     * @param selectElement - Select element being populated
      * @param recipes - List of all recipe name and ids
      */
-    function populateOptions(recipes){
+    function populateOptions(selectElement, recipes){
         //Declare select element instance variable and clear any existing content
-        const select = document.getElementById('recipeSelect');
-        select.innerHTML = '';
+        selectElement.innerHTML = '';
         //Iterate through recipe list, creating and adding each option
         recipes.forEach((recipe, index) => {
             const option = document.createElement('option');
             option.value = recipe.recipe_id; //ID passed to event
             option.textContent = `${index +1}. ${recipe.recipe_name}`;
-            select.appendChild(option)
-        })
+            selectElement.appendChild(option)
+        });
     }
 
     //Declare all Modal instance variables - Add, View, Edit, Error
@@ -233,6 +235,7 @@ document.addEventListener('DOMContentLoaded',function(){
         editButton.dataset.eventId = eventObj.id;
         editButton.dataset.originalDate = eventObj.startStr;
         editButton.dataset.originalTime = eventObj.extendedProps.timeSlot;
+        editButton.dataset.recipeId = eventObj.extendedProps.recipe_id;
 
         //Make viewable
         viewModal.classList.remove('hidden');
@@ -279,11 +282,24 @@ document.addEventListener('DOMContentLoaded',function(){
         const eventId = e.target.dataset.eventId;
         const date = e.target.dataset.originalDate;
         const time = e.target.dataset.originalTime;
+        const recipeId = e.target.dataset.recipeId;
+
+        //Load Recipes if needed
+        if (recipeList.length === 0){
+            loadRecipes();
+        }
 
         //Prepopulate the form
         document.getElementById('editDate').value = date;
         document.getElementById('editTimeSlot').value = time;
-        document.getElementById('editForm');
+        const recipeSelection = document.getElementById('editRecipeSelect');
+        populateOptions(recipeSelection,recipeList);
+        if (recipeId != null){
+            recipeSelection.value = recipeId;
+        }
+
+        //Pass event_id for PATCH request
+        const editForm = document.getElementById('editForm');
         editForm.dataset.eventId = eventId;
 
         //Show edit modal
@@ -299,11 +315,13 @@ document.addEventListener('DOMContentLoaded',function(){
         const eventId = editForm.dataset.eventId;
         const newDate = document.getElementById('editDate').value;
         const newTime = document.getElementById('editTimeSlot').value;
+        const recipeId = parseInt(document.getElementById('editRecipeSelect').value,10)
 
         //build payload
         const payload = {
             event_date: newDate,
-            event_time: newTime
+            event_time: newTime,
+            recipe_id: recipeId
         };
 
         //Send patch request

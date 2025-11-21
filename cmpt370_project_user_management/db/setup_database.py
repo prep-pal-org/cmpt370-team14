@@ -68,7 +68,7 @@ def create_tables(connection):
         recurring_event_id INTEGER PRIMARY KEY AUTOINCREMENT,
         parent_event_id INTEGER,
         frequency TEXT,
-        occurences INTEGER,
+        occurrences INTEGER,
         start_date DATE,
         end_date DATE,
         FOREIGN KEY (parent_event_id) REFERENCES calendar_event (event_id)
