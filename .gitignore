@@ -22,3 +22,11 @@ cmpt370_project_user_management/tests/
 
 # Ignore venv if someone created one inside the project
 cmpt370_project_user_management/venv/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore database files
+*.db
+
