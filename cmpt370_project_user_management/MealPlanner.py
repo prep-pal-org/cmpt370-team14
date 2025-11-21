@@ -3,10 +3,11 @@ import sqlite3
 import bcrypt
 import os
 
-from cmpt370_project_user_management.Model.Recipe import Recipe
-from cmpt370_project_user_management.FlaskConnections.RecipeManager import RecipeManager
-from cmpt370_project_user_management.db.setup_database import database_connection, create_tables
-from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
+from Model.Recipe import Recipe
+from FlaskConnections.RecipeManager import RecipeManager
+
+from db.setup_database import database_connection, create_tables
+from Model.calendar_service import CalendarService, CalendarError
 
 app = Flask(__name__)
 app.secret_key = "saucy"
@@ -23,7 +24,7 @@ def home():
 # Old home page (legacy)
 @app.route('/old_home')
 def old_home():
-    return render_template('use_home_page.html')
+    return render_template('homePage.html')
 
 
 # -------------------------------------------------------------
@@ -31,6 +32,7 @@ def old_home():
 # -------------------------------------------------------------
 @app.route('/grocery-list')
 def grocery_list():
+    # Check if user is logged in
     if 'username' not in session:
         flash("You must be logged in to see your grocery list.")
         return redirect(url_for('login'))
@@ -39,113 +41,117 @@ def grocery_list():
     cursor = conn.cursor()
 
     try:
+        # Get the user_id from the session username
         cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
         user_result = cursor.fetchone()
 
+        # If user not found (shouldn't happen if logged in), log them out
         if not user_result:
             flash("Error finding user. Please log in again.")
             return redirect(url_for('logout'))
 
         current_user_id = user_result[0]
 
-        cursor.execute(
-            "SELECT item_id, item_text, quantity FROM grocery_list WHERE user_id = ?",
-            (current_user_id,)
-        )
+        # Fetch items for the *current* user
+        cursor.execute("SELECT item_id, item_text, quantity FROM grocery_list WHERE user_id = ?", (current_user_id,))
         items_tuples = cursor.fetchall()
 
     except sqlite3.Error as e:
         print("Error fetching grocery list:", e)
         flash("An error occurred while fetching your list.")
-        items_tuples = []
+        items_tuples = []  # Ensure items_tuples is defined even if try fails
     finally:
         conn.close()
 
-    items_list = [
-        {"id": row[0], "item_text": row[1], "quantity": row[2]}
-        for row in items_tuples
-    ]
+    # Convert list of tuples to a list of dicts
+    items_list = []
+    for row in items_tuples:
+        items_list.append({"id": row[0], "item_text": row[1], "quantity": row[2]})
 
     return render_template('grocery_list.html', items=items_list)
 
 
+# Route to add an item to the grocery list
 @app.route('/add_grocery_item', methods=['POST'])
 def add_grocery_item():
+    # Check if user is logged in
     if 'username' not in session:
         flash("You must be logged in to add items.")
         return redirect(url_for('login'))
 
-    item_text = request.form['item_text']
-    quantity = request.form['quantity']
+    if request.method == 'POST':
+        item_text = request.form['item_text']
+        quantity = request.form['quantity']
 
-    if item_text:
-        conn = database_connection(DB_NAME)
-        cursor = conn.cursor()
+        if item_text:
+            conn = database_connection(DB_NAME)
+            cursor = conn.cursor()
+            try:
+                # Get the user_id from the session username
+                cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+                user_result = cursor.fetchone()
 
-        try:
-            cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
-            user_result = cursor.fetchone()
+                if not user_result:
+                    flash("Error finding user. Please log in again.")
+                    return redirect(url_for('logout'))
 
-            if not user_result:
-                flash("Error finding user.")
-                return redirect(url_for('logout'))
+                current_user_id = user_result[0]
 
-            current_user_id = user_result[0]
+                # Insert the item with the *current* user's ID
+                cursor.execute("INSERT INTO grocery_list (user_id, item_text, quantity) VALUES (?, ?, ?)",
+                               (current_user_id, item_text, quantity))
+                conn.commit()
+            except sqlite3.Error as e:
+                print("Error adding grocery item:", e)
+                flash("Error adding item to list.")
+            finally:
+                conn.close()
 
-            cursor.execute("""
-                INSERT INTO grocery_list (user_id, item_text, quantity)
-                VALUES (?, ?, ?)
-            """, (current_user_id, item_text, quantity))
-
-            conn.commit()
-        except sqlite3.Error as e:
-            print("Error adding grocery item:", e)
-            flash("Error adding item.")
-        finally:
-            conn.close()
-
-    return redirect(url_for('grocery_list'))
+        # Redirect back to the grocery list page
+        return redirect(url_for('grocery_list'))
 
 
 @app.route('/remove_grocery_item', methods=['POST'])
 def remove_grocery_item():
+    # Check if user is logged in
     if 'username' not in session:
         flash("You must be logged in to remove items.")
         return redirect(url_for('login'))
 
-    item_id = request.form['item_id']
+    if request.method == 'POST':
+        item_id = request.form['item_id']
 
-    conn = database_connection(DB_NAME)
-    cursor = conn.cursor()
+        conn = database_connection(DB_NAME)
+        cursor = conn.cursor()
+        try:
+            # Get the user_id from the session username
+            cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+            user_result = cursor.fetchone()
 
-    try:
-        cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
-        user_result = cursor.fetchone()
+            if not user_result:
+                flash("Error finding user. Please log in again.")
+                return redirect(url_for('logout'))
 
-        if not user_result:
-            flash("Error finding user.")
-            return redirect(url_for('logout'))
+            current_user_id = user_result[0]
 
-        current_user_id = user_result[0]
+            # Securely delete the item
+            # This query ensures a user can ONLY delete their own items
+            cursor.execute("DELETE FROM grocery_list WHERE item_id = ? AND user_id = ?", (item_id, current_user_id))
+            conn.commit()
 
-        cursor.execute("""
-            DELETE FROM grocery_list
-            WHERE item_id = ? AND user_id = ?
-        """, (item_id, current_user_id))
+            # Check if any row was actually deleted
+            if cursor.rowcount == 0:
+                flash("Error: Item not found or you do not have permission to remove it.")
+            else:
+                flash("Item removed.")
 
-        conn.commit()
+        except sqlite3.Error as e:
+            print("Error removing grocery item:", e)
+            flash("Error removing item.")
+        finally:
+            conn.close()
 
-        if cursor.rowcount == 0:
-            flash("Error: Item not found or you do not have permission.")
-        else:
-            flash("Item removed.")
-
-    except sqlite3.Error as e:
-        print("Error removing grocery item:", e)
-        flash("Error removing item.")
-    finally:
-        conn.close()
-
+    # Redirect back to the grocery list page
     return redirect(url_for('grocery_list'))
 
 
@@ -154,23 +160,23 @@ def remove_grocery_item():
 # -------------------------------------------------------------
 @app.route('/create_profile', methods=['GET', 'POST'])
 def createProfile():
+    message = ''
     if request.method == 'POST':
         userName = request.form['username']
         email = request.form['email']
         password = request.form['password']
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        DB_PATH = os.path.join(BASE_DIR, "db", "saucyapp.db")
 
         hash_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
         try:
             with sqlite3.connect('db/saucyapp.db') as conn:
                 cur = conn.cursor()
-                cur.execute("""
-                    INSERT INTO user_profile (username, email, password)
-                    VALUES (?, ?, ?)
-                """, (userName, email, hash_password))
-
+                cur.execute(" INSERT INTO user_profile (username, email, password) VALUES (?, ?,?)",
+                           (userName,email,hash_password))
                 conn.commit()
-                flash("Profile created successfully!")
+                flash("Profile created successfully")
                 return redirect(url_for('login'))
 
         except sqlite3.IntegrityError:
@@ -179,9 +185,10 @@ def createProfile():
 
     return render_template('create_profile.html')
 
-
+# Login page -Randi
 @app.route('/login_page', methods=['GET', 'POST'])
 def login():
+    message = ''
     if request.method == 'POST':
         userName = request.form['username']
         entered_password = request.form['password']
@@ -190,12 +197,11 @@ def login():
             cur = conn.cursor()
             cur.execute("SELECT password FROM user_profile WHERE username = ?", (userName,))
             result = cur.fetchone()
-
         if result is None:
-            flash("Invalid username or password")
+            flash('Invalid username or password')
+
         else:
             stored_hash = result[0]
-
             if isinstance(stored_hash, str):
                 stored_hash = stored_hash.encode("utf-8")
 
@@ -204,53 +210,105 @@ def login():
                 return render_template('login_landing_page.html')
             else:
                 flash("Invalid username or password")
-
     return render_template('login_page.html')
 
+# Login landing page -Randi
+@app.route('/login_landing_page')
+def login_landing_page():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('login_landing_page.html')
 
+# User logout. -Randi
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
 
-# -------------------------------------------------------------
-# RECIPE LIST + SEARCH — Baraa + Soham
-# -------------------------------------------------------------
+# User list for testing purposes - Randi
+@app.route('/user_list_for_testing')
+def user_list_for_testing():
+    connect = sqlite3.connect('db/saucyapp.db')
+    cur = connect.cursor()
+    cur.execute(" SELECT * FROM user_profile")
+    rows = cur.fetchall()
+    return render_template("user_list_for_testing.html", data=rows)
+
+# Create a comment - Randi
+@app.route('/create_comment',methods=['GET', 'POST'])
+def create_comment():
+    if request.method == 'POST':
+        # add a line to get the name of the commenter
+        comment = request.form['comment']
+        with sqlite3.connect('db/saucyapp.db') as conn:
+            cur = conn.cursor()
+            cur.execute(" INSERT INTO user_interaction (comment) VALUES (?)",
+                        (comment,))
+            conn.commit()
+        return render_template('homePage.html')
+    else:
+        return render_template('create_comment.html')
+
+# View a comment - Randi
+@app.route('/view_comments')
+def view_comment():
+    connect = sqlite3.connect('db/saucyapp.db')
+    cur = connect.cursor()
+    cur.execute(" SELECT * FROM user_interaction")
+    com_rows = cur.fetchall()
+    return render_template("view_comments.html", com_data=com_rows)
+
+
+# -------------------------------------
+# ROUTE: View Recipe List (Added Search Functionality - Soham)
+# -------------------------------------
 @app.route('/recipes')
 def recipe_list():
     search_query = request.args.get('search_query', '')
+
     manager = RecipeManager()
 
     try:
+        # Check if a search is being performed
         if search_query:
+            # Use the manager's filter method
             recipes = manager.filterByPreference(search_query)
         else:
+            # If no search, get all recipes
             recipes = manager.getAllRecipes()
+
     except sqlite3.Error as e:
         print(f"Error searching recipes: {e}")
-        flash("An error occurred while searching.")
+        flash("An error occurred while searching for recipes.")
         recipes = []
 
     return render_template('recipe_list.html', recipes=recipes, search_query=search_query)
 
-
-# -------------------------------------------------------------
-# ADD RECIPE — Baraa
-# -------------------------------------------------------------
+# -------------------------------------
+# ROUTE: Add a Recipe - Baraa
+# -------------------------------------
 @app.route('/recipes/add', methods=['GET', 'POST'])
 def add_recipe():
+    """Display the add recipe form and handle submission."""
     if request.method == 'POST':
+        # For now, just print to console instead of saving
         name = request.form['name']
         ingredients = request.form['ingredients']
         instructions = request.form['instructions']
+
+        print(f"Recipe added: {name}")
+        print(f"Ingredients: {ingredients}")
+        print(f"Instructions: {instructions}")
 
         new_recipe = Recipe(None, name, ingredients, instructions)
         manager = RecipeManager()
         manager.addRecipe(new_recipe)
 
+        # After adding, go back to list
         return redirect(url_for('recipe_list'))
 
+    # On GET, just show the form
     return render_template('recipe_add.html')
 
 
@@ -274,7 +332,6 @@ def edit_recipe(recipe_id):
         manager.editRecipe(recipe_id, updated_recipe)
 
         return redirect(url_for('recipe_list'))
-
     return render_template('recipe_edit.html', recipe=recipe)
 
 
@@ -389,7 +446,6 @@ def api_events():
 # -------------------------------------------------------------
 @app.route("/api/events", methods=["POST"])
 def api_add_event():
-    # Open database connection
     connection = sqlite3.connect(DB_NAME)
     try:
         # Get calendar_id from session
@@ -406,6 +462,7 @@ def api_add_event():
             event_date=data["event_date"],
             event_time=data["event_time"]
         )
+
         return jsonify({"event_id": event_id})
     except CalendarError as e:
         return jsonify({"error": str(e)}), 409
@@ -460,6 +517,38 @@ def api_update_event(event_id):
     finally:
         # Close connection when done
         connection.close()
+
+# -------------------------------------
+# ROUTE: Delete a Recipe - Baraa
+# -------------------------------------
+#@app.route('/delete_recipe/<int:recipe_id>', methods=['POST'])
+#def delete_recipe(recipe_id):
+#    """Delete a recipe from the database by ID and reload the recipe list."""
+#    manager = RecipeManager()
+#    manager.deleteRecipe(recipe_id)
+#    return redirect(url_for('recipe_list'))
+
+# -------------------------------------
+# ROUTE: Upload Recipe Image - Baraa
+# -------------------------------------
+#@app.route('/recipes/<int:recipe_id>/upload_image', methods=['POST'])
+#def upload_image(recipe_id):
+#    image = request.files['image']
+
+#    if image.filename == "":
+#        return "No file selected", 400
+
+#    save_path = os.path.join('Static', 'images', image.filename)
+#    image.save(save_path)
+
+#    with sqlite3.connect(DB_NAME) as conn:
+#        cur = conn.cursor()
+#        cur.execute("INSERT INTO recipe_image (recipe_id, image_path) VALUES (?, ?)",
+#                    (recipe_id, save_path))
+#        conn.commit()
+
+#    return redirect(url_for('edit_recipe', recipe_id=recipe_id))
+
 
 
 # -------------------------------------------------------------
