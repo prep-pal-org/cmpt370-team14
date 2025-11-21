@@ -1,5 +1,12 @@
+import os
 import sqlite3
 from _sqlite3 import Error
+
+# ✅ Build a consistent path: cmpt370_project_user_management/db/saucyapp.db
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "saucyapp.db")
+print("🗂 Using database at:", DB_PATH)
+
 
 """
 database_connection function - used to create a connection to a SQLite database
@@ -62,18 +69,17 @@ def create_tables(connection):
         # recipe table - Baraa
         # Stores all recipe information including name, description, and creator
         create_recipe_table = '''
-               CREATE TABLE IF NOT EXISTS recipe (
-                   recipe_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                   recipe_name TEXT NOT NULL,
-                   description TEXT,
-                   ingredients TEXT,
-                   instructions TEXT,
-                   category TEXT,
-                   cooking_time INTEGER,
-                   user_id INTEGER,
-                   FOREIGN KEY(user_id) REFERENCES user(user_id)
-               );
-               '''
+        CREATE TABLE IF NOT EXISTS recipe (
+            recipe_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            recipe_name TEXT NOT NULL,
+            ingredients TEXT NOT NULL,
+            instructions TEXT NOT NULL,
+            category TEXT DEFAULT '',
+            cooking_time INTEGER DEFAULT 0,
+            user_id INTEGER,
+            FOREIGN KEY(user_id) REFERENCES user_profile(user_id)
+        );
+        '''
 
         # recipe_image table - Baraa
         # Stores paths or binary data for images linked to a recipe
@@ -87,6 +93,19 @@ def create_tables(connection):
                );
                '''
 
+        #steps table -Kayo
+        #stores each step of a linked recipe
+        create_steps_table = '''
+            CREATE TABLE IF NOT EXISTS recipe_steps (
+                step_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                recipe_id INTEGER,
+                step_number INTEGER,
+                step TEXT,
+                duration INTEGER DEFAULT 0,
+                FOREIGN KEY (recipe_id) REFERENCES recipe(recipe_id) 
+            );
+            '''
+
         #user_profile table - Randi
         create_user_profile = '''
         CREATE TABLE IF NOT EXISTS user_profile (
@@ -94,6 +113,33 @@ def create_tables(connection):
             username TEXT not Null UNIQUE,
             email TEXT not Null UNIQUE,
             password TEXT not Null
+        );
+        '''
+
+        #recipe_comment - Randi
+        recipe_comment = '''
+        CREATE TABLE IF NOT EXISTS recipe_comment (
+        comment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        recipe_id INTEGER NOT NULL,
+        comment TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES user_profile(user_id),
+        FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id)
+        );
+        '''
+
+        #recipe_reaction - Randi
+        recipe_reaction = '''
+        CREATE TABLE IF NOT EXISTS recipe_reaction (
+        reaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        recipe_id INTEGER NOT NULL,
+        reaction TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES user_profile(user_id),
+        FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id)
+        UNIQUE (recipe_id, user_id, reaction)
         );
         '''
 
@@ -108,6 +154,39 @@ def create_tables(connection):
         );
         '''
 
+        #meal_plan table - Randi
+        meal_plan = '''
+        CREATE TABLE IF NOT EXISTS meal_plan (
+        meal_plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        plan_name TEXT NOT NULL,
+        creator_id INTEGER NOT NULL,
+        invite_code TEXT NOT NULL,
+        FOREIGN KEY(creator_id) REFERENCES user_profile(user_id)
+        );
+        '''
+
+        #meal_plan_access - Randi
+        meal_plan_access = '''
+        CREATE TABLE IF NOT EXISTS meal_plan_access (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        meal_plan_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        FOREIGN KEY(meal_plan_id) REFERENCES meal_plan (meal_plan_id),
+        FOREIGN KEY(user_id) REFERENCES user_profile(user_id)
+        );
+        '''
+
+        # grocery_list table - Soham
+        create_grocery_list = '''
+                CREATE TABLE IF NOT EXISTS grocery_list (
+                    item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
+                    item_text TEXT NOT NULL,
+                    quantity TEXT,
+                    FOREIGN KEY(user_id) REFERENCES user_profile(user_id)
+                );
+                '''
+
 
         #Other tables here \/\/\/
         #TODO - add all other tables
@@ -117,8 +196,9 @@ def create_tables(connection):
 
         #Create List of all table creation text
         #TODO - add tables created to this list
-        table_list = [create_calendar_event, create_calendar_schedule, create_user_profile, create_user_interaction, create_recipe_table,
-            create_recipe_image_table]
+        table_list = [create_calendar_event, create_calendar_schedule, create_user_profile, create_recipe_table,
+                      create_recipe_image_table, create_grocery_list, meal_plan, meal_plan_access,
+                      recipe_reaction, recipe_comment,]
 
 
         #Loop through list for execute, actually creating tables
@@ -140,11 +220,29 @@ def create_tables(connection):
 
 def main():
     #Connect to database
-    database = 'saucyapp.db'
+    database = DB_PATH
     connection = database_connection(database)
 
     #Check connection established
     if connection is not None:
+
+        cursor = connection.cursor()
+        # Drop the old user_interaction table if it exists - Randi
+        try:
+            cursor.execute("DROP TABLE IF EXISTS user_interaction;")
+            connection.commit()
+            print("user_interaction table removed")
+        except sqlite3.OperationalError as e:
+            print("Error while dropping user_interaction table:", e)
+
+        # Add meal plan id to a calendar event - Randi
+        try:
+            cursor.execute("""ALTER TABLE calendar_event ADD COLUMN meal_plan_id INTEGER;""")
+            connection.commit()
+            print("Added meal_plan_id column to calendar_event table")
+        except sqlite3.OperationalError as e:
+            print("Error while adding meal_plan_id to calendar_event table", e)
+
         #If successful, try to create tables
         if create_tables(connection):
             print('Tables created')

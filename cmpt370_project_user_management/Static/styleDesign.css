@@ -1,4 +1,4 @@
-/* Set a background. */
+/* Set a background. - Randi*/
 body {
     background-image: url("home_page_image.jpg");
     background-repeat: no-repeat;
@@ -6,32 +6,131 @@ body {
 
 }
 
-/* Welcome header. */
+/* Welcome header. - Randi */
 h1 {
     color: darkgreen;
     align-items: center;
     justify-content: center;
 }
 
-/* Position in the center class. */
+/* Position in the center class. - Randi */
 .center {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Create a button. */
+/* for a centered column layout - Soham */
+.center-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8); /* Added semi-transparent white background */
+    width: 50%;
+    margin: 20px auto;
+    border-radius: 8px;
+}
+
+/* Styles for the grocery list - Soham */
+.grocery-items {
+    margin-top: 20px;
+    width: 300px;
+}
+.grocery-items ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.grocery-items li {
+    background-color: #f9f9f9;
+    margin-bottom: 5px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+/* Create a button. - Randi */
 button {
     background-color: darkblue;
     color: white;
     font-size: 16px;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
-/* User feedback on the button. */
+/* User feedback on the button. - Randi */
 
 button:hover{
     background-color: black;
 }
 
+/* ============================================================
+   Styles for Recipe Pages (Add / Edit / List) - Baraa
+   ============================================================ */
+
+/* Background for recipe pages only - Baraa */
+.recipe-background {
+    background-image: url("images/recipe_image.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 100vh;         /* full page height */
+    padding-top: 20px;         /* spacing so content not stuck at top */
+}
+
+/* Form containers for recipe pages - Baraa */
+.recipe-box {
+    background-color: rgba(255, 255, 255, 0.9); /* white box */
+    padding: 20px;
+    width: 60%;
+    margin: 40px auto;
+    border-radius: 12px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.2);     /* soft shadow */
+}
+
+/* Recipe form inputs - Baraa */
+.recipe-input, .recipe-textarea {
+    width: 90%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #bbb;
+    margin-top: 8px;
+    font-size: 15px;
+}
+
+/* Recipe list table - Baraa */
+.recipe-table {
+    width: 90%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.recipe-table th, .recipe-table td {
+    padding: 12px;
+    border: 1px solid #888;
+    text-align: center;
+}
+
+.recipe-table th {
+    background-color: darkgreen;
+    color: white;
+}
+
+/* Button-style links - Baraa */
+.btn-link {
+    background-color: darkblue;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.btn-link:hover {
+    background-color: black;
+}
 
 

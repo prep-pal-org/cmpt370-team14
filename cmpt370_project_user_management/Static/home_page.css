@@ -1,0 +1,85 @@
+/* Home page image - Randi */
+body {
+    margin: 0;
+    padding: 0;
+    background-image: url("home_page_image.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    box-sizing: content-box;
+
+}
+
+/* Top navigation bar. - Randi */
+.topnav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: transparent;
+    padding: 15px;
+    z-index: 1000;
+}
+
+
+/* Topnav links. -Randi */
+.topnav a {
+    float: left;
+    display: block;
+    color: black;
+    font-weight: bold;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+/* Navigation link feedback. - Randi */
+.topnav a:hover {
+    text-decoration: underline;
+}
+
+/* Body content location and spacing
+of the home page - Randi */
+.content {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 10pt;
+
+}
+
+/* Homepage header design. -Randi */
+h1 {
+    color: darkgreen;
+    font-size: 40pt;
+    margin-bottom: 0pt;
+
+    /*align-items: center;
+    justify-content: center;*/
+}
+
+/* Home page paragraph design. -Randi */
+p1 {
+    margin-top: 0pt;
+    font-size: 20pt;
+}
+
+/* Sign up button on home page. -Randi */
+button {
+    background-color: darkgreen;
+    color: white;
+    font-size: 16px;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+/* User feedback on the button. - Randi */
+
+button:hover{
+    text-decoration: underline;
+}

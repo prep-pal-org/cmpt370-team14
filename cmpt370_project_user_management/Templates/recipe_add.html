@@ -1,0 +1,41 @@
+<!-- Add Recipe Page - Baraa -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Recipe</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleDesign.css') }}">
+</head>
+
+<body>
+
+<div class="recipe-background">   <!-- Baraa background wrapper -->
+
+<div class="recipe-box center-column">   <!-- White rounded card -->
+
+    <h1>➕ Add Recipe</h1>
+
+    <form method="POST">
+
+        <label>Name:</label>
+        <input class="recipe-input" type="text" name="name" required>
+
+        <label>Ingredients:</label>
+        <textarea class="recipe-textarea" name="ingredients" rows="4" required></textarea>
+
+        <label>Instructions:</label>
+        <textarea class="recipe-textarea" name="instructions" rows="4" required></textarea>
+
+        <button type="submit">Add Recipe</button>
+
+    </form>
+
+    <br>
+    <a class="btn-link" href="{{ url_for('recipe_list') }}">⬅ Back to Recipes</a>
+
+</div>
+
+</div>
+
+</body>
+</html>
