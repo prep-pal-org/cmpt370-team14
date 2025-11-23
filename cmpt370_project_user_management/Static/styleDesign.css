@@ -72,27 +72,26 @@ button:hover{
    Styles for Recipe Pages (Add / Edit / List) - Baraa
    ============================================================ */
 
-/* Background for recipe pages only - Baraa */
+/* Background wrapper for recipe pages (now transparent!) */
 .recipe-background {
-    background-image: url("images/recipe_image.jpg");
-    background-repeat: no-repeat;
-    background-size: cover;
-    min-height: 100vh;         /* full page height */
-    padding-top: 20px;         /* spacing so content not stuck at top */
+    background-color: rgba(255, 255, 255, 0.0);
+    min-height: 100vh;
+    padding-top: 20px;
 }
 
 /* Form containers for recipe pages - Baraa */
 .recipe-box {
-    background-color: rgba(255, 255, 255, 0.9); /* white box */
+    background-color: rgba(255, 255, 255, 0.9);
     padding: 20px;
     width: 60%;
     margin: 40px auto;
     border-radius: 12px;
-    box-shadow: 0 0 12px rgba(0,0,0,0.2);     /* soft shadow */
+    box-shadow: 0 0 12px rgba(0,0,0,0.2);
 }
 
 /* Recipe form inputs - Baraa */
-.recipe-input, .recipe-textarea {
+.recipe-input,
+.recipe-textarea {
     width: 90%;
     padding: 10px;
     border-radius: 8px;
@@ -109,7 +108,8 @@ button:hover{
     background-color: rgba(255, 255, 255, 0.9);
 }
 
-.recipe-table th, .recipe-table td {
+.recipe-table th,
+.recipe-table td {
     padding: 12px;
     border: 1px solid #888;
     text-align: center;
@@ -133,4 +133,65 @@ button:hover{
     background-color: black;
 }
 
+.recipe-img-preview {
+    width: 180px;        /* Shrinks images */
+    height: auto;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.image-card {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ingredient-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 90%;
+    background: #f5f5f5;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    border: 1px solid #ddd;
+}
+
+.small-btn {
+    background-color: darkgreen;
+    color: white;
+    padding: 5px 8px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.small-btn:hover {
+    background-color: black;
+}
+
+.delete-recipe-btn {
+    background-color: darkred;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    width: 100%;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.delete-recipe-btn:hover {
+    background-color: black;
+}
+
+.recipe-img-preview {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+}
 
