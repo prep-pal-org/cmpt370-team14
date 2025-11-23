@@ -6,7 +6,7 @@ import os
 from werkzeug.utils import secure_filename
 from cmpt370_project_user_management.Model.Recipe import Recipe
 from cmpt370_project_user_management.FlaskConnections.RecipeManager import RecipeManager
-from cmpt370_project_user_management.db.setup_database import database_connection, create_tables
+from cmpt370_project_user_management.db.setup_database import database_connection, create_tables, main
 from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
 
 app = Flask(__name__)
@@ -764,6 +764,7 @@ def allowed_file(filename: str) -> bool:
 if __name__ == '__main__':
     conn = database_connection(DB_NAME)
     if conn is not None:
-        create_tables(conn)
+        #calls main in setup_database - which creates tables and applies updates
+        main()
         conn.close()
     app.run(debug=True)
