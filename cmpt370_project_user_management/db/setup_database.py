@@ -49,7 +49,7 @@ def create_tables(connection):
             recurrence_id INTEGER,
             FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id),
             FOREIGN KEY(recurrence_id) REFERENCES recurring_event (recurrence_id),
-            CONSTRAINT unique_event UNIQUE(event_date, event_time, calendar_id)                
+            CONSTRAINT unique_event UNIQUE(event_date, event_time)                
         );
         '''
 
@@ -57,8 +57,8 @@ def create_tables(connection):
         create_calendar_schedule = '''
         CREATE TABLE IF NOT EXISTS calendar_schedule (
             calendar_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            meal_plan_id INTEGER,
-            FOREIGN KEY(meal_plan_id) REFERENCES meal_plan (creator_id)     
+            user_id INTEGER,
+            FOREIGN KEY(user_id) REFERENCES meal_plan (creator_id)     
         );
         '''
 
@@ -209,9 +209,6 @@ def create_tables(connection):
             cursor.execute(table)
         connection.commit()
 
-        #Create Indexes? for easier/quicker searching? not sure if needed.
-        #cursor.execute('CREATE INDEX IF NOT EXISTS schedule_user_id ON calendar_schedule (user_id);')
-
     #If error encountered, print error, return false
     except Error as e:
         print('Error while creating tables', e)
@@ -219,6 +216,64 @@ def create_tables(connection):
     #successful table created, return true
     return True
 
+def update_calendar(connection: sqlite3.Connection, cursor: sqlite3.Cursor):
+    """
+    update_calendar function - used to update calendar tables while maintaining existing database data
+    :param connection: sqlite3.Connection
+    :param cursor: sqlite3.Cursor
+    :return: Nothing - print statements exist to console when update completed
+    """
+
+    #Rename calendar_schedule column "user_id" to "meal_plan_id" - if not previously done
+    try:
+        #Get table columns
+        cursor.execute("PRAGMA table_info('calendar_schedule')")
+        columns = cursor.fetchall()
+        #Check if columns contain user_id
+        check_user_id = any(column[1] == 'user_id' for column in columns)
+        if check_user_id: #If so, rename
+            cursor.execute("ALTER TABLE calendar_schedule RENAME COLUMN user_id TO meal_plan_id")
+            connection.commit()
+            print("calendar_schedule user_id renamed")
+        print("calendar_schedule user_id previously renamed")
+    except sqlite3.OperationalError as e:
+        print("Error while renaming calendar_schedule user_id column:", e)
+
+    #Add "calendar_id" to CONSTRAINT in calendar_event - if not previously done
+    try:
+        #Check if calendar_event constraint has been updated
+        cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='calendar_event';")
+        table_schema = cursor.fetchone()
+        if table_schema:
+            table = table_schema[0]
+            if "CONSTRAINT unique_event UNIQUE(event_date, event_time, calendar_id)" in table:
+                print("unique_event previously updated")
+            else: #Create new table, migrate data, drop and rename => to update constraint
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS calendar_event_new (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_name TEXT,
+                    event_date DATE,
+                    event_time TEXT,
+                    recipe_id INTEGER,
+                    calendar_id INTEGER,
+                    recurrence_id INTEGER,
+                    FOREIGN KEY(calendar_id) REFERENCES calendar_schedule (calendar_id),
+                    FOREIGN KEY(recurrence_id) REFERENCES recurring_event (recurrence_id),
+                    CONSTRAINT unique_event UNIQUE(event_date, event_time, calendar_id) 
+                    );        
+                ''')
+                cursor.execute('''
+                    INSERT INTO calendar_event_new (event_name, event_date, event_time, recipe_id, calendar_id, recurrence_id)
+                    SELECT event_name, event_date, event_time, recipe_id, calendar_id, recurrence_id
+                    FROM calendar_event;
+                ''')
+                cursor.execute("DROP TABLE IF EXISTS calendar_event;")
+                cursor.execute("ALTER TABLE calendar_event_new RENAME TO calendar_event;")
+                connection.commit()
+                print("calendar_event constraint updated")
+    except sqlite3.OperationalError as e:
+        print("Error while transferring and renaming calendar_event for unique constraint", e)
 
 
 def main():
@@ -237,6 +292,9 @@ def main():
             print("user_interaction table removed")
         except sqlite3.OperationalError as e:
             print("Error while dropping user_interaction table:", e)
+
+        #Update calendar tables - Jordan
+        update_calendar(connection, cursor)
 
         #If successful, try to create tables
         if create_tables(connection):

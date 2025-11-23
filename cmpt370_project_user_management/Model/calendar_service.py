@@ -214,6 +214,8 @@ class CalendarService:
             adjCount = duration
         #Calculate dates in recurrence with rrule
         recurrence_rule = rrule(freq_mapping[frequency], dtstart=start_date_format, count=adjCount)
+        for row in recurrence_rule:
+            print(row)
         #Declare variables for error tracking, when event can't be added due to unique timeslot
         error_count = 0
         error_list = []
@@ -221,6 +223,7 @@ class CalendarService:
         for event in recurrence_rule:
             #Get date of recurring event occurrence in calendar_service format
             event_date = event.date().strftime("%Y-%m-%d")
+            print("event_date,start_date",event_date,start_date)
             # Make sure new time slot is available - unique constraint error handling
             cursor.execute(
                 """SELECT 1 FROM calendar_event 
@@ -231,6 +234,7 @@ class CalendarService:
                 """, (calendar_id, event_date, event_time, parent_event_id)
             )
             unique = cursor.fetchone()
+            print("Unique:",unique)
             #if timeslot already occupied, add to error tracking
             if unique is not None:
                 error_count += 1
