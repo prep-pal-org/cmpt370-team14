@@ -53,7 +53,6 @@ function closePopup() {
 /**
  * Calendar event listener system - uses FullCalender addon and event listeners to handle all interactions on Calendar and Modal Boxes
  * FullCalendar Standard is a free, open source JS Calendar - https://fullcalendar.io/ - Styling and Script loaded in calendar.html
- * Todo: Still requires UI/handlers for repeating events
  * Implemented by Jordan
  */
 
@@ -63,13 +62,14 @@ document.addEventListener('DOMContentLoaded',function(){
     let recipeList = [];
 
     /**
-     * Initialize FullCalendar - Initial (and only) view set to day grid per one month; local timezone;
+     * Initialize FullCalendar - Required plugins; Initial (and only) view set to day grid per one month; local timezone;
      * top toolbar navigation allows previous/next month and going back to today, no daily/weekly view navigation;
      * FC events loaded with api/events route; clicking on dates / existing events opens relevant modal boxes;
      * Setting event order to be consistent based on time slot, works for empty time slots (Breakfast->Lunch->Dinner->Snack);
      * @type {FullCalendar.Calendar}
      */
     const calendar = new FullCalendar.Calendar(calendarEl,{
+
         initialView: 'dayGridMonth',
         timeZone: 'local',
         headerToolbar: {
@@ -240,8 +240,20 @@ document.addEventListener('DOMContentLoaded',function(){
         //Store parameters with recurring button
         const recurringButton = document.getElementById('recurringBtn');
         recurringButton.dataset.eventId = eventObj.id;
-        recurringButton.dataset.recipeTitle = eventObj.title;
         recurringButton.dataset.startDate = eventObj.startStr;
+
+        //Get recurring event id, if it exists
+        const recurringId = eventObj.extendedProps.recurrenceId;
+        const recurrenceInfo = document.getElementById('recurrenceInfo');
+
+        //Check for recurring event, if exists, show recurring info
+        if (recurringId != null){
+            recurrenceInfo.textContent = 'Recurring_event_id: ${recurringId}';
+            recurrenceInfo.classList.remove('hidden');
+            document.getElementById('deleteSeriesBtn').dataset.recurrenceId = recurringId;
+        } else {
+            recurrenceInfo.classList.add('hidden');
+        }
 
         //Make viewable
         viewModal.classList.remove('hidden');
@@ -379,6 +391,42 @@ document.addEventListener('DOMContentLoaded',function(){
     });
 
     //Set up Submit button for recurring modal
+    document.getElementById('recurringForm').addEventListener('submit', async e =>{
+        e.preventDefault();
+        //Declare modal and get event details
+        const recurringModal = document.getElementById('recurringModal');
+        const parentId = recurringModal.dataset.eventId;
+        const startDate = recurringModal.dataset.startDate;
+
+        //Get user fields
+        const frequency = document.getElementById('recurringFrequency').value;
+        const duration = parseInt(document.getElementById('recurringDuration').value, 10);
+
+        //build payload
+        const payload = {
+            parent_event_id: parentId,
+            frequency: frequency,
+            duration: duration,
+            start_date: startDate
+        };
+
+        //POST and await for response
+        const response = await fetch('/api/recurring',{
+            method: 'POST',
+            headers:{ 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        //Check response
+        if (response.ok){
+            calendar.refetchEvents();
+            recurringModal.classList.add('hidden');
+        } else{
+            const err = await response.json();
+            showAlertModal(err.error || 'Failed to create recurring event');
+        }
+
+    });
 
 
     //Set up Cancel button for recurring modal

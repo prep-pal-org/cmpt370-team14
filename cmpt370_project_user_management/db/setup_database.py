@@ -70,7 +70,6 @@ def create_tables(connection):
         frequency TEXT,
         duration INTEGER,
         start_date DATE,
-        end_date DATE,
         FOREIGN KEY (parent_event_id) REFERENCES calendar_event (event_id)
         );
         '''

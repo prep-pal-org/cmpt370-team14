@@ -384,8 +384,9 @@ def upload_image(recipe_id):
 
 
 # -------------------------------------------------------------
-# ROUTE- Calendar view template - Jordan
+# Calendar Routes - Jordan
 # -------------------------------------------------------------
+# calendar view
 @app.route('/calendar')
 def calendar_view():
     # Open database connection
@@ -413,9 +414,7 @@ def calendar_view():
         # Close connection when done
         connection.close()
 
-# -------------------------------------------------------------
-# ROUTE- FullCalendar API - load events - Jordan
-# -------------------------------------------------------------
+#Load Calendar Events
 @app.route("/api/events")
 def api_events():
     # Open database connection
@@ -427,7 +426,7 @@ def api_events():
         calendar_id = session["calendar_id"]
         # Pull events from database
         events = calendar_service.get_calendar_events(connection, calendar_id)
-        # Convert events to FullCalendar JSON format
+        # return all calendar events and recurring event rules
         full_calendar_events = []
         for event in events:
             full_calendar_events.append({
@@ -441,6 +440,7 @@ def api_events():
             })
         # return all calendar events
         return jsonify(full_calendar_events)
+
     finally:
         # Close connection when done
         connection.close()
@@ -538,6 +538,45 @@ def api_update_event(event_id):
     finally:
         # Close connection when done
         connection.close()
+# -------------------------------------------------------------
+# ROUTE- FullCalendar API - add recurring event - Jordan
+# -------------------------------------------------------------
+@app.route("/api/recurring", methods=["POST"])
+def api_add_recurring():
+    connection = sqlite3.connect(DB_NAME)
+    try:
+        # Get calendar_id from session
+        if "calendar_id" not in session:
+            return redirect(url_for('home'))
+        calendar_id = session["calendar_id"]
+        # Get data from request
+        data = request.json
+        parent_event_id = data["parent_event_id"]
+        frequency = data["frequency"]
+        duration = data["duration"]
+        start_date = data["start_date"]
+
+        #Insert recurring event details into database
+        recurring_event_id = calendar_service.insert_recurring_event(connection, parent_event_id, frequency, duration, start_date)
+
+        #Generate calendar events based on recurrence details
+        calendar_service.generate_recurring_events(connection,parent_event_id, recurring_event_id,frequency, duration, start_date)
+
+        return jsonify({"recurring_event_id": recurring_event_id})
+
+    except CalendarError as e:
+        return jsonify({"error": str(e)}), 409
+    finally:
+        #Close connection when done
+        connection.close()
+
+
+
+
+
+
+
+
 
 # -------------------------------------
 # ROUTE: Delete a Recipe - Baraa
