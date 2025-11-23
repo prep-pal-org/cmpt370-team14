@@ -304,7 +304,7 @@ def create_meal_plan():
             count = creator_count + invited_count
 
             # Enforce the 6-plan limit
-            if count >= 6:
+            if count >= 50:
                 flash("You can only have up to 6 meal plans.")
                 return redirect(url_for('list_meal_plans'))
 
@@ -374,7 +374,14 @@ def view_meal_plan(meal_plan_id):
             flash("Meal plan no longer exists. Creator may have deleted the plan. Select a different plan.")
             return redirect(url_for('meal_plan_list'))
 
-    return render_template("view_meal_plan.html", meal_plan=meal_plan, meal_plan_id=meal_plan_id)
+        creator_name = cur.execute("""SELECT username FROM user_profile WHERE user_id = ?""",
+                                   (meal_plan[1],)).fetchone()
+
+        meal_plan_name = meal_plan[0]
+        code = meal_plan[2]
+
+    return render_template("calendar.html", meal_plan_name=meal_plan_name, meal_plan_id=meal_plan_id,
+                           creator_name=creator_name[0], username=username, code=code)
 
 
 # Permission Checks - Randi

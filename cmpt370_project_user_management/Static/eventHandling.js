@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const button6 = document.getElementById('logout')
     const button7 = document.getElementById('calendar_view')
 
+
     button1.addEventListener('click',function(event) {
         event.preventDefault()
         window.location.href = "/create_profile";
@@ -41,8 +42,7 @@ document.addEventListener('DOMContentLoaded', function(){
     button7.addEventListener('click', function(event){
         event.preventDefault()
         window.location.href = "/calendar";
-    })
-
+    });
 
 });
 function closePopup() {
