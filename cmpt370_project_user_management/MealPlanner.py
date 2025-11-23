@@ -364,7 +364,7 @@ def view_meal_plan(meal_plan_id):
         # Check access permission
         if not user_has_access(user_id, meal_plan_id):
             flash("You do not have permission to view this meal plan.")
-            return redirect(url_for('meal_plan_list'))
+            return redirect(url_for('list_meal_plans'))
 
         # If allowed → show the plan
         meal_plan = cur.execute("""SELECT plan_name, creator_id, invite_code FROM meal_plan WHERE meal_plan_id = ?""",
@@ -372,7 +372,7 @@ def view_meal_plan(meal_plan_id):
 
         if meal_plan is None:
             flash("Meal plan no longer exists. Creator may have deleted the plan. Select a different plan.")
-            return redirect(url_for('meal_plan_list'))
+            return redirect(url_for('list_meal_plans'))
 
         creator_name = cur.execute("""SELECT username FROM user_profile WHERE user_id = ?""",
                                    (meal_plan[1],)).fetchone()
@@ -403,14 +403,18 @@ def join_meal_plan():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        code = request.form['invite_code']
+        code = request.form.get('invite_code','').strip()
+
+        if not code:
+            flash("Invite code cannot be empty.")
+            return redirect(url_for('join_meal_plan'))
 
         with sqlite3.connect(DB_NAME) as conn:
             cur = conn.cursor()
 
             # Find plan by code
             plan = cur.execute("""SELECT meal_plan_id FROM meal_plan WHERE invite_code = ?""",
-                               (code,)).fetchone()
+                               (str(code),)).fetchone()
 
             if plan is None:
                 flash("Invalid invite code. Please check code and try again.")
@@ -462,25 +466,45 @@ def list_meal_plans():
 
         user_id = user[0]
 
-        # Meal plans they created
-        created = cur.execute("""SELECT meal_plan_id, plan_name FROM meal_plan WHERE creator_id = ?""",
-                              (user_id,)).fetchall()
 
-        # Meal plans they have access to (invited)
-        invited = cur.execute(""" SELECT mp.meal_plan_id, mp.plan_name FROM meal_plan_access mpa JOIN meal_plan mp 
-                                    ON mpa.meal_plan_id = mp.meal_plan_id WHERE mpa.user_id = ?""",
-                                     (user_id,)).fetchall()
+        # Meal plans created by the user
+        created = cur.execute("""
+            SELECT meal_plan_id, plan_name, creator_id
+            FROM meal_plan
+            WHERE creator_id = ?
+        """, (user_id,)).fetchall()
 
-        if not created:
-            flash("You do not own any meal plans")
+        # Meal plans user was invited to (but did not create)
+        invited = cur.execute("""
+            SELECT mp.meal_plan_id, mp.plan_name, mp.creator_id, u.username AS creator_name
+            FROM meal_plan mp
+            JOIN meal_plan_access mpa ON mp.meal_plan_id = mpa.meal_plan_id
+            JOIN user_profile u ON mp.creator_id = u.user_id
+            WHERE mpa.user_id = ? AND mp.creator_id != ?
+        """, (user_id, user_id)).fetchall()
 
-        if not invited:
-            flash("You have not been invited to any meal plans")
+        # Add creator names for created plans
+        created_with_names = []
+        for plan in created:
+            creator_name = cur.execute("SELECT username FROM user_profile WHERE user_id = ?", (plan[2],)).fetchone()[0]
+            created_with_names.append({
+                "meal_plan_id": plan[0],
+                "plan_name": plan[1],
+                "creator_name": creator_name
+            })
+
+        invited_with_names = []
+        for plan in invited:
+            invited_with_names.append({
+                "meal_plan_id": plan[0],
+                "plan_name": plan[1],
+                "creator_name": plan[3]
+            })
 
 
     return render_template("list_meal_plans.html",
-                           created=created,
-                           invited=invited)
+                           created=created_with_names,
+                           invited=invited_with_names, username=username)
 
 
 # Delete a meal plan - only creator allowed
