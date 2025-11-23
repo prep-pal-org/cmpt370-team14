@@ -7,7 +7,6 @@ body {
     background-size: cover;
     background-attachment: fixed;
     box-sizing: content-box;
-
 }
 
 /* Top navigation bar. - Randi */
@@ -38,6 +37,10 @@ body {
     text-decoration: underline;
 }
 
+.page-content {
+    margin-top: 600px; /* create space below nav bar */
+}
+
 /* Body content location and spacing
 of the home page - Randi */
 .content {
@@ -62,7 +65,7 @@ h1 {
 }
 
 /* Home page paragraph design. -Randi */
-p1 {
+p {
     margin-top: 0pt;
     font-size: 20pt;
 }
@@ -83,3 +86,5 @@ button {
 button:hover{
     text-decoration: underline;
 }
+
+

@@ -21,6 +21,7 @@ calendar_service = CalendarService()
 # -------------------------------------------------------------
 @app.route('/')
 def home():
+    session.clear()
     return render_template('use_home_page.html')
 
 # Old home page (legacy)
@@ -194,19 +195,23 @@ def login():
             cur = conn.cursor()
             cur.execute("SELECT password FROM user_profile WHERE username = ?", (userName,))
             result = cur.fetchone()
+
         if result is None:
             flash('Invalid username. Try again.')
+            return render_template('login_page.html')
 
+        stored_hash = result[0]
+        if isinstance(stored_hash, str):
+            stored_hash = stored_hash.encode("utf-8")
+
+        if bcrypt.checkpw(entered_password.encode("utf-8"), stored_hash):
+            session['username'] = userName
+            return redirect(url_for('login_landing_page'))  # ✅ redirect after successful login
         else:
-            stored_hash = result[0]
-            if isinstance(stored_hash, str):
-                stored_hash = stored_hash.encode("utf-8")
+            flash("Invalid password. Try again.")
+            return render_template('login_page.html')
 
-            if bcrypt.checkpw(entered_password.encode("utf-8"), stored_hash):
-                session['username'] = userName
-                return render_template('login_landing_page.html')
-            else:
-                flash("Invalid password. Try again.")
+    # GET request
     return render_template('login_page.html')
 
 # Login landing page -Randi
@@ -214,8 +219,34 @@ def login():
 def login_landing_page():
     if 'username' not in session:
         return redirect(url_for('login'))
-    return render_template('login_landing_page.html')
 
+    userName = session.get('username')
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        creator_id = cur.execute(
+            "SELECT user_id FROM user_profile WHERE username = ?",
+            (session['username'],)
+        ).fetchone()
+
+        if creator_id is None:
+            flash("You must be logged in to create meal plan.")
+            return redirect(url_for('login'))
+
+        user_id = creator_id[0]
+
+
+    manager = RecipeManager()
+    all_recipes = manager.getAllRecipes()
+    my_recipes = manager.getRecipesByUser(user_id)
+    fav_recipes = manager.getFavoriteRecipesByUser(user_id)
+
+    print([(r.name, r.image_path) for r in all_recipes])# Returns Recipe objects
+
+    return render_template(
+        'login_landing_page.html',
+        all_recipes=all_recipes, my_recipes=my_recipes, fav_recipes=fav_recipes,
+        userName=userName)
 
 # User logout. -Randi
 @app.route('/logout')
@@ -506,6 +537,12 @@ def delete_meal_plan(meal_plan_id):
 # Create a comment - Randi
 @app.route('/create_comment/<int:recipe_id>',methods=['GET', 'POST'])
 def create_comment(recipe_id):
+    # Check if user is logged in.
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to create a comment.")
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         # add a line to get the name of the commenter
         comment = request.form['comment']
@@ -530,6 +567,11 @@ def create_comment(recipe_id):
 # View a comment - Randi
 @app.route('/view_comments/<int:recipe_id>')
 def view_comment(recipe_id):
+    # Check if user is logged in.
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to view comments.")
+        return redirect(url_for('login'))
     connect = sqlite3.connect(DB_NAME)
     cur = connect.cursor()
     comments = cur.execute("""SELECT rc.comment, u.username, rc.created_at FROM recipe_comment rc JOIN user_profile u 
@@ -542,6 +584,12 @@ def view_comment(recipe_id):
 # Create a reaction - Randi
 @app.route('/create_reaction/<int:recipe_id>',methods=['GET', 'POST'])
 def create_reaction(recipe_id):
+    # Check if user is logged in.
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to add a reaction.")
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         reaction = request.form['reaction']
         with sqlite3.connect(DB_NAME) as conn:
@@ -564,6 +612,11 @@ def create_reaction(recipe_id):
 
 @app.route('/view_reactions/<int:recipe_id>')
 def view_reaction(recipe_id):
+    # Check if user is logged in.
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to view a reaction.")
+        return redirect(url_for('login'))
     connect = sqlite3.connect(DB_NAME)
     cur = connect.cursor()
     react_rows = cur.execute("""SELECT rr.reaction, u.username, rr.created_at FROM recipe_reaction rr JOIN user_profile u 
@@ -571,6 +624,32 @@ def view_reaction(recipe_id):
                                         (recipe_id,)).fetchall()
 
     return render_template("view_reactions.html", com_data=react_rows, recipe_id=recipe_id)
+
+@app.route('/favorite_recipe/<int:recipe_id>', methods=["POST"])
+def favorite_recipe(recipe_id):
+    # Check if user is logged in.
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to add a recipe to favorites.")
+        return redirect(url_for('login'))
+    if request.method == "POST":
+        with sqlite3.connect(DB_NAME) as conn:
+            cur = conn.cursor()
+            user = cur.execute("SELECT user_id FROM user_profile WHERE username = ?",
+                               (session['username'],)).fetchone()
+            if user is None:
+                flash("User not found")
+                return redirect(url_for('favorite_recipe'))
+            user_id = user[0]
+
+            cur.execute(" INSERT OR IGNORE INTO favorite_recipes (user_id, recipe_id) VALUES (?, ?)",
+                        (user_id, recipe_id,))
+
+            conn.commit()
+        flash("Recipe added to favorites!")
+        return redirect(url_for('view_recipe', recipe_id=recipe_id))
+    return render_template('favorite_recipe', recipe_id=recipe_id)
+
 
 # -------------------------------------
 # ROUTE: View Recipe List (Added Search Functionality - Soham)
