@@ -29,46 +29,34 @@
 /* Space so content appears below the topnav. - Randi */
 body {
     margin: 0;
-    padding-top: 30px;
+    padding: 0;
     background-image: url("home_page_image.jpg");
-    background-size: cover;
     background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    box-sizing: content-box;
+
 }
 
-/* Content screen that holds the sidnav and calender. - Randi */
+/* Body content location and spacing
+of the home page - Randi */
 .content {
+    height: 100vh;
     display: flex;
-    width: 90%;
-    margin: 20px auto;
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
-    gap: 20px;
-}
-
-/* Sidebar navigation. - Randi */
-.sidenav {
-    width: 200px;
-    display: flex;
-    background-color: lightgreen;
     flex-direction: column;
-    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 10pt;
+
 }
 
-/* Sidebar links a user to options. -Randi */
-.sidenav a {
-    margin: 0 20px;
-    font-weight: bold;
-    color: black;
-    text-decoration: none;
-}
+/* Homepage header design. -Randi */
+h1 {
+    color: darkgreen;
+    font-size: 40pt;
+    margin-bottom: 0pt;
 
-/* Sidebar links feedback. - Randi */
-.sidenav a:hover {
-    text-decoration: underline;
-}
-
-/* Calender location. - Randi */
-.sidecontent {
-    flex: 1;
+    /*align-items: center;
+    justify-content: center;*/
 }
