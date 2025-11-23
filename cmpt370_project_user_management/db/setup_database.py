@@ -235,7 +235,7 @@ def update_calendar(connection: sqlite3.Connection, cursor: sqlite3.Cursor):
             cursor.execute("ALTER TABLE calendar_schedule RENAME COLUMN user_id TO meal_plan_id")
             connection.commit()
             print("calendar_schedule user_id renamed")
-        print("calendar_schedule user_id previously renamed")
+
     except sqlite3.OperationalError as e:
         print("Error while renaming calendar_schedule user_id column:", e)
 
@@ -247,7 +247,7 @@ def update_calendar(connection: sqlite3.Connection, cursor: sqlite3.Cursor):
         if table_schema:
             table = table_schema[0]
             if "CONSTRAINT unique_event UNIQUE(event_date, event_time, calendar_id)" in table:
-                print("unique_event previously updated")
+                print("")#No confirmation, but nothing to change
             else: #Create new table, migrate data, drop and rename => to update constraint
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS calendar_event_new (
