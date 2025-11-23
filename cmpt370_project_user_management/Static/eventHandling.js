@@ -55,21 +55,19 @@ function closePopup() {
  * FullCalendar Standard is a free, open source JS Calendar - https://fullcalendar.io/ - Styling and Script loaded in calendar.html
  * Implemented by Jordan
  */
-
 document.addEventListener('DOMContentLoaded',function(){
     //declare instance variable of the calendar element, list of all recipes
     const calendarEl = document.getElementById('calendar');
     let recipeList = [];
 
     /**
-     * Initialize FullCalendar - Required plugins; Initial (and only) view set to day grid per one month; local timezone;
+     * Initialize FullCalendar - Initial (and only) view set to day grid per one month; local timezone;
      * top toolbar navigation allows previous/next month and going back to today, no daily/weekly view navigation;
      * FC events loaded with api/events route; clicking on dates / existing events opens relevant modal boxes;
      * Setting event order to be consistent based on time slot, works for empty time slots (Breakfast->Lunch->Dinner->Snack);
      * @type {FullCalendar.Calendar}
      */
     const calendar = new FullCalendar.Calendar(calendarEl,{
-
         initialView: 'dayGridMonth',
         timeZone: 'local',
         headerToolbar: {
@@ -93,6 +91,11 @@ document.addEventListener('DOMContentLoaded',function(){
     });
     //Show calendar
     calendar.render();
+    //Declare all Modal instance variables - Add, View, Edit, Error
+    const addModal = document.getElementById('addModal');
+    const viewModal = document.getElementById('viewModal');
+    const editModal = document.getElementById('editModal');
+    const alertModal = document.getElementById('alertModal');
 
     /**
      * loadRecipes function - used to load calendar with all recipes from api/recipes route - for adding to new events
@@ -101,14 +104,12 @@ document.addEventListener('DOMContentLoaded',function(){
     async function loadRecipes(){
         //Fetch recipes from manager
         const response = await fetch('api/recipes');
-
         //Check response - if ok, send to helper to populate options list
         if (response.ok) {
             recipeList = await response.json();
             populateOptions(document.getElementById('recipeSelect'), recipeList);
             populateOptions(document.getElementById('editRecipeSelect'), recipeList);
         }
-
         else{
             alert("Failed to Load recipes to calendar");
         }
@@ -130,12 +131,6 @@ document.addEventListener('DOMContentLoaded',function(){
             selectElement.appendChild(option)
         });
     }
-
-    //Declare all Modal instance variables - Add, View, Edit, Error
-    const addModal = document.getElementById('addModal');
-    const viewModal = document.getElementById('viewModal');
-    const editModal = document.getElementById('editModal');
-    const alertModal = document.getElementById('alertModal');
 
     /**
      * showAlertModal function - used to show the alert modal, which displays error messages
@@ -180,22 +175,19 @@ document.addEventListener('DOMContentLoaded',function(){
         //Declare instance variables of recipeSelect and selected option
         const recipeSelect = document.getElementById('recipeSelect');
         const selectedRecipe = recipeSelect.options[recipeSelect.selectedIndex];
-
-        //Format user fields
+        //Format user fields for payload
         const payload = {
             recipe_id: parseInt(recipeSelect.value,10),
             recipe_name: selectedRecipe.textContent.split('. ')[1],
             event_date: document.getElementById('addDate').value,
             event_time: document.getElementById('addTimeSlot').value
         };
-
         //Send post request - await response
         const response = await fetch('/api/events',{
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
         });
-
         //Check response of adding event, if ok - update calendar and hide modal
         if (response.ok){
             const data = await response.json();
@@ -227,7 +219,6 @@ document.addEventListener('DOMContentLoaded',function(){
         document.getElementById('viewDate').textContent = eventObj.startStr;
         document.getElementById('viewTime').textContent = eventObj.extendedProps.timeSlot;
         document.getElementById('viewRecipe').textContent = eventObj.extendedProps.recipe_id;
-
         //Store event_id with delete and edit buttons, edit stores original date and time
         const deleteButton = document.getElementById('deleteBtn');
         deleteButton.dataset.eventId = eventObj.id;
@@ -236,25 +227,24 @@ document.addEventListener('DOMContentLoaded',function(){
         editButton.dataset.originalDate = eventObj.startStr;
         editButton.dataset.originalTime = eventObj.extendedProps.timeSlot;
         editButton.dataset.recipeId = eventObj.extendedProps.recipe_id;
-
         //Store parameters with recurring button
         const recurringButton = document.getElementById('recurringBtn');
         recurringButton.dataset.eventId = eventObj.id;
         recurringButton.dataset.startDate = eventObj.startStr;
-
-        //Get recurring event id, if it exists
-        const recurringId = eventObj.extendedProps.recurrenceId;
+        //Get recurring event id and prep recurring info and recurring delete button
+        const recurrenceId = eventObj.extendedProps.recurrence_id;
         const recurrenceInfo = document.getElementById('recurrenceInfo');
-
-        //Check for recurring event, if exists, show recurring info
-        if (recurringId != null){
-            recurrenceInfo.textContent = 'Recurring_event_id: ${recurringId}';
+        const recurringDeleteButton = document.getElementById('deleteSeriesBtn');
+        //Check for recurring event, if exists, show recurring info, else hide it
+        if (recurrenceId != null){
+            recurrenceInfo.textContent = 'Recipe is part of a recurring series.';
             recurrenceInfo.classList.remove('hidden');
-            document.getElementById('deleteSeriesBtn').dataset.recurrenceId = recurringId;
+            recurringDeleteButton.classList.remove('hidden');
+            recurringDeleteButton.dataset.recurrenceId = recurrenceId;
         } else {
             recurrenceInfo.classList.add('hidden');
+            recurringDeleteButton.classList.add('hidden');
         }
-
         //Make viewable
         viewModal.classList.remove('hidden');
     }
@@ -273,7 +263,6 @@ document.addEventListener('DOMContentLoaded',function(){
         const response = await fetch(`/api/events/${eventId}`,{
             method: 'DELETE'
         });
-
         //Check response if successful, remove event from FullCalendar
         if (response.ok){
             const event_delete = calendar.getEventById(eventId);
@@ -286,7 +275,6 @@ document.addEventListener('DOMContentLoaded',function(){
         else{
             alert('Failed to delete event.');
         }
-
     });
 
     //Set up Close button listener for the View Modal
@@ -301,12 +289,10 @@ document.addEventListener('DOMContentLoaded',function(){
         const date = e.target.dataset.originalDate;
         const time = e.target.dataset.originalTime;
         const recipeId = e.target.dataset.recipeId;
-
         //Load Recipes if needed
         if (recipeList.length === 0){
             loadRecipes();
         }
-
         //Prepopulate the form date and time
         document.getElementById('editDate').value = date;
         document.getElementById('editTimeSlot').value = time;
@@ -316,11 +302,9 @@ document.addEventListener('DOMContentLoaded',function(){
         if (recipeId != null){
             recipeSelection.value = recipeId;
         }
-
         //Pass event_id for PATCH request
         const editForm = document.getElementById('editForm');
         editForm.dataset.eventId = eventId;
-
         //Show edit modal
         editModal.classList.remove('hidden');
     });
@@ -328,28 +312,24 @@ document.addEventListener('DOMContentLoaded',function(){
     //Set up Submit button listener for the Edit Modal
     document.getElementById('editForm').addEventListener('submit', async e=>{
         e.preventDefault();
-
         //pull data from edit button
         const editForm = e.target;
         const eventId = editForm.dataset.eventId;
         const newDate = document.getElementById('editDate').value;
         const newTime = document.getElementById('editTimeSlot').value;
-        const recipeId = parseInt(document.getElementById('editRecipeSelect').value,10)
-
+        const recipeId = parseInt(document.getElementById('editRecipeSelect').value,10);
         //build payload
         const payload = {
             event_date: newDate,
             event_time: newTime,
             recipe_id: recipeId
         };
-
         //Send patch request
         const response = await fetch(`/api/events/${eventId}`,{
             method: 'PATCH',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
         });
-
         //Check response
         if (response.ok){ //Refresh and hide modals
             calendar.refetchEvents();
@@ -370,22 +350,19 @@ document.addEventListener('DOMContentLoaded',function(){
         editModal.classList.add('hidden');
     });
 
-    //Set up Recurring button listener for the View Modal Shows recurringModal Todo: move into openRecurringModal function for consistency?
+    //Set up Recurring button listener for the View Modal Shows recurringModal
     document.getElementById('recurringBtn').addEventListener('click', e =>{
         //Get data from button
         const eventId = document.getElementById('recurringBtn').dataset.eventId;
         const startDate = document.getElementById('recurringBtn').dataset.startDate;
         const recipeTitle = document.getElementById('recurringBtn').dataset.recipeTitle;
         const recurringModal = document.getElementById('recurringModal');
-
         //Send data to modal
         recurringModal.dataset.eventId = eventId;
         recurringModal.dataset.startDate = startDate;
         recurringModal.dataset.recipeTitle = recipeTitle;
-
         //Refresh the form
         document.getElementById('recurringForm').reset();
-
         //Show Modal
         recurringModal.classList.remove('hidden');
     });
@@ -397,11 +374,9 @@ document.addEventListener('DOMContentLoaded',function(){
         const recurringModal = document.getElementById('recurringModal');
         const parentId = recurringModal.dataset.eventId;
         const startDate = recurringModal.dataset.startDate;
-
         //Get user fields
         const frequency = document.getElementById('recurringFrequency').value;
         const duration = parseInt(document.getElementById('recurringDuration').value, 10);
-
         //build payload
         const payload = {
             parent_event_id: parentId,
@@ -409,31 +384,61 @@ document.addEventListener('DOMContentLoaded',function(){
             duration: duration,
             start_date: startDate
         };
-
         //POST and await for response
         const response = await fetch('/api/recurring',{
             method: 'POST',
             headers:{ 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-
         //Check response
         if (response.ok){
             calendar.refetchEvents();
             recurringModal.classList.add('hidden');
+            viewModal.classList.add('hidden');
         } else{
             const err = await response.json();
             showAlertModal(err.error || 'Failed to create recurring event');
+            recurringModal.classList.add('hidden');
+            viewModal.classList.add('hidden');
+            calendar.refetchEvents();
         }
-
     });
-
 
     //Set up Cancel button for recurring modal
     document.getElementById('recurringCancel').addEventListener('click', () => {
         document.getElementById('recurringModal').classList.add('hidden');
     });
 
+    //Set up Delete Series button listener for the View Modal
+    document.getElementById('deleteSeriesBtn').addEventListener('click', async (e) =>{
+        //pull event_id
+        const recurring_event_id = e.target.dataset.recurrenceId;
+        if (!recurring_event_id){
+            return;
+        }
+        //Confirm delete all
+        if (!confirm('Delete all occurrences of this recurring event?')){
+            return;
+        }
+        //Send delete request - await response
+        const response = await fetch(`api/recurring/${recurring_event_id}`,{
+            method: 'DELETE'
+        });
+        //Check response if successful, remove recurring events from FullCalendar
+        if (response.ok){
+            const allEvents = calendar.getEvents();
+            const removeEvents = allEvents.filter(event => event.extendedProps.recurrence_id === recurring_event_id);
+            removeEvents.forEach(event => {
+                calendar.getEventById(event.id).remove();
+            });
+            //Hide viewModal
+            viewModal.classList.add('hidden');
+            calendar.refetchEvents();
+        }
+        else{
+            alert('Failed to delete event.');
+        }
+    });
 });
 
 

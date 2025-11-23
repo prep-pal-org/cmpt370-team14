@@ -386,12 +386,11 @@ def upload_image(recipe_id):
 # -------------------------------------------------------------
 # Calendar Routes - Jordan
 # -------------------------------------------------------------
-# calendar view
+# calendar view - determines calendar_id, sets in session, then renders calendar
 @app.route('/calendar')
 def calendar_view():
     # Open database connection
     connection = sqlite3.connect(DB_NAME)
-
     try:
         # get user_id integer from username in session and user_profile table
         username = session.get('username')
@@ -409,12 +408,11 @@ def calendar_view():
         calendar_id = calendar_service.create_or_get_calendar(connection, user_id[0])
         session["calendar_id"] = calendar_id
         return render_template("calendar.html", calendar_id=calendar_id)
-
     finally:
         # Close connection when done
         connection.close()
 
-#Load Calendar Events
+# load calendar events - FullCalendar API route to load all events for current calendar_id - Jordan
 @app.route("/api/events")
 def api_events():
     # Open database connection
@@ -426,7 +424,7 @@ def api_events():
         calendar_id = session["calendar_id"]
         # Pull events from database
         events = calendar_service.get_calendar_events(connection, calendar_id)
-        # return all calendar events and recurring event rules
+        # return all calendar events in FullCalendar format
         full_calendar_events = []
         for event in events:
             full_calendar_events.append({
@@ -435,36 +433,29 @@ def api_events():
                 "start": event["event_date"],
                 "extendedProps": {
                     "timeSlot": event["event_time"],
-                    "recipe_id": event["recipe_id"]
+                    "recipe_id": event["recipe_id"],
+                    "recurrence_id": event["recurrence_id"]
                 }
             })
         # return all calendar events
         return jsonify(full_calendar_events)
-
     finally:
         # Close connection when done
         connection.close()
 
-# -------------------------------------------------------------
-# ROUTE- FullCalendar API - load recipes - Jordan
-# -------------------------------------------------------------
+# load calendar recipes - FullCalendar API route to load all recipes into calendar - Jordan
 @app.route("/api/recipes")
 def api_recipes():
     #Get all recipes from Recipe Manager
     manager = RecipeManager()
     recipes = manager.getAllRecipes()
-
-    #Format to required FC JSON format
-    payload = [
+    #Format to required FullCalendar format
+    all_recipes = [
         {"recipe_id": rec.recipe_id, "recipe_name": rec.name
+    }for rec in recipes]
+    return jsonify(all_recipes)
 
-    }for rec in recipes
-    ]
-    return jsonify(payload)
-
-# -------------------------------------------------------------
-# ROUTE- FullCalendar API - add event - Jordan
-# -------------------------------------------------------------
+# add calendar event - FullCalendar API route to add new event for current calendar_id - Jordan
 @app.route("/api/events", methods=["POST"])
 def api_add_event():
     connection = sqlite3.connect(DB_NAME)
@@ -472,9 +463,9 @@ def api_add_event():
         # Get calendar_id from session
         if "calendar_id" not in session:
             return redirect(url_for('home'))
-        data = request.json
         calendar_id = session["calendar_id"]
         # Create event using calendar service
+        data = request.json
         event_id = calendar_service.insert_calendar_event(
             connection,
             recipe_id=data["recipe_id"],
@@ -483,7 +474,6 @@ def api_add_event():
             event_date=data["event_date"],
             event_time=data["event_time"]
         )
-
         return jsonify({"event_id": event_id})
     except CalendarError as e:
         return jsonify({"error": str(e)}), 409
@@ -491,9 +481,7 @@ def api_add_event():
         # Close connection when done
         connection.close()
 
-# -------------------------------------------------------------
-# ROUTE- FullCalendar API - deleted event - Jordan
-# -------------------------------------------------------------
+# delete calendar event - FullCalendar API route to delete event for current calendar_id - Jordan
 @app.route("/api/events/<int:event_id>", methods=["DELETE"])
 def api_delete_event(event_id):
     # Open database connection
@@ -503,19 +491,17 @@ def api_delete_event(event_id):
         if "calendar_id" not in session:
             return redirect(url_for('home'))
         deleted_event = calendar_service.delete_calendar_event(connection, event_id)
+        #return True
         return jsonify({"event_deleted": True})
     finally:
         # Close connection when done
         connection.close()
 
-# -------------------------------------------------------------
-# ROUTE- FullCalendar API - Update event - Jordan
-# -------------------------------------------------------------
+# update calendar event - FullCalendar API route to update event for current calendar_id - Jordan
 @app.route("/api/events/<int:event_id>", methods=["PATCH"])
 def api_update_event(event_id):
     # Open database connection
     connection = sqlite3.connect(DB_NAME)
-
     try:
         # Get calendar_id from session
         if "calendar_id" not in session:
@@ -531,16 +517,13 @@ def api_update_event(event_id):
             recipe_id=data.get("recipe_id")
         )
         return jsonify({"event_updated": True})
-
     except CalendarError as e:
         return jsonify({"error": str(e)}), 409
-
     finally:
         # Close connection when done
         connection.close()
-# -------------------------------------------------------------
-# ROUTE- FullCalendar API - add recurring event - Jordan
-# -------------------------------------------------------------
+
+# add recurring event - FullCalendar API route to add new recurring event for current calendar_id - Jordan
 @app.route("/api/recurring", methods=["POST"])
 def api_add_recurring():
     connection = sqlite3.connect(DB_NAME)
@@ -555,28 +538,32 @@ def api_add_recurring():
         frequency = data["frequency"]
         duration = data["duration"]
         start_date = data["start_date"]
-
-        #Insert recurring event details into database
+        #Insert recurring event details into database recurring_event table
         recurring_event_id = calendar_service.insert_recurring_event(connection, parent_event_id, frequency, duration, start_date)
-
         #Generate calendar events based on recurrence details
         calendar_service.generate_recurring_events(connection,parent_event_id, recurring_event_id,frequency, duration, start_date)
-
         return jsonify({"recurring_event_id": recurring_event_id})
-
     except CalendarError as e:
         return jsonify({"error": str(e)}), 409
     finally:
         #Close connection when done
         connection.close()
 
-
-
-
-
-
-
-
+# delete recurring event series - FullCalendar API route to delete all recurring event for current calendar_id & recurring_event_id
+@app.route("/api/recurring/<int:recurring_event_id>", methods=["DELETE"])
+def api_delete_recurring_event(recurring_event_id):
+    # Open database connection
+    connection = sqlite3.connect(DB_NAME)
+    try:
+        # Get calendar_id from session - not required but check for still in session
+        if "calendar_id" not in session:
+            return redirect(url_for('home'))
+        # Delete event(s)
+        calendar_service.delete_recurring_series(connection, recurring_event_id)
+        return jsonify({"event_deleted": True})
+    finally:
+        # Close connection when done
+        connection.close()
 
 # -------------------------------------
 # ROUTE: Delete a Recipe - Baraa

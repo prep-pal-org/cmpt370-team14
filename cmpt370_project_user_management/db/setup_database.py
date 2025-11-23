@@ -238,14 +238,6 @@ def main():
         except sqlite3.OperationalError as e:
             print("Error while dropping user_interaction table:", e)
 
-        ''''# Add meal plan id to a calendar event - Randi
-        try:
-            cursor.execute("""ALTER TABLE calendar_event ADD COLUMN meal_plan_id INTEGER;""")
-            connection.commit()
-            print("Added meal_plan_id column to calendar_event table")
-        except sqlite3.OperationalError as e:
-            print("Error while adding meal_plan_id to calendar_event table", e)'''
-
         #If successful, try to create tables
         if create_tables(connection):
             print('Tables created')
