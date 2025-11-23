@@ -192,6 +192,35 @@ class RecipeManager:
         return [self._buildRecipe(row) for row in rows]
 
     # --------------------------------------------------------------
+    # GET FAVORITE RECIPE
+    # --------------------------------------------------------------
+
+    def getFavoriteRecipesByUser(self, user_id: int):
+        with self._connect() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT r.recipe_id,
+                       r.recipe_name,
+                       r.ingredients,
+                       r.instructions,
+                       COALESCE(
+                           (SELECT image_path
+                            FROM recipe_image i
+                            WHERE i.recipe_id = r.recipe_id
+                            ORDER BY upload_date DESC, image_id DESC
+                            LIMIT 1),
+                           ''
+                       ) AS image_path
+                FROM recipe r
+                JOIN favorite_recipes f ON r.recipe_id = f.recipe_id
+                WHERE f.user_id = ?
+            """, (user_id,))
+
+            rows = cur.fetchall()
+
+        return [self._buildRecipe(row) for row in rows]
+
+    # --------------------------------------------------------------
     # EDIT RECIPE
     # --------------------------------------------------------------
     def editRecipe(self, recipe_id: int, newRecipe: Recipe):
