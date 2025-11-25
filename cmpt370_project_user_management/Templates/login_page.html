@@ -11,30 +11,34 @@
 <body>
     <div class="topnav">
         <a href="/login_page" id="login">Login</a>
-        <a href="/user_list_for_testing" id="see_users">About Us</a>
+        <a href="/about_us" id="about_us">About Us</a>
         <a href="/" id="home">Home</a>
     </div>
 
-    <div class="content">
-        <form method="POST" class="login-form" action="{{ url_for('login') }}">
-            <h2>Login</h2>
-          <label for="username">Username:</label><br>
-          <input type="text" id="username" name="username"><br>
-          <label for="password">Password:</label><br>
-          <input type="password" id="password" name="password"><br><br>
-          <input type="submit" value="Submit">
-        </form>
+    <div class="page-content">
+        <div class="container d-flex justify-content-center align-items-center gap-2">
+            <form method="POST" class="login-form" action="{{ url_for('login') }}">
+                <h2>Login</h2>
 
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-            <div id="popup" class="popup">
-                <div class="popup-content">
-                    <p>{{ messages[0] }}</p>
-                    <button onclick="closePopup()">Close</button>
+                <label class="fw-bold text-start" for="username">Username:</label>
+                <input type="text" id="username" name="username">
+
+                <label class="fw-bold text-start" for="password">Password:</label>
+                <input type="password" id="password" name="password">
+                <button type="submit">Login</button>
+            </form>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <div id="popup" class="popup">
+                    <div class="popup-content">
+                        <p>{{ messages[0] }}</p>
+                        <button onclick="closePopup()">Close</button>
+                    </div>
                 </div>
-            </div>
-            {% endif %}
-        {% endwith %}
+                {% endif %}
+            {% endwith %}
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>

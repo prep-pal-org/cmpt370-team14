@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import sqlite3
 import bcrypt
@@ -44,18 +45,12 @@ def filter_list_python(recipes, sort_by, diet_filter):
 # -------------------------------------------------------------
 @app.route('/')
 def home():
-    if 'username' in session:
-        return redirect(url_for('login_landing_page'))
-
-    # If not logged in, show the public home page
     return render_template('use_home_page.html')
-
 
 # Old home page (legacy)
 @app.route('/old_home')
 def old_home():
     return render_template('homePage.html')
-
 
 @app.route('/about_us')
 def about_us():
@@ -170,6 +165,7 @@ def remove_grocery_item():
             current_user_id = user_result[0]
 
             # Securely delete the item
+            # This query ensures a user can ONLY delete their own items
             cursor.execute("DELETE FROM grocery_list WHERE item_id = ? AND user_id = ?", (item_id, current_user_id))
             conn.commit()
 
@@ -241,7 +237,7 @@ def login():
                 user_id = cur.execute("""SELECT user_id FROM user_profile WHERE username =?""",
                                       (userName,)).fetchone()[0]
             session['username'] = userName
-            session.permanent = True
+            session.permanent=True
             session['user_id'] = user_id
             return redirect(url_for('login_landing_page'))  # ✅ redirect after successful login
         else:
@@ -311,6 +307,8 @@ def login_landing_page():
     fav_recipes = fav_recipes[:10]
     all_recipes = all_recipes[:10]
 
+
+
     return render_template(
         'login_landing_page.html',
         all_recipes=all_recipes, my_recipes=my_recipes, fav_recipes=fav_recipes,
@@ -333,7 +331,6 @@ def user_list_for_testing():
     cur.execute(" SELECT * FROM user_profile")
     rows = cur.fetchall()
     return render_template("user_list_for_testing.html", data=rows)
-
 
 # -------------------------------------------------------------
 # ROUTES: MEAL PLAN CREATION, VIEWING AND SHARING - Randi
@@ -660,7 +657,8 @@ def create_comment(recipe_id):
                     (user_id, recipe_id, comment,))
         conn.commit()
 
-    flash("Comment added successfully!")
+
+    print("Comment added successfully!")
     return redirect(request.referrer)
 
 
@@ -724,8 +722,9 @@ def create_reaction(recipe_id):
 
         conn.commit()
     print(f"User {user_id} reacted {reaction} to recipe {recipe_id}")
-    flash("Reaction added successfully!")
+    print("Reaction added successfully!")
     return redirect(request.referrer)
+
 
 
 def view_reaction(recipe_list):

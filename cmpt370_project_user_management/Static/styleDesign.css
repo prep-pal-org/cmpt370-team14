@@ -147,7 +147,7 @@ button:hover{
 }
 
 .recipe-img-preview {
-    max-width: 100%;
+    width: 180px;        /* Shrinks images */
     height: auto;
     border-radius: 8px;
     object-fit: cover;
@@ -212,12 +212,12 @@ button:hover{
 
 /* Top navigation bar. - Randi */
 .topnav {
-    position: fixed;
+    /*position: fixed;*/
     top: 0;
     left: 0;
     width: 100%;
-    background: rgba(255, 255, 255, 0.8);
-    padding: 10px;
+    background: transparent;
+    padding: 15px;
     z-index: 1000;
     display: flex;
     flex-wrap: wrap;
@@ -311,6 +311,11 @@ button:hover{
 }
 
 .login-form input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  box-sizing: border-box;
     width: 100%;
     padding: 10px;
     margin: 10px 0;
@@ -319,6 +324,14 @@ button:hover{
 }
 
 .login-form button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 8px;
+  background-color: darkgreen;
+  color: white;
+  border: none;
+  cursor: pointer;
     width: 100%;
     padding: 10px;
     background-color: black;
