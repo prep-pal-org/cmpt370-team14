@@ -1,10 +1,10 @@
 <!-- Recipe Cards Partial -->
-<div class="col-sm-6 col-md-4 col-lg-3 mb-4">
-    <div class="card h-100">
+<div class="col" style="flex: 0 0 20%; max-width: 20%;">
+    <div class="card mb-3 me-3 rounded-3">
         {% if recipe.image_path %}
-            <img src="{{ url_for('static', filename=recipe.image_path) }}" class="card-img-top" style="height:180px; object-fit:cover;">
+            <img src="{{ url_for('static', filename=recipe.image_path) }}" class="card-img-top rounded-3" style="height:180px; object-fit:cover;">
         {% else %}
-            <img src="{{ url_for('static', filename='no_image_card.jpg') }}" class="card-img-top" style="height:180px; object-fit:cover;">
+            <img src="{{ url_for('static', filename='no_image_card.jpg') }}" class="card-img-top rounded-3" style="height:180px; object-fit:cover;">
         {% endif %}
         <div class="card-body">
             <h5 class="card-title">{{ recipe.name }}</h5>
@@ -14,7 +14,10 @@
             {% endif %}
             <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
                 <div class="mt-2">
-                    {% for reaction, emoji, btn_class in [('like','👍','btn-outline-primary'), ('dislike','👎','btn-outline-danger')] %}
+                    <form action="{{ url_for('favorite_recipe', recipe_id=recipe.recipe_id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm {% if recipe.is_favorite %}btn-transparent active{% else %}btn-transparent{% endif %}">💖</button>
+                    </form>
+                    {% for reaction, emoji, btn_class in [('like','👍','btn-transparent'), ('dislike','👎','btn-transparent')] %}
                         {% set count = 0 %}
                         {% for r_type, r_count in recipe.reactions %}
                             {% if r_type == reaction %}
@@ -29,15 +32,13 @@
                         </form>
                     {% endfor %}
                 </div>
-                <form action="{{ url_for('favorite_recipe', recipe_id=recipe.recipe_id) }}" method="POST">
-                    <button type="submit" class="btn btn-small btn-primary btn-outline-primary" >🌟</button>
-                </form>
+
 
                     {% set comment_count = recipe.comments|length %}
-                    <a class="btn btn-info btn-sm mt-2" data-bs-toggle="collapse" href="#comments_{{ recipe.recipe_id }}" role="button" aria-expanded="false" aria-controls="comments_{{ recipe.recipe_id }}">
-                        💬 Comments
+                    <a class="btn btn-info btn-sm mt-2 btn-outline-primary" data-bs-toggle="collapse" href="#comments_{{ recipe.recipe_id }}" role="button" aria-expanded="false" aria-controls="comments_{{ recipe.recipe_id }}">
+                        💬
                         {% if comment_count > 0 %}
-                            <sup class="text-warning">{{ comment_count }}</sup>
+                            <sup class="text-dark">{{ comment_count }}</sup>
                         {% endif %}
                     </a>
 

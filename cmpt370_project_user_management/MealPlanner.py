@@ -28,6 +28,10 @@ def home():
 def old_home():
     return render_template('homePage.html')
 
+@app.route('/about_us')
+def about_us():
+    return render_template('about_us.html')
+
 
 # -------------------------------------------------------------
 # ROUTES: Grocery List - Soham
@@ -272,7 +276,17 @@ def login_landing_page():
                         (r.recipe_id,))
             r.user_id = cur.fetchone()[0]
 
-    print([(r.name, r.comments,) for r in all_recipes])# Returns Recipe objects
+    print([(r.name, r.comments,) for r in all_recipes])
+
+    random.shuffle(my_recipes)
+    my_recipes = my_recipes[:10]
+
+    random.shuffle(fav_recipes)
+    fav_recipes = fav_recipes[:10]
+
+    random.shuffle(all_recipes)
+    all_recipes = all_recipes[:10]
+
 
 
     return render_template(
@@ -750,12 +764,21 @@ def favorite_recipe(recipe_id):
                 return redirect(url_for('favorite_recipe'))
             user_id = user[0]
 
-            cur.execute(""" INSERT OR IGNORE INTO favorite_recipes_use (user_id, recipe_id) VALUES (?, ?)""",
+            already_a_favorite = cur.execute("""SELECT 1 FROM favorite_recipes_use WHERE
+                                                user_id = ? AND recipe_id = ?""",
+                                             (user_id, recipe_id)).fetchone()
+            if already_a_favorite:
+                cur.execute("""DELETE FROM favorite_recipes_use WHERE user_id = ? AND recipe_id = ?""",
+                            (user_id, recipe_id))
+                flash("Recipe removed from favorites")
+
+            else:
+                cur.execute(""" INSERT INTO favorite_recipes_use (user_id, recipe_id) VALUES (?, ?)""",
                         (user_id, recipe_id,))
+                flash("Recipe has been added to favorites")
 
             conn.commit()
-        flash("Recipe added to favorites!")
-        return redirect(request.referrer)
+
     return redirect(request.referrer)
 
 
@@ -1067,6 +1090,64 @@ def my_recipes():
 
     return render_template('my_recipes.html', recipes=recipes)
 
+# -------------------------------------------------------------
+# FAVORITE RECIPES — Show a users favorite recipes
+# -------------------------------------------------------------
+@app.route('/favorite_recipes')
+def favorite_recipes():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    # find the logged-in user's ID
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+        result = cur.fetchone()
+
+        if not result:
+            flash("Error: Could not find user.")
+            return redirect(url_for('logout'))
+
+        user_id = result[0]
+
+    manager = RecipeManager()
+    recipes = manager.getFavoriteRecipesByUser(user_id)
+    recipes = view_comment(recipes)
+    recipes = view_reaction(recipes)
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        for r in recipes:
+            cur.execute("""SELECT user_id FROM recipe WHERE recipe_id = ?""",
+                        (r.recipe_id,))
+            r.user_id = cur.fetchone()[0]
+
+    return render_template('favorite_recipes.html', recipes=recipes)
+
+# -------------------------------------------------------------
+# MY RECIPES — Only show recipes created by this user
+# -------------------------------------------------------------
+@app.route('/all_recipes')
+def all_recipes():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    # find the logged-in user's ID
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+        result = cur.fetchone()
+
+        if not result:
+            flash("Error: Could not find user.")
+            return redirect(url_for('logout'))
+
+        user_id = result[0]
+
+    manager = RecipeManager()
+    recipes = manager.getAllRecipes()
+
+    return render_template('recipe_list.html', recipes=recipes)
 
 # -------------------------------------------------------------
 # Calendar Routes - Jordan
