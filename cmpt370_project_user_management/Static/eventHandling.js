@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', function(){
     const button5 = document.getElementById('login')
     const button6 = document.getElementById('logout')
     const button7 = document.getElementById('calendar_view')
+    const fav_button = document.getElementById('fav_button')
+
+
 
 
     button1.addEventListener('click',function(event) {
