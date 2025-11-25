@@ -40,27 +40,9 @@
         {% if my_recipes %}
             <div class="container">
                 <div class="row g-4">
-                    {% for r in my_recipes %}
-                        <div class="col-sm-6 col-md-4 col-lg-3">
-
-                            <div class="card h-100">
-
-                                {% if r.first_image %}
-                                    <img src="{{ url_for('static', filename=r.first_image) }}"
-                                         class="card-img-top"
-                                         style="height:180px; object-fit:cover;">
-                                {% endif %}
-
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ r.name }}</h5>
-
-                                    <a href="{{ url_for('edit_recipe', recipe_id=r.recipe_id) }}"
-                                       class="btn btn-primary btn-sm">Edit Recipe</a>
-                                </div>
-
-                            </div>
-
-                        </div>
+                    {% for recipe in my_recipes %}
+                        {% set current_user=userName %}
+                        {% include 'Partial/recipe_card.html' %}
                     {% endfor %}
                 </div>
             </div>
@@ -72,71 +54,30 @@
         {% if fav_recipes %}
             <div class="container">
                 <div class="row g-4">
-                    {% for r in fav_recipes %}
-                        <div class="col-sm-6 col-md-4 col-lg-3">
-
-                            <div class="card h-100">
-
-                                {% if r.first_image %}
-                                    <img src="{{ url_for('static', filename=r.first_image) }}"
-                                         class="card-img-top"
-                                         style="height:180px; object-fit:cover;">
-                                {% endif %}
-
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ r.name }}</h5>
-
-                                    <a href="{{ url_for('edit_recipe', recipe_id=r.recipe_id) }}"
-                                       class="btn btn-primary btn-sm">Edit Recipe</a>
-                                </div>
-
-                            </div>
-
-                        </div>
+                    {% for recipe in fav_recipes %}
+                        {% set current_user=userName %}
+                        {% include 'Partial/recipe_card.html' %}
                     {% endfor %}
                 </div>
             </div>
         {% else %}
-            <p style="text-align:center;">You have not added any recipes to your favorites yet.</p>
+            <p style="text-align:center;">You have not created any recipes yet.</p>
         {% endif %}
         <br>
         <h2 class="text-left"> All Recipes</h2>
         {% if all_recipes %}
             <div class="container">
                 <div class="row g-4">
-                    {% for r in all_recipes %}
-                        <div class="col-sm-6 col-md-4 col-lg-3">
-
-                            <div class="card h-100">
-
-                                {% if r.first_image %}
-                                    <img src="{{ url_for('static', filename=r.first_image) }}"
-                                         class="card-img-top"
-                                         style="height:180px; object-fit:cover;">
-                                {% endif %}
-
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ r.name }}</h5>
-
-                                    <a href="{{ url_for('edit_recipe', recipe_id=r.recipe_id) }}"
-                                       class="btn btn-primary btn-sm">Edit Recipe</a>
-                                </div>
-
-                            </div>
-
-                        </div>
+                    {% for recipe in all_recipes %}
+                        {% set current_user=userName %}
+                        {% include 'Partial/recipe_card.html' %}
                     {% endfor %}
                 </div>
             </div>
         {% else %}
-            <p style="text-align:center;">There are no available recipes.</p>
+            <p style="text-align:center;">You have not created any recipes yet.</p>
         {% endif %}
-
-
-
-
     </div>
-
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>

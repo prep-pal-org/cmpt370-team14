@@ -29,8 +29,9 @@
                         {% if username == creator_name %}
                             <p>You created this!</p>
                             <p>The invite code is {{ code }}</p>
-                            <button>Edit</button>
-                            <button>Delete</button>
+                            <form action="{{ url_for('delete_meal_plan', meal_plan_id=meal_plan_id) }}" method="POST">
+                                <button type="submit" class="btn btn-small btn-primary btn-outline-primary" >Delete</button>
+                            </form>
                         {% else %}
                             <p>Created by {{ creator_name }}</p>
                         {% endif %}
