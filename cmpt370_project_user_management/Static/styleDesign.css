@@ -227,7 +227,7 @@ button:hover{
 }
 
 .page-content {
-    margin-top: 100px; /* create space below nav bar */
+    margin-top: 50px; /* create space below nav bar */
 }
 
 /* Body content location and spacing
@@ -278,24 +278,27 @@ button:hover{
 
 /* Style the input form. -Randi */
 .login-form {
-  background-color: rgba(200,200,200,0.5); /* Used RBGA to add transperancy. */
+  background-color: rgba(0,170,40,0); /* Used RBGA to add transperancy. */
   padding: 30px;
   border-radius: 8px;
-  width: 300px;
-  text-align: center;
+  width: 400px;
+  text-align: left;
 }
 
 .login-form input {
   width: 100%;
   padding: 10px;
   margin: 10px 0;
+  border-radius: 8px;
   box-sizing: border-box;
 }
 
 .login-form button {
   width: 100%;
   padding: 10px;
-  background-color: black;
+  margin-top: 8px;
+  border-radius: 8px;
+  background-color: darkgreen;
   color: white;
   border: none;
   cursor: pointer;

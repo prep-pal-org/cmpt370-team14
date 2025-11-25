@@ -42,23 +42,24 @@
                         {% endif %}
                     </a>
 
-                <div class="collapse mt-2" id="comments_{{ recipe.recipe_id }}">
+                <div class="collapse mt-2" id="comments_{{ recipe.recipe_id }}" style="max-width: 100px; word-wrap: break-word; overflow-wrap: break-word;">
                     {% if recipe.comments %}
                         {% for c in recipe.comments %}
                             <div class="border rounded p-2 mb-2">
                                 <strong>{{ c[1] }}</strong>
                                 <small class="text-muted">{{ c[2] }}</small>
-                                <p>{{ c[0] }}</p>
+                                <p class="fs-6"> {{ c[0] }}</p>
                             </div>
                         {% endfor %}
                     {% else %}
-                        <p class="text-muted">No comments yet.</p>
+                        <p class="text-muted fs-5">No comments yet.</p>
                     {% endif %}
 
                     <form action="{{ url_for('create_comment', recipe_id=recipe.recipe_id) }}" method="POST" class="mt-2">
                         <div class="form-floating mb-2">
-                            <textarea class="form-control" name="comment" style="height:100px" placeholder="Leave a comment"></textarea>
+                            <textarea class="form-control" name="comment" style="height:100px" style="width:100px" placeholder="Leave a comment" maxlength="140"></textarea>
                             <label>Comment</label>
+                            <small class="form-text text-muted">Max. 140 characters.</small>
                         </div>
                         <button class="btn btn-success btn-sm" type="submit">Add</button>
                     </form>

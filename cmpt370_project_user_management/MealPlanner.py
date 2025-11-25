@@ -281,10 +281,10 @@ def login_landing_page():
     random.shuffle(my_recipes)
     my_recipes = my_recipes[:10]
 
-    random.shuffle(fav_recipes)
+    #random.shuffle(fav_recipes)
     fav_recipes = fav_recipes[:10]
 
-    random.shuffle(all_recipes)
+    #random.shuffle(all_recipes)
     all_recipes = all_recipes[:10]
 
 
@@ -638,7 +638,7 @@ def create_comment(recipe_id):
         conn.commit()
 
 
-    flash("Comment added successfully!")
+    print("Comment added successfully!")
     return redirect(request.referrer)
 
 
@@ -704,7 +704,7 @@ def create_reaction(recipe_id):
 
         conn.commit()
     print(f"User {user_id} reacted {reaction} to recipe {recipe_id}")
-    flash("Reaction added successfully!")
+    print("Reaction added successfully!")
     return redirect(request.referrer)
 
 
