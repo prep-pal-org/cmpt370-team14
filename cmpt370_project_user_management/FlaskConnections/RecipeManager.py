@@ -212,7 +212,7 @@ class RecipeManager:
                            ''
                        ) AS image_path
                 FROM recipe r
-                JOIN favorite_recipes f ON r.recipe_id = f.recipe_id
+                JOIN favorite_recipes_use f ON r.recipe_id = f.recipe_id
                 WHERE f.user_id = ?
             """, (user_id,))
 

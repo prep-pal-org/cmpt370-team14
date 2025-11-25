@@ -2,23 +2,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>View Comments</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>view comments</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styleDesign.css') }}">
 </head>
-    <style>
-        table, th, td {
-          border:1px solid black;
-        }
-        </style>
-<body>
-        <table style="width:100%">
-            <tr>
-              <th>Comment</th>
-            </tr>
-            {%for participant in com_data%}
-               <tr>
-                 <td>{{participant[2]}}</td> <!-- This shows the comments -->
-                </tr>
-            {%endfor%}
-          </table>
+
+
 </html>

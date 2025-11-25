@@ -138,7 +138,7 @@ def create_tables(connection):
         );
         '''
 
-        #recipe_reaction - Randi
+        #DO NOT USE - recipe_reaction - Randi
         recipe_reaction = '''
         CREATE TABLE IF NOT EXISTS recipe_reaction (
         reaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -152,7 +152,35 @@ def create_tables(connection):
         );
         '''
 
-        #add recipe to favorites
+        #DO NOT USE: Corrected recipe_reaction table - Randi
+        recipe_reaction_use = '''
+        CREATE TABLE IF NOT EXISTS recipe_reaction (
+        reaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        recipe_id INTEGER NOT NULL,
+        reaction TEXT NOT NULL CHECK(reaction IN ('like', 'dislike')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES user_profile(user_id),
+        FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),
+        UNIQUE (recipe_id, user_id)
+        );
+        '''
+
+        #Fixed
+        use_recipe_reaction = '''
+        CREATE TABLE IF NOT EXISTS use_recipe_reaction (
+        reaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        recipe_id INTEGER NOT NULL,
+        reaction TEXT NOT NULL CHECK(reaction IN ('like', 'dislike')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES user_profile(user_id),
+        FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),
+        UNIQUE (recipe_id, user_id)
+        );
+        '''
+
+        #DO NOT USE: add recipe to favorites
         favorite_recipes = '''
         CREATE TABLE IF NOT EXISTS favorite_recipes (
         user_id INTEGER,
@@ -162,6 +190,16 @@ def create_tables(connection):
         FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id)
         );
         '''
+
+        #fixing typo's typo
+        favorite_recipes_use = '''        
+        CREATE TABLE IF NOT EXISTS favorite_recipes_use (
+        user_id INTEGER,
+        recipe_id INTEGER,
+        PRIMARY KEY (user_id, recipe_id),
+        FOREIGN KEY (user_id) REFERENCES user_profile(user_id),
+        FOREIGN KEY (recipe_id) REFERENCES recipe(recipe_id)
+        );'''
 
         #user_interaction table - Randi
         create_user_interaction = '''
@@ -212,7 +250,7 @@ def create_tables(connection):
         #TODO - add tables created to this list
         table_list = [create_calendar_event, create_calendar_schedule, create_recurring_event, create_user_profile, create_recipe_table,
                       create_recipe_image_table, create_grocery_list, meal_plan, meal_plan_access,
-                      recipe_reaction, recipe_comment, favorite_recipes]
+                      use_recipe_reaction, recipe_comment, favorite_recipes_use]
 
 
         #Loop through list for execute, actually creating tables
@@ -303,6 +341,22 @@ def main():
             print("user_interaction table removed")
         except sqlite3.OperationalError as e:
             print("Error while dropping user_interaction table:", e)
+
+        # Drop old recipe_reaction table - Randi
+        try:
+            cursor.execute("DROP TABLE IF EXISTS recipe_reaction;")
+            connection.commit()
+            print("old recipe_reaction table removed")
+        except sqlite3.OperationalError as e:
+            print("Error while dropping recipe_reaction table:", e)
+
+        # Drop old favorite_recipe table - Randi
+        try:
+            cursor.execute("DROP TABLE IF EXISTS favorite_recipes;")
+            connection.commit()
+            print("old recipe_reaction table removed")
+        except sqlite3.OperationalError as e:
+            print("Error while dropping recipe_reaction table:", e)
 
         #Update calendar tables - Jordan
         update_calendar(connection, cursor)
