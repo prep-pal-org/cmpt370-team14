@@ -220,7 +220,6 @@ class RecipeManager:
 
         return [self._buildRecipe(row) for row in rows]
 
-
     # --------------------------------------------------------------
     # EDIT RECIPE
     # --------------------------------------------------------------
@@ -245,5 +244,33 @@ class RecipeManager:
             cur.execute("DELETE FROM recipe WHERE recipe_id = ?", (recipe_id,))
             conn.commit()
 
-    #kayo -
-    #todo write class to convert instructions to individual steps and the getSteps.
+    # --------------------------------------------------------------
+    # SAVE RECIPE STEPS
+    # -------------------------------------------------------------KAYO
+    def saveSteps(self, recipe_id: int, steps: list):
+        with self._connect() as conn:
+            cur = conn.cursor()
+            # Delete old steps (if editing)
+            cur.execute("DELETE FROM recipe_steps WHERE recipe_id = ?", (recipe_id,))
+            # Insert new steps
+            for step_number, step, duration in steps:
+                cur.execute("""
+                    INSERT INTO recipe_steps (recipe_id, step_number, step, duration)
+                    VALUES (?, ?, ?, ?)
+                """, (recipe_id, step_number, step, duration))
+            conn.commit()
+
+    # --------------------------------------------------------------
+    # GET RECIPE STEPS
+    # -------------------------------------------------------------KAYO
+    def getSteps(self, recipe_id):
+        with self._connect() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT step_id, step_number, step, duration
+                FROM recipe_steps
+                WHERE recipe_id = ?
+                ORDER BY step_number ASC
+            """, (recipe_id,))
+            return cur.fetchall()
+
