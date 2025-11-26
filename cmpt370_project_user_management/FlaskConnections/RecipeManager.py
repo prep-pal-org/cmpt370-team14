@@ -55,16 +55,17 @@ class RecipeManager:
         return recipe_id
 
     # --------------------------------------------------------------
-    # Helper: Build a Recipe object + attach image_path
+    # Helper: Build Recipe + Category + Image
     # --------------------------------------------------------------
     def _buildRecipe(self, row):
         """
-        row = (recipe_id, name, ingredients, instructions, image_path)
+        Expects row: (recipe_id, name, ingredients, instructions, image_path, category)
         """
-        recipe_id, name, ingredients, instructions, image_path = row
+        recipe_id, name, ingredients, instructions, image_path, category = row
 
         r = Recipe(recipe_id, name, ingredients, instructions)
-        r.image_path = image_path  # Store image separately for display
+        r.image_path = image_path
+        r.category = category if category else ""
         return r
 
     # --------------------------------------------------------------
@@ -74,18 +75,9 @@ class RecipeManager:
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("""
-                SELECT r.recipe_id,
-                       r.recipe_name,
-                       r.ingredients,
-                       r.instructions,
-                       COALESCE(
-                           (SELECT image_path
-                            FROM recipe_image i
-                            WHERE i.recipe_id = r.recipe_id
-                            ORDER BY upload_date DESC, image_id DESC
-                            LIMIT 1),
-                           ''
-                       ) AS image_path
+                SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       r.category
                 FROM recipe r
                 WHERE r.recipe_id = ?
             """, (recipe_id,))
@@ -95,60 +87,65 @@ class RecipeManager:
         return self._buildRecipe(row) if row else None
 
     # --------------------------------------------------------------
-    # GET ALL RECIPES (for homepage)
+    # GET ALL RECIPES
     # --------------------------------------------------------------
     def getAllRecipes(self):
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("""
-                SELECT r.recipe_id,
-                       r.recipe_name,
-                       r.ingredients,
-                       r.instructions,
-                       COALESCE(
-                           (SELECT image_path
-                            FROM recipe_image i
-                            WHERE i.recipe_id = r.recipe_id
-                            ORDER BY upload_date DESC, image_id DESC
-                            LIMIT 1),
-                           ''
-                       ) AS image_path
+                SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       r.category
                 FROM recipe r
             """)
-
             rows = cur.fetchall()
+        return [self._buildRecipe(row) for row in rows]
+
+    # --------------------------------------------------------------
+    # NEW: GET FILTERED RECIPES (Search, Sort, Filter)
+    # --------------------------------------------------------------
+    def getFilteredRecipes(self, search_query="", sort_by="newest", diet_filter=""):
+        conn = self._connect()
+        cur = conn.cursor()
+
+        # Base Query
+        sql = """
+            SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
+                   COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                   r.category
+            FROM recipe r
+            WHERE 1=1
+        """
+        params = []
+
+        # 1. Search Filter
+        if search_query:
+            sql += " AND (r.recipe_name LIKE ? OR r.ingredients LIKE ?)"
+            params.extend([f"%{search_query}%", f"%{search_query}%"])
+
+        # 2. Diet Filter
+        if diet_filter == "gluten_free":
+            sql += " AND r.category LIKE '%Gluten Free%'"
+        elif diet_filter == "lactose_free":
+            sql += " AND r.category LIKE '%Lactose Free%'"
+
+        # 3. Sorting
+        if sort_by == "az":
+            sql += " ORDER BY r.recipe_name ASC"
+        elif sort_by == "za":
+            sql += " ORDER BY r.recipe_name DESC"
+        else:
+            # Default: Newest first
+            sql += " ORDER BY r.recipe_id DESC"
+
+        cur.execute(sql, params)
+        rows = cur.fetchall()
+        conn.close()
 
         return [self._buildRecipe(row) for row in rows]
 
     # --------------------------------------------------------------
-    # FILTER BY SEARCH
-    # --------------------------------------------------------------
-    def filterByPreference(self, pref: str):
-        with self._connect() as conn:
-            cur = conn.cursor()
-            cur.execute("""
-                SELECT r.recipe_id,
-                       r.recipe_name,
-                       r.ingredients,
-                       r.instructions,
-                       COALESCE(
-                           (SELECT image_path
-                            FROM recipe_image i
-                            WHERE i.recipe_id = r.recipe_id
-                            ORDER BY upload_date DESC, image_id DESC
-                            LIMIT 1),
-                           ''
-                       ) AS image_path
-                FROM recipe r
-                WHERE r.recipe_name LIKE ?
-            """, (f"%{pref}%",))
-
-            rows = cur.fetchall()
-
-        return [self._buildRecipe(row) for row in rows]
-
-    # --------------------------------------------------------------
-    # GET ALL IMAGES FOR A RECIPE
+    # GET IMAGES
     # --------------------------------------------------------------
     def getImagesForRecipe(self, recipe_id: int):
         with self._connect() as conn:
@@ -159,69 +156,44 @@ class RecipeManager:
                 WHERE recipe_id = ?
                 ORDER BY upload_date DESC, image_id DESC
             """, (recipe_id,))
-
             rows = cur.fetchall()
-
         return [{"image_id": r[0], "image_path": r[1]} for r in rows]
 
     # --------------------------------------------------------------
-    # GET ONLY THIS USER’S RECIPES
+    # GET USER'S RECIPES
     # --------------------------------------------------------------
     def getRecipesByUser(self, user_id: int):
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("""
-                SELECT r.recipe_id,
-                       r.recipe_name,
-                       r.ingredients,
-                       r.instructions,
-                       COALESCE(
-                           (SELECT image_path
-                            FROM recipe_image i
-                            WHERE i.recipe_id = r.recipe_id
-                            ORDER BY upload_date DESC, image_id DESC
-                            LIMIT 1),
-                           ''
-                       ) AS image_path
+                SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       r.category
                 FROM recipe r
                 WHERE r.user_id = ?
             """, (user_id,))
-
             rows = cur.fetchall()
-
         return [self._buildRecipe(row) for row in rows]
 
     # --------------------------------------------------------------
-    # GET FAVORITE RECIPE
+    # GET FAVORITES
     # --------------------------------------------------------------
-
     def getFavoriteRecipesByUser(self, user_id: int):
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("""
-                SELECT r.recipe_id,
-                       r.recipe_name,
-                       r.ingredients,
-                       r.instructions,
-                       COALESCE(
-                           (SELECT image_path
-                            FROM recipe_image i
-                            WHERE i.recipe_id = r.recipe_id
-                            ORDER BY upload_date DESC, image_id DESC
-                            LIMIT 1),
-                           ''
-                       ) AS image_path
+                SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       r.category
                 FROM recipe r
                 JOIN favorite_recipes_use f ON r.recipe_id = f.recipe_id
                 WHERE f.user_id = ?
             """, (user_id,))
-
             rows = cur.fetchall()
-
         return [self._buildRecipe(row) for row in rows]
 
     # --------------------------------------------------------------
-    # EDIT RECIPE
+    # EDIT & DELETE
     # --------------------------------------------------------------
     def editRecipe(self, recipe_id: int, newRecipe: Recipe):
         with self._connect() as conn:
@@ -230,14 +202,9 @@ class RecipeManager:
                 UPDATE recipe
                 SET recipe_name = ?, ingredients = ?, instructions = ?
                 WHERE recipe_id = ?
-            """, (newRecipe.name, newRecipe.ingredients,
-                  newRecipe.instructions, recipe_id))
-
+            """, (newRecipe.name, newRecipe.ingredients, newRecipe.instructions, recipe_id))
             conn.commit()
 
-    # --------------------------------------------------------------
-    # DELETE RECIPE
-    # --------------------------------------------------------------
     def deleteRecipe(self, recipe_id: int):
         with self._connect() as conn:
             cur = conn.cursor()

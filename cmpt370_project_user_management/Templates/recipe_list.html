@@ -21,6 +21,7 @@
     <a href="/login_page">Login</a>
     <a href="/user_list_for_testing">About Us</a>
     <a href="/">Home</a>
+    <a href="{{ url_for('grocery_list') }}">Grocery List</a>
     <a href="/old_home">Old Home Page</a>
 </div>
 
@@ -32,18 +33,30 @@
 
         <!-- Search + Add -->
         <form class="row g-2 mb-4" action="{{ url_for('recipe_list') }}" method="GET">
-            <div class="col-md-8">
-                <input type="text"
-                       name="search_query"
-                       class="form-control"
+            <div class="col-md-5">
+                <input type="text" name="search_query" class="form-control"
                        placeholder="Search by name or ingredient..."
                        value="{{ search_query }}">
             </div>
-            <div class="col-md-2 d-grid">
-                <button type="submit" class="btn btn-primary">Search</button>
+
+            <div class="col-md-2">
+                <select name="sort" class="form-select">
+                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="az" {% if current_sort == 'az' %}selected{% endif %}>A - Z</option>
+                    <option value="za" {% if current_sort == 'za' %}selected{% endif %}>Z - A</option>
+                </select>
             </div>
+
+            <div class="col-md-3">
+                <select name="diet" class="form-select">
+                    <option value="">All Diets</option>
+                    <option value="gluten_free" {% if current_diet == 'gluten_free' %}selected{% endif %}>Gluten Free</option>
+                    <option value="lactose_free" {% if current_diet == 'lactose_free' %}selected{% endif %}>Lactose Free</option>
+                </select>
+            </div>
+
             <div class="col-md-2 d-grid">
-                <a href="{{ url_for('add_recipe') }}" class="btn btn-success">➕ Add Recipe</a>
+                <button type="submit" class="btn btn-primary">Filter</button>
             </div>
         </form>
 

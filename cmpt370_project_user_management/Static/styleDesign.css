@@ -6,7 +6,8 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
     background-attachment: fixed;
-    box-sizing: content-box;
+    box-sizing: border-box;
+    font-family: sans-serif;
 }
 
 /* Welcome header. - Randi */
@@ -30,8 +31,9 @@ h1 {
     align-items: center;
     justify-content: flex-start;
     padding: 20px;
-    background-color: rgba(255, 255, 255, 0.8); /* Added semi-transparent white background */
-    width: 50%;
+    background-color: rgba(255, 255, 255, 0.9);
+    width: 90%;
+    max-width: 800px;
     margin: 20px auto;
     border-radius: 8px;
 }
@@ -39,7 +41,8 @@ h1 {
 /* Styles for the grocery list - Soham */
 .grocery-items {
     margin-top: 20px;
-    width: 300px;
+    width: 100%;
+    max-width: 400px;
 }
 .grocery-items ul {
     list-style-type: none;
@@ -52,23 +55,26 @@ h1 {
     padding: 8px;
     border-radius: 4px;
     border: 1px solid #ddd;
+    word-wrap: break-word;
 }
 
 /* Create a button. - Randi */
 button {
-    background-color: darkblue;
+    background-color: darkgreen;
     color: white;
-    font-size: 16px;
+    font-size: 1rem;
     border: none;
-    padding: 10px 15px;
+    padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
+    transition: background 0.3s;
 }
 
 /* User feedback on the button. - Randi */
 
 button:hover{
-    background-color: black;
+    background-color: #004d00; /* Darker green */
+    text-decoration: none;
 }
 
 /* ============================================================
@@ -84,9 +90,10 @@ button:hover{
 
 /* Form containers for recipe pages - Baraa */
 .recipe-box {
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.95);
     padding: 20px;
-    width: 60%;
+    width: 95%;
+    max-width: 900px;
     margin: 40px auto;
     border-radius: 12px;
     box-shadow: 0 0 12px rgba(0,0,0,0.2);
@@ -95,20 +102,22 @@ button:hover{
 /* Recipe form inputs - Baraa */
 .recipe-input,
 .recipe-textarea {
-    width: 90%;
+    width: 100%;
     padding: 10px;
     border-radius: 8px;
     border: 1px solid #bbb;
     margin-top: 8px;
-    font-size: 15px;
+    font-size: 1rem;
+    font-family: inherit;
 }
 
 /* Recipe list table - Baraa */
 .recipe-table {
-    width: 90%;
+    width: 100%;
     margin: 20px auto;
     border-collapse: collapse;
     background-color: rgba(255, 255, 255, 0.9);
+    display: table;
 }
 
 .recipe-table th,
@@ -130,6 +139,7 @@ button:hover{
     padding: 8px 12px;
     border-radius: 6px;
     text-decoration: none;
+    display: inline-block;
 }
 
 .btn-link:hover {
@@ -137,7 +147,7 @@ button:hover{
 }
 
 .recipe-img-preview {
-    width: 180px;        /* Shrinks images */
+    max-width: 100%;
     height: auto;
     border-radius: 8px;
     object-fit: cover;
@@ -145,10 +155,12 @@ button:hover{
 }
 
 .image-card {
-    width: 200px;
+    width: 100%;
+    max-width: 200px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin: 10px;
 }
 
 .ingredient-row {
@@ -200,63 +212,74 @@ button:hover{
 
 /* Top navigation bar. - Randi */
 .topnav {
-    /*position: fixed;*/
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    background: transparent;
-    padding: 15px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px;
     z-index: 1000;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 
 /* Topnav links. -Randi */
 .topnav a {
-    float: left;
     display: block;
     color: black;
     font-weight: bold;
     text-align: center;
-    padding: 14px 16px;
+    padding: 12px 16px;
     text-decoration: none;
+    font-size: 1rem;
 }
 
 /* Navigation link feedback. - Randi */
 .topnav a:hover {
     text-decoration: underline;
+    background-color: rgba(0,0,0,0.05);
+    border-radius: 4px;
 }
 
 .page-content {
-    margin-top: 100px; /* create space below nav bar */
+    margin-top: 80px;
+    padding: 20px;
+    width: 100%;
 }
 
 /* Body content location and spacing
 of the home page - Randi */
 .content {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
-    gap: 10pt;
+    padding: 20px;
+    gap: 1rem;
 
 }
 
 /* Homepage header design. -Randi */
 h1 {
     color: darkgreen;
-    font-size: 40pt;
-    margin-bottom: 0pt;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
 
     /*align-items: center;
     justify-content: center;*/
 }
 
 /* Home page paragraph design. -Randi */
-p {
-    margin-top: 0pt;
-    font-size: 20pt;
+p, p1 {
+    margin-top: 0;
+    font-size: 1.25rem;
+    color: #333;
 }
 
 /* Sign up button on home page. -Randi */
@@ -278,27 +301,32 @@ button:hover{
 
 /* Style the input form. -Randi */
 .login-form {
-  background-color: rgba(200,200,200,0.5); /* Used RBGA to add transperancy. */
-  padding: 30px;
-  border-radius: 8px;
-  width: 300px;
-  text-align: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 30px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 .login-form input {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  box-sizing: border-box;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
 .login-form button {
-  width: 100%;
-  padding: 10px;
-  background-color: black;
-  color: white;
-  border: none;
-  cursor: pointer;
+    width: 100%;
+    padding: 10px;
+    background-color: black;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
 }
 
 .login-form button:hover {
@@ -325,5 +353,44 @@ button:hover{
   border-radius: 8px;
   text-align: center;
   width: 250px;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+}
+
+/* For Mobile screen adjustment - Soham */
+
+@media screen and (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    p, p1 {
+        font-size: 1rem;
+    }
+
+    .topnav a {
+        float: none;
+        width: auto;
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    .recipe-box, .center-column {
+        width: 95%;
+        margin-top: 20px;
+        padding: 15px;
+    }
+
+    .recipe-table th, .recipe-table td {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+
+    .page-content {
+        margin-top: 100px;
+    }
 }
 
