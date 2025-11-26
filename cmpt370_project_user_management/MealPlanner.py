@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import sqlite3
 import bcrypt
@@ -13,9 +12,32 @@ from cmpt370_project_user_management.Model.calendar_service import CalendarServi
 
 app = Flask(__name__)
 app.secret_key = "saucy"
+
+# Calculate absolute path to DB to avoid errors
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_NAME = os.path.join(BASE_DIR, "db", "saucyapp.db")
+
 calendar_service = CalendarService()
+
+
+# -------------------------------------------------------------
+# HELPER: Python-side Filtering (for My Recipes / Favorites)
+# -------------------------------------------------------------
+def filter_list_python(recipes, sort_by, diet_filter):
+    # 1. Filter
+    if diet_filter == "gluten_free":
+        recipes = [r for r in recipes if r.category and "Gluten Free" in r.category]
+    elif diet_filter == "lactose_free":
+        recipes = [r for r in recipes if r.category and "Lactose Free" in r.category]
+
+    # 2. Sort
+    if sort_by == "az":
+        recipes.sort(key=lambda x: x.name.lower())
+    elif sort_by == "za":
+        recipes.sort(key=lambda x: x.name.lower(), reverse=True)
+
+    return recipes
+
 
 # -------------------------------------------------------------
 # ROUTE: New Updated Home Page - Randi
@@ -25,13 +47,15 @@ def home():
     if 'username' in session:
         return redirect(url_for('login_landing_page'))
 
-        # If not logged in, show the public home page
+    # If not logged in, show the public home page
     return render_template('use_home_page.html')
+
 
 # Old home page (legacy)
 @app.route('/old_home')
 def old_home():
     return render_template('homePage.html')
+
 
 @app.route('/about_us')
 def about_us():
@@ -146,7 +170,6 @@ def remove_grocery_item():
             current_user_id = user_result[0]
 
             # Securely delete the item
-            # This query ensures a user can ONLY delete their own items
             cursor.execute("DELETE FROM grocery_list WHERE item_id = ? AND user_id = ?", (item_id, current_user_id))
             conn.commit()
 
@@ -218,7 +241,7 @@ def login():
                 user_id = cur.execute("""SELECT user_id FROM user_profile WHERE username =?""",
                                       (userName,)).fetchone()[0]
             session['username'] = userName
-            session.permanent=True
+            session.permanent = True
             session['user_id'] = user_id
             return redirect(url_for('login_landing_page'))  # ✅ redirect after successful login
         else:
@@ -228,13 +251,18 @@ def login():
     # GET request
     return render_template('login_page.html')
 
-# Login landing page -Randi
+
+# Login landing page - Randi (Updated with Filters)
 @app.route('/login_landing_page')
 def login_landing_page():
     if 'username' not in session:
         return redirect(url_for('login'))
 
     user_name = session['username']
+
+    # Get Filter Params
+    sort_by = request.args.get('sort', 'newest')
+    diet_filter = request.args.get('diet', '')
 
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
@@ -247,57 +275,48 @@ def login_landing_page():
         user_id = creator_id[0]
 
     manager = RecipeManager()
-    all_recipes = manager.getAllRecipes()
+
+    # 1. ALL RECIPES (Use SQL Filtering)
+    all_recipes = manager.getFilteredRecipes(search_query="", sort_by=sort_by, diet_filter=diet_filter)
     all_recipes = view_comment(all_recipes)
     all_recipes = view_reaction(all_recipes)
 
-    with sqlite3.connect(DB_NAME) as conn:
-        cur = conn.cursor()
-        for r in all_recipes:
-            cur.execute("""SELECT user_id FROM recipe WHERE recipe_id = ?""",
-                        (r.recipe_id,))
-            r.user_id = cur.fetchone()[0]
-
-    # Filter subgroups
+    # 2. MY RECIPES (Fetch then Python Filter)
     my_recipes = manager.getRecipesByUser(user_id)
+    my_recipes = filter_list_python(my_recipes, sort_by, diet_filter)
     my_recipes = view_comment(my_recipes)
     my_recipes = view_reaction(my_recipes)
 
-    with sqlite3.connect(DB_NAME) as conn:
-        cur = conn.cursor()
-        for r in my_recipes:
-            cur.execute("""SELECT user_id FROM recipe WHERE recipe_id = ?""",
-                        (r.recipe_id,))
-            r.user_id = cur.fetchone()[0]
-
+    # 3. FAVORITE RECIPES (Fetch then Python Filter)
     fav_recipes = manager.getFavoriteRecipesByUser(user_id)
+    fav_recipes = filter_list_python(fav_recipes, sort_by, diet_filter)
     fav_recipes = view_comment(fav_recipes)
     fav_recipes = view_reaction(fav_recipes)
 
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
-        for r in fav_recipes:
-            cur.execute("""SELECT user_id FROM recipe WHERE recipe_id = ?""",
-                        (r.recipe_id,))
-            r.user_id = cur.fetchone()[0]
+        for r in all_recipes + my_recipes + fav_recipes:
+            # Optimization: This query inside loop is slow, but keeping existing logic for safety
+            cur.execute("SELECT user_id FROM recipe WHERE recipe_id = ?", (r.recipe_id,))
+            res = cur.fetchone()
+            if res: r.user_id = res[0]
 
-    print([(r.name, r.comments,) for r in all_recipes])
+    # Only shuffle if sorting is NOT active (Newest/Default)
+    if sort_by == 'newest':
+        random.shuffle(my_recipes)
+        random.shuffle(fav_recipes)
+        random.shuffle(all_recipes)
 
-    random.shuffle(my_recipes)
     my_recipes = my_recipes[:10]
-
-    random.shuffle(fav_recipes)
     fav_recipes = fav_recipes[:10]
-
-    random.shuffle(all_recipes)
     all_recipes = all_recipes[:10]
-
-
 
     return render_template(
         'login_landing_page.html',
         all_recipes=all_recipes, my_recipes=my_recipes, fav_recipes=fav_recipes,
-        username=user_name, user_id=user_id)
+        username=user_name, user_id=user_id,
+        current_sort=sort_by, current_diet=diet_filter)
+
 
 # User logout. -Randi
 @app.route('/logout')
@@ -314,6 +333,7 @@ def user_list_for_testing():
     cur.execute(" SELECT * FROM user_profile")
     rows = cur.fetchall()
     return render_template("user_list_for_testing.html", data=rows)
+
 
 # -------------------------------------------------------------
 # ROUTES: MEAL PLAN CREATION, VIEWING AND SHARING - Randi
@@ -454,7 +474,7 @@ def join_meal_plan():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        code = request.form.get('invite_code','').strip()
+        code = request.form.get('invite_code', '').strip()
 
         if not code:
             flash("Invite code cannot be empty.")
@@ -517,7 +537,6 @@ def list_meal_plans():
 
         user_id = user[0]
 
-
         # Meal plans created by the user
         created = cur.execute("""
             SELECT meal_plan_id, plan_name, creator_id
@@ -552,7 +571,6 @@ def list_meal_plans():
                 "plan_name": plan[1],
                 "creator_name": plan[3]
             })
-
 
     return render_template("list_meal_plans.html",
                            created=created_with_names,
@@ -617,7 +635,7 @@ def delete_meal_plan(meal_plan_id):
 # ROUTES: CREATE AND VIEW COMMENTS AND REACTIONS - Randi
 # -------------------------------------------------------------
 # Create a comment - Randi
-@app.route('/create_comment/<int:recipe_id>',methods=['POST'])
+@app.route('/create_comment/<int:recipe_id>', methods=['POST'])
 def create_comment(recipe_id):
     # Check if user is logged in.
     username = session.get('username')
@@ -642,10 +660,8 @@ def create_comment(recipe_id):
                     (user_id, recipe_id, comment,))
         conn.commit()
 
-
     flash("Comment added successfully!")
     return redirect(request.referrer)
-
 
 
 # View a comment - Randi
@@ -679,14 +695,13 @@ def view_comment(recipe_list):
 
 
 # Create a reaction - Randi
-@app.route('/create_reaction/<int:recipe_id>',methods=['POST'])
+@app.route('/create_reaction/<int:recipe_id>', methods=['POST'])
 def create_reaction(recipe_id):
     # Check if user is logged in.
     username = session.get('username')
     if not username:
         flash("You must be logged in to add a reaction.")
         return redirect(url_for('login'))
-
 
     reaction = request.form.get('reaction')
     if reaction not in ['like', 'dislike']:
@@ -696,7 +711,7 @@ def create_reaction(recipe_id):
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
         user = cur.execute("""SELECT user_id FROM user_profile WHERE username = ?""",
-                               (session['username'],)).fetchone()
+                           (session['username'],)).fetchone()
         if user is None:
             flash("User not found")
             return redirect(request.referrer)
@@ -711,7 +726,6 @@ def create_reaction(recipe_id):
     print(f"User {user_id} reacted {reaction} to recipe {recipe_id}")
     flash("Reaction added successfully!")
     return redirect(request.referrer)
-
 
 
 def view_reaction(recipe_list):
@@ -746,10 +760,7 @@ def view_reaction(recipe_list):
         # Optionally, also keep list of tuples for backwards compatibility
         r.reactions = list(r.reactions_dict.items())
 
-
     return recipe_list
-
-
 
 
 @app.route('/favorite_recipe/<int:recipe_id>', methods=["POST"])
@@ -779,7 +790,7 @@ def favorite_recipe(recipe_id):
 
             else:
                 cur.execute(""" INSERT INTO favorite_recipes_use (user_id, recipe_id) VALUES (?, ?)""",
-                        (user_id, recipe_id,))
+                            (user_id, recipe_id,))
                 flash("Recipe has been added to favorites")
 
             conn.commit()
@@ -793,24 +804,24 @@ def favorite_recipe(recipe_id):
 @app.route('/recipes')
 def recipe_list():
     search_query = request.args.get('search_query', '')
+    sort_by = request.args.get('sort', 'newest')
+    diet_filter = request.args.get('diet', '')
 
     manager = RecipeManager()
 
     try:
-        # Check if a search is being performed
-        if search_query:
-            # Use the manager's filter method
-            recipes = manager.filterByPreference(search_query)
-        else:
-            # If no search, get all recipes
-            recipes = manager.getAllRecipes()
+        # Use the new advanced filter method
+        recipes = manager.getFilteredRecipes(search_query, sort_by, diet_filter)
 
     except sqlite3.Error as e:
         print(f"Error searching recipes: {e}")
         flash("An error occurred while searching for recipes.")
         recipes = []
 
-    return render_template('recipe_list.html', recipes=recipes, search_query=search_query)
+    return render_template('recipe_list.html', recipes=recipes,
+                           search_query=search_query,
+                           current_sort=sort_by,
+                           current_diet=diet_filter)
 
 
 # -------------------------------------------------------------
@@ -1055,6 +1066,7 @@ def delete_image(recipe_id, image_id):
     flash("Image deleted.")
     return redirect(url_for('edit_recipe', recipe_id=recipe_id))
 
+
 # -------------------------------------
 # ROUTE: Integrating Grocery list - Baraa
 # -------------------------------------
@@ -1114,6 +1126,7 @@ def my_recipes():
 
     return render_template('my_recipes.html', recipes=recipes)
 
+
 # -------------------------------------------------------------
 # FAVORITE RECIPES — Show a users favorite recipes
 # -------------------------------------------------------------
@@ -1148,6 +1161,7 @@ def favorite_recipes():
 
     return render_template('favorite_recipes.html', recipes=recipes)
 
+
 # -------------------------------------------------------------
 # MY RECIPES — Only show recipes created by this user
 # -------------------------------------------------------------
@@ -1173,6 +1187,7 @@ def all_recipes():
 
     return render_template('recipe_list.html', recipes=recipes)
 
+
 # -------------------------------------------------------------
 # Calendar Routes - Jordan
 # -------------------------------------------------------------
@@ -1188,8 +1203,8 @@ def calendar_view():
         cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (username,))
         user_id = cursor.fetchone()
         # get meal_plan_id to show single calendar for grouped meal plan
-        #cursor.execute("SELECT meal_plan_id FROM meal_plan WHERE creator_id = ?", (user_id[0],))
-        #meal_plan_id = cursor.fetchone()
+        # cursor.execute("SELECT meal_plan_id FROM meal_plan WHERE creator_id = ?", (user_id[0],))
+        # meal_plan_id = cursor.fetchone()
         # Check for error in getting user_id / meal_plan_id
         if not user_id:
             print("Error in calendar view route - user_id missing")
@@ -1201,6 +1216,7 @@ def calendar_view():
     finally:
         # Close connection when done
         connection.close()
+
 
 # load calendar events - FullCalendar API route to load all events for current calendar_id - Jordan
 @app.route("/api/events")
@@ -1233,17 +1249,19 @@ def api_events():
         # Close connection when done
         connection.close()
 
+
 # load calendar recipes - FullCalendar API route to load all recipes into calendar - Jordan
 @app.route("/api/recipes")
 def api_recipes():
-    #Get all recipes from Recipe Manager
+    # Get all recipes from Recipe Manager
     manager = RecipeManager()
     recipes = manager.getAllRecipes()
-    #Format to required FullCalendar format
+    # Format to required FullCalendar format
     all_recipes = [
         {"recipe_id": rec.recipe_id, "recipe_name": rec.name
-    }for rec in recipes]
+         } for rec in recipes]
     return jsonify(all_recipes)
+
 
 # add calendar event - FullCalendar API route to add new event for current calendar_id - Jordan
 @app.route("/api/events", methods=["POST"])
@@ -1271,6 +1289,7 @@ def api_add_event():
         # Close connection when done
         connection.close()
 
+
 # delete calendar event - FullCalendar API route to delete event for current calendar_id - Jordan
 @app.route("/api/events/<int:event_id>", methods=["DELETE"])
 def api_delete_event(event_id):
@@ -1281,11 +1300,12 @@ def api_delete_event(event_id):
         if "calendar_id" not in session:
             return redirect(url_for('home'))
         deleted_event = calendar_service.delete_calendar_event(connection, event_id)
-        #return True
+        # return True
         return jsonify({"event_deleted": True})
     finally:
         # Close connection when done
         connection.close()
+
 
 # update calendar event - FullCalendar API route to update event for current calendar_id - Jordan
 @app.route("/api/events/<int:event_id>", methods=["PATCH"])
@@ -1313,6 +1333,7 @@ def api_update_event(event_id):
         # Close connection when done
         connection.close()
 
+
 # add recurring event - FullCalendar API route to add new recurring event for current calendar_id - Jordan
 @app.route("/api/recurring", methods=["POST"])
 def api_add_recurring():
@@ -1328,16 +1349,19 @@ def api_add_recurring():
         frequency = data["frequency"]
         duration = data["duration"]
         start_date = data["start_date"]
-        #Insert recurring event details into database recurring_event table
-        recurring_event_id = calendar_service.insert_recurring_event(connection, parent_event_id, frequency, duration, start_date)
-        #Generate calendar events based on recurrence details
-        calendar_service.generate_recurring_events(connection,parent_event_id, recurring_event_id,frequency, duration, start_date)
+        # Insert recurring event details into database recurring_event table
+        recurring_event_id = calendar_service.insert_recurring_event(connection, parent_event_id, frequency, duration,
+                                                                     start_date)
+        # Generate calendar events based on recurrence details
+        calendar_service.generate_recurring_events(connection, parent_event_id, recurring_event_id, frequency, duration,
+                                                   start_date)
         return jsonify({"recurring_event_id": recurring_event_id})
     except CalendarError as e:
         return jsonify({"error": str(e)}), 409
     finally:
-        #Close connection when done
+        # Close connection when done
         connection.close()
+
 
 # delete recurring event series - FullCalendar API route to delete all recurring event for current calendar_id & recurring_event_id
 @app.route("/api/recurring/<int:recurring_event_id>", methods=["DELETE"])
@@ -1359,6 +1383,7 @@ def api_delete_recurring_event(recurring_event_id):
 # --------- Baraa: Image upload config + validation ---------
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
+
 def allowed_file(filename: str) -> bool:
     """Check if the file extension is allowed."""
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -1370,7 +1395,7 @@ def allowed_file(filename: str) -> bool:
 if __name__ == '__main__':
     conn = database_connection(DB_NAME)
     if conn is not None:
-        #calls main in setup_database - which creates tables and applies updates
+        # calls main in setup_database - which creates tables and applies updates
         main()
         conn.close()
     app.run(debug=True)
