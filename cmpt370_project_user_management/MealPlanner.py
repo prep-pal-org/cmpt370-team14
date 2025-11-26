@@ -22,6 +22,10 @@ calendar_service = CalendarService()
 # -------------------------------------------------------------
 @app.route('/')
 def home():
+    if 'username' in session:
+        return redirect(url_for('login_landing_page'))
+
+        # If not logged in, show the public home page
     return render_template('use_home_page.html')
 
 # Old home page (legacy)
