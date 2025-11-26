@@ -20,17 +20,17 @@
         <div class="container px-4 text-center">
             <div class="row gx-5">
                 <div class="col">
-                    <form action="{{ url_for('create_meal_plan', meal_plan_id=meal_plan_id) }}" method="POST" class="d-inline">
+                    <form action="{{ url_for('create_meal_plan', meal_plan_id=meal_plan_id) }}" class="d-inline">
                         <button type="submit" class="btn btn-lg btn-success">Create New Plan</button>
                     </form>
                 </div>
                 <div class="col">
-                    <form action="{{ url_for('join_meal_plan') }}" method="POST" class="d-inline">
+                    <form action="{{ url_for('join_meal_plan') }}" class="d-inline">
                         <button type="submit" class="btn btn-lg btn-success">Join Plan</button>
                     </form>
                 </div>
                 <div class="col">
-                    <form action="{{ url_for('list_meal_plans') }}" method="POST" class="d-inline">
+                    <form action="{{ url_for('list_meal_plans') }}" class="d-inline">
                         <button type="submit" class="btn btn-lg btn-success">View Plans</button>
                     </form>
                 </div>

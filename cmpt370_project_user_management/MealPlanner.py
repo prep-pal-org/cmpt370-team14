@@ -317,6 +317,8 @@ def user_list_for_testing():
 # Create a new meal plan - Randi
 @app.route('/create_meal_plan', methods=['GET', 'POST'])
 def create_meal_plan():
+    print("DEBUG route triggered, request.form:", request.form)
+    print("DEBUG route triggered, request.args:", request.args)
     # Check if user is logged in.
     username = session.get('username')
     if not username:
@@ -324,14 +326,16 @@ def create_meal_plan():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        plan_name = request.form['plan_name']
+        print("DEBUG form keys:", request.form.keys())
+        plan_name = request.form.get('plan_name')
+        print("DEBUG plan_name:", plan_name)
 
         # Get user ID
         with sqlite3.connect(DB_NAME) as conn:
             cur = conn.cursor()
             creator_id = cur.execute(
                 "SELECT user_id FROM user_profile WHERE username = ?",
-                (session['username'],)
+                (username,)
             ).fetchone()
 
             if creator_id is None:
@@ -370,7 +374,7 @@ def create_meal_plan():
         flash("Meal plan created!")
         return redirect(url_for('view_meal_plan', meal_plan_id=meal_plan_id))
 
-    return render_template("create_meal_plan.html")
+    return render_template("create_meal_plan.html",)
 
 
 # Generate the invite code - Randi
