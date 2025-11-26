@@ -13,7 +13,8 @@ from cmpt370_project_user_management.Model.calendar_service import CalendarServi
 
 app = Flask(__name__)
 app.secret_key = "saucy"
-DB_NAME = "db/saucyapp.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_NAME = os.path.join(BASE_DIR, "db", "saucyapp.db")
 calendar_service = CalendarService()
 
 # -------------------------------------------------------------
