@@ -885,6 +885,24 @@ def add_recipe():
 
 
 # -------------------------------------------------------------
+# VIEW RECIPE — Kayo
+# -------------------------------------------------------------
+@app.route('/recipes/<int:recipe_id>')
+def view_recipe(recipe_id):
+    manager = RecipeManager()
+    recipe = manager.getRecipeById(recipe_id)
+
+    if not recipe:
+        return "Recipe not found", 404
+
+    steps = manager.getSteps(recipe_id)
+
+    images = manager.getImagesForRecipe(recipe_id)
+
+    return render_template('recipe_view.html', recipe=recipe, steps= steps, images=images)
+
+
+# -------------------------------------------------------------
 # EDIT RECIPE — Baraa (with validation + images list)
 # -------------------------------------------------------------
 @app.route('/recipes/edit/<int:recipe_id>', methods=['GET', 'POST'])
