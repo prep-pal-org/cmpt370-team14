@@ -11,7 +11,7 @@ body{
     padding:0;
 }
 main{
-    max-width: 1300px;
+
     margin: 2rem auto;
     padding: 1.5rem;
 }
@@ -19,8 +19,10 @@ main{
     background: #ffffff;
     border-radius: 6px;
     padding: 1rem;
-
+    max-height: 750px;
+    max-width: 900px;
 }
+
 /*
 Forms - Jordan
  */

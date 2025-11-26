@@ -8,12 +8,13 @@ import string, random
 from werkzeug.utils import secure_filename
 from cmpt370_project_user_management.Model.Recipe import Recipe
 from cmpt370_project_user_management.FlaskConnections.RecipeManager import RecipeManager
-from cmpt370_project_user_management.db.setup_database import database_connection, create_tables, main
+from cmpt370_project_user_management.db.setup_database import database_connection, create_tables, update_tables
 from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
 
 app = Flask(__name__)
 app.secret_key = "saucy"
-DB_NAME = "db/saucyapp.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_NAME = os.path.join(BASE_DIR, "db/saucyapp.db")
 calendar_service = CalendarService()
 
 # -------------------------------------------------------------
@@ -997,6 +998,9 @@ def my_recipes():
 # calendar view - determines calendar_id, sets in session, then renders calendar
 @app.route('/calendar')
 def calendar_view():
+    recipe_id = request.args.get('recipe_id')
+
+
     # Open database connection
     connection = sqlite3.connect(DB_NAME)
     try:
@@ -1006,16 +1010,24 @@ def calendar_view():
         cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (username,))
         user_id = cursor.fetchone()
         # get meal_plan_id to show single calendar for grouped meal plan
-        #cursor.execute("SELECT meal_plan_id FROM meal_plan WHERE creator_id = ?", (user_id[0],))
-        #meal_plan_id = cursor.fetchone()
+        cursor.execute("SELECT meal_plan_id FROM meal_plan_access WHERE user_id = ?", (user_id[0],))
+        meal_plan_id = cursor.fetchone()
         # Check for error in getting user_id / meal_plan_id
-        if not user_id:
-            print("Error in calendar view route - user_id missing")
+        if not meal_plan_id:
+            print("Error in calendar view route - meal_plan_id missing")
             return redirect(url_for("home"))
-        # Else get/create the calendar_id for this user and set session variable, render calendar
-        calendar_id = calendar_service.create_or_get_calendar(connection, user_id[0])
+        # Else get/create the calendar_id for this meal_plan_id and set session variable, render calendar
+        calendar_id = calendar_service.create_or_get_calendar(connection, meal_plan_id[0])
         session["calendar_id"] = calendar_id
-        return render_template("calendar.html", calendar_id=calendar_id)
+        print("Calendar ID:",calendar_id)
+        if recipe_id is not None:
+            session["cal_rec_id"] = recipe_id
+            print("Rec ID",recipe_id)
+            cursor.execute("SELECT recipe_name FROM recipe WHERE recipe_id = ?", (recipe_id,))
+            recipe_name = cursor.fetchone()
+            session["cal_rec_name"] = recipe_name[0]
+            print("Recipe name:",recipe_name)
+        return render_template("calendar.html", calendar_id=calendar_id, recipe_id=recipe_id)
     finally:
         # Close connection when done
         connection.close()
@@ -1054,14 +1066,19 @@ def api_events():
 # load calendar recipes - FullCalendar API route to load all recipes into calendar - Jordan
 @app.route("/api/recipes")
 def api_recipes():
-    #Get all recipes from Recipe Manager
-    manager = RecipeManager()
-    recipes = manager.getAllRecipes()
-    #Format to required FullCalendar format
-    all_recipes = [
-        {"recipe_id": rec.recipe_id, "recipe_name": rec.name
-    }for rec in recipes]
-    return jsonify(all_recipes)
+    connection = sqlite3.connect(DB_NAME)
+    cursor = connection.cursor()
+    try:
+        cursor.execute("SELECT recipe_id, recipe_name FROM recipe ORDER BY recipe_id;")
+        rows = cursor.fetchall()
+        all_recipes=[]
+        for id,name in rows:
+            all_recipes.append({"recipe_id": id, "recipe_name": name})
+        return jsonify(all_recipes)
+    except sqlite3.OperationalError:
+        return jsonify([])
+    finally:
+        connection.close()
 
 # add calendar event - FullCalendar API route to add new event for current calendar_id - Jordan
 @app.route("/api/events", methods=["POST"])
@@ -1188,7 +1205,8 @@ def allowed_file(filename: str) -> bool:
 if __name__ == '__main__':
     conn = database_connection(DB_NAME)
     if conn is not None:
-        #calls main in setup_database - which creates tables and applies updates
-        main()
+        # creates tables and apply updates
+        create_tables(conn)
+        update_tables(conn)
         conn.close()
     app.run(debug=True)

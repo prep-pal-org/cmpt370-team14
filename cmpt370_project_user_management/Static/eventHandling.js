@@ -56,9 +56,10 @@ function closePopup() {
  * Implemented by Jordan
  */
 document.addEventListener('DOMContentLoaded',function(){
-    //declare instance variable of the calendar element, list of all recipes
+    //declare instance variable of the calendar element, list of all recipes, potential preloaded recipe from search/view
     const calendarEl = document.getElementById('calendar');
     let recipeList = [];
+    let loaded_recipe_id = calendarEl.dataset.recipeId || null;
 
     /**
      * Initialize FullCalendar - Initial (and only) view set to day grid per one month; local timezone;
@@ -167,6 +168,11 @@ document.addEventListener('DOMContentLoaded',function(){
         if (recipeList.length ===0){
             loadRecipes();
         }
+        const recipeSelect = document.getElementById('recipeSelect');
+        confirm("Loaded Recipe Id:", loaded_recipe_id)
+        if (loaded_recipe_id !=null){
+            recipeSelect.value = loaded_recipe_id;
+        }
     }
 
     //Set up Submit button listener for the AddModal
@@ -175,9 +181,10 @@ document.addEventListener('DOMContentLoaded',function(){
         //Declare instance variables of recipeSelect and selected option
         const recipeSelect = document.getElementById('recipeSelect');
         const selectedRecipe = recipeSelect.options[recipeSelect.selectedIndex];
+
         //Format user fields for payload
         const payload = {
-            recipe_id: parseInt(recipeSelect.value,10),
+            recipe_id: recipeSelect.options[recipeSelect.selectedIndex],
             recipe_name: selectedRecipe.textContent.split('. ')[1],
             event_date: document.getElementById('addDate').value,
             event_time: document.getElementById('addTimeSlot').value

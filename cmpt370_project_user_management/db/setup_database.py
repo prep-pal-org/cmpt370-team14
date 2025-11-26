@@ -227,15 +227,23 @@ def create_tables(connection):
     #successful table created, return true
     return True
 
-def update_calendar(connection: sqlite3.Connection, cursor: sqlite3.Cursor):
+def update_tables(connection: sqlite3.Connection):
     """
-    update_calendar function - used to update calendar tables while maintaining existing database data
+    update_calendar function - used to update tables while maintaining existing database data
     :param connection: sqlite3.Connection
-    :param cursor: sqlite3.Cursor
-    :return: Nothing - print statements exist to console when update completed
+    :return: Nothing - print statements exist to console when update completed/failed
     """
+    cursor = connection.cursor()
 
-    #Rename calendar_schedule column "user_id" to "meal_plan_id" - if not previously done
+    # Drop the old user_interaction table if it exists - Randi
+    try:
+        cursor.execute("DROP TABLE IF EXISTS user_interaction;")
+        connection.commit()
+        print("user_interaction table removed")
+    except sqlite3.OperationalError as e:
+        print("Error while dropping user_interaction table:", e)
+
+    #Rename calendar_schedule column "user_id" to "meal_plan_id" - if not previously done - Jordan
     try:
         #Get table columns
         cursor.execute("PRAGMA table_info('calendar_schedule')")
@@ -250,7 +258,7 @@ def update_calendar(connection: sqlite3.Connection, cursor: sqlite3.Cursor):
     except sqlite3.OperationalError as e:
         print("Error while renaming calendar_schedule user_id column:", e)
 
-    #Add "calendar_id" to CONSTRAINT in calendar_event - if not previously done
+    #Add "calendar_id" to CONSTRAINT in calendar_event - if not previously done - Jordan
     try:
         #Check if calendar_event constraint has been updated
         cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='calendar_event';")
@@ -296,22 +304,15 @@ def main():
     if connection is not None:
 
         cursor = connection.cursor()
-        # Drop the old user_interaction table if it exists - Randi
-        try:
-            cursor.execute("DROP TABLE IF EXISTS user_interaction;")
-            connection.commit()
-            print("user_interaction table removed")
-        except sqlite3.OperationalError as e:
-            print("Error while dropping user_interaction table:", e)
-
-        #Update calendar tables - Jordan
-        update_calendar(connection, cursor)
 
         #If successful, try to create tables
         if create_tables(connection):
             print('Tables created')
         else:
             print('Tables not created')
+
+        #apply any updates if needed
+        update_tables(connection)
     else:
         print('Database connection failed')
 
