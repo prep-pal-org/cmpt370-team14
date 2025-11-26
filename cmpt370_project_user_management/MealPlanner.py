@@ -1065,6 +1065,7 @@ def add_ingredient_to_list():
         return redirect(url_for('login'))
 
     ingredient = request.form['ingredient'].strip()
+    quantity = request.form.get('quantity', '1').strip()
 
     if ingredient == "":
         flash("Invalid ingredient.")
@@ -1077,9 +1078,9 @@ def add_ingredient_to_list():
     user_id = cur.fetchone()[0]
 
     cur.execute("""
-        INSERT INTO grocery_list (user_id, item_text, quantity)
-        VALUES (?, ?, ?)
-    """, (user_id, ingredient, "1"))
+            INSERT INTO grocery_list (user_id, item_text, quantity)
+            VALUES (?, ?, ?)
+        """, (user_id, ingredient, quantity))
 
     conn.commit()
     conn.close()
