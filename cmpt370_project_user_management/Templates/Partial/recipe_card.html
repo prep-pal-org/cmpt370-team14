@@ -20,9 +20,9 @@
              <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
                 <div class="mt-2">
                     <form action="{{ url_for('favorite_recipe', recipe_id=recipe.recipe_id) }}" method="POST" class="d-inline">
-                        <button type="submit" class="btn btn-sm {% if recipe.is_favorite %}btn-transparent active{% else %}btn-transparent{% endif %}">💖</button>
+                        <button type="submit" class="btn btn-sm fs-5">💖</button>
                     </form>
-                    {% for reaction, emoji, btn_class in [('like','👍','btn-transparent'), ('dislike','👎','btn-transparent')] %}
+                    {% for reaction, emoji, btn_class in [('like','👍','btn-transparent fs-5'), ('dislike','👎','btn-transparent fs-5')] %}
                         {% set count = 0 %}
                         {% for r_type, r_count in recipe.reactions %}
                             {% if r_type == reaction %}
@@ -32,7 +32,7 @@
                         {% endfor %}
                         <form action="{{ url_for('create_reaction', recipe_id=recipe.recipe_id) }}" method="POST" class="d-inline">
                             <button type="submit" name="reaction" value="{{ reaction }}" class="btn btn-sm {{ btn_class }}">
-                                {{ emoji }} {{ recipe.reactions_dict.get(reaction, 0) }}
+                                {{ emoji }} <sup>{{ recipe.reactions_dict.get(reaction, 0) }}</sup>
                             </button>
                         </form>
                     {% endfor %}
@@ -40,12 +40,19 @@
 
 
                  {% set comment_count = recipe.comments|length %}
-                 <a class="btn btn-info btn-sm mt-2 btn-outline-primary" data-bs-toggle="collapse" href="#comments_{{ recipe.recipe_id }}" role="button" aria-expanded="false" aria-controls="comments_{{ recipe.recipe_id }}">
-                     💬
-                     {% if comment_count > 0 %}
-                         <sup class="text-dark">{{ comment_count }}</sup>
-                     {% endif %}
-                 </a>
+                 <form class="mt-2">
+                     <button class="btn btn-transparent btn-sm fs-5"
+                             type="button"
+                             data-bs-toggle="collapse"
+                             data-bs-target="#comments_{{ recipe.recipe_id }}"
+                             aria-expanded="false"
+                             aria-controls="comments_{{ recipe.recipe_id }}">
+                         💬
+                         {% if comment_count > 0 %}
+                             <sup class="text-dark">{{ comment_count }}</sup>
+                         {% endif %}
+                     </button>
+                 </form>
              </div>
         </div>
     </div>
