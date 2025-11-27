@@ -1,10 +1,11 @@
 """
 Baraa
 RecipeManager Controller Class
-------------------------------
-Responsible for managing all Recipe objects in the system.
-Handles CRUD (Create, Read, Update, Delete) operations using SQLite.
-Acts as the data access layer between the Flask UI and the database.
+Fully corrected for:
+✔ category
+✔ user_id
+✔ image_path loaded separately
+✔ Recipe constructor compatibility
 """
 
 import os
@@ -17,146 +18,226 @@ print("🗂 Using database at:", DB_PATH)
 
 
 class RecipeManager:
-    """
-    Handles interactions with the recipe database table.
-    Maintains a list of Recipe objects and provides methods to manage them.
-    """
 
     def __init__(self):
-        """
-        Constructor for RecipeManager.
-        Initializes an empty recipe list.
-        """
-        self.recipeList: list[Recipe] = []
-
-    # --------------------------------------------------------------
+        self.recipeList = []
 
     def _connect(self):
-        """
-        Creates and returns a database connection to the SQLite database.
-
-        :return: sqlite3.Connection object
-        """
         return sqlite3.connect(DB_PATH)
 
     # --------------------------------------------------------------
-
-    def addRecipe(self, r: Recipe) -> None:
+    # ADD RECIPE — uses 5 columns (name, ingredients, instructions, category, user_id)
+    # --------------------------------------------------------------
+    def addRecipe(self, r: Recipe) -> int:
         """
-        Adds a new Recipe object to the database.
-
-        :param r: A Recipe object to be added.
-        :return: None
+        Adds a new recipe to DB.
+        Required DB columns:
+        recipe_name, ingredients, instructions, category, user_id
         """
         with self._connect() as conn:
             cur = conn.cursor()
+
             cur.execute("""
-                INSERT INTO recipe (recipe_name, ingredients, instructions)
-                VALUES (?, ?, ?)
-            """, (r.name, r.ingredients, r.instructions))
+                INSERT INTO recipe (recipe_name, ingredients, instructions, category, user_id)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
+                r.name,
+                r.ingredients,
+                r.instructions,
+                getattr(r, "category", ""),   # safe if not set
+                getattr(r, "user_id", None)   # safe if not set
+            ))
+
+            recipe_id = cur.lastrowid
             conn.commit()
-        print(f"✅ Recipe '{r.name}' added successfully!")
+
+        print(f"✅ Added recipe '{r.name}' with ID {recipe_id}")
+        return recipe_id
 
     # --------------------------------------------------------------
-
-    def editRecipe(self, recipe_id: int, newRecipe: Recipe) -> None:
+    # Helper: Build Recipe + Category + Image
+    # --------------------------------------------------------------
+    def _buildRecipe(self, row):
         """
-        Updates an existing recipe in the database.
-
-        :param recipe_id: ID of the recipe to edit.
-        :param newRecipe: A Recipe object with updated values.
-        :return: None
+        Expects row: (recipe_id, name, ingredients, instructions, image_path, category)
         """
+        recipe_id, name, ingredients, instructions, image_path, category = row
+
+        r = Recipe(recipe_id, name, ingredients, instructions)
+        r.image_path = image_path
+        r.category = category if category else ""
+        return r
+
+    # --------------------------------------------------------------
+    # GET RECIPE BY ID
+    # --------------------------------------------------------------
+    def getRecipeById(self, recipe_id: int):
+        with self._connect() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       r.category
+                FROM recipe r
+                WHERE r.recipe_id = ?
+            """, (recipe_id,))
+
+            row = cur.fetchone()
+
+        return self._buildRecipe(row) if row else None
+
+    # --------------------------------------------------------------
+    # GET ALL RECIPES
+    # --------------------------------------------------------------
+    def getAllRecipes(self):
+        with self._connect() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       r.category
+                FROM recipe r
+            """)
+            rows = cur.fetchall()
+        return [self._buildRecipe(row) for row in rows]
+
+    # --------------------------------------------------------------
+    # NEW: GET FILTERED RECIPES (Search, Sort, Filter)
+    # --------------------------------------------------------------
+    def getFilteredRecipes(self, search_query="", sort_by="newest", diet_filter=""):
+        conn = self._connect()
+        cur = conn.cursor()
+
+        # Base Query
+        sql = """
+            SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
+                   COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                   r.category
+            FROM recipe r
+            WHERE 1=1
+        """
+        params = []
+
+        # 1. Search Filter
+        if search_query:
+            sql += " AND (r.recipe_name LIKE ? OR r.ingredients LIKE ?)"
+            params.extend([f"%{search_query}%", f"%{search_query}%"])
+
+        # 2. Diet Filter
+        if diet_filter == "gluten_free":
+            sql += " AND r.category LIKE '%Gluten Free%'"
+        elif diet_filter == "lactose_free":
+            sql += " AND r.category LIKE '%Lactose Free%'"
+
+        # 3. Sorting
+        if sort_by == "az":
+            sql += " ORDER BY r.recipe_name ASC"
+        elif sort_by == "za":
+            sql += " ORDER BY r.recipe_name DESC"
+        else:
+            # Default: Newest first
+            sql += " ORDER BY r.recipe_id DESC"
+
+        cur.execute(sql, params)
+        rows = cur.fetchall()
+        conn.close()
+
+        return [self._buildRecipe(row) for row in rows]
+
+    # --------------------------------------------------------------
+    # GET IMAGES
+    # --------------------------------------------------------------
+    def getImagesForRecipe(self, recipe_id: int):
+        with self._connect() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT image_id, image_path
+                FROM recipe_image
+                WHERE recipe_id = ?
+                ORDER BY upload_date DESC, image_id DESC
+            """, (recipe_id,))
+            rows = cur.fetchall()
+        return [{"image_id": r[0], "image_path": r[1]} for r in rows]
+
+    # --------------------------------------------------------------
+    # GET USER'S RECIPES
+    # --------------------------------------------------------------
+    def getRecipesByUser(self, user_id: int):
+        with self._connect() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       r.category
+                FROM recipe r
+                WHERE r.user_id = ?
+            """, (user_id,))
+            rows = cur.fetchall()
+        return [self._buildRecipe(row) for row in rows]
+
+    # --------------------------------------------------------------
+    # GET FAVORITES
+    # --------------------------------------------------------------
+    def getFavoriteRecipesByUser(self, user_id: int):
+        with self._connect() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       r.category
+                FROM recipe r
+                JOIN favorite_recipes_use f ON r.recipe_id = f.recipe_id
+                WHERE f.user_id = ?
+            """, (user_id,))
+            rows = cur.fetchall()
+        return [self._buildRecipe(row) for row in rows]
+
+    # --------------------------------------------------------------
+    # EDIT & DELETE
+    # --------------------------------------------------------------
+    def editRecipe(self, recipe_id: int, newRecipe: Recipe):
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("""
                 UPDATE recipe
                 SET recipe_name = ?, ingredients = ?, instructions = ?
                 WHERE recipe_id = ?
-            """, (newRecipe.name, newRecipe.ingredients,
-                  newRecipe.instructions, recipe_id))
+            """, (newRecipe.name, newRecipe.ingredients, newRecipe.instructions, recipe_id))
             conn.commit()
-        print(f"✏️ Recipe ID {recipe_id} updated successfully!")
 
-    # --------------------------------------------------------------
-
-    def deleteRecipe(self, recipe_id: int) -> None:
-        """
-        Deletes a recipe from the database by its ID.
-
-        :param recipe_id: The recipe's ID to delete.
-        :return: None
-        """
+    def deleteRecipe(self, recipe_id: int):
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("DELETE FROM recipe WHERE recipe_id = ?", (recipe_id,))
             conn.commit()
-        print(f"🗑️ Recipe ID {recipe_id} deleted successfully!")
 
     # --------------------------------------------------------------
+    # SAVE RECIPE STEPS
+    # -------------------------------------------------------------KAYO
+    def saveSteps(self, recipe_id: int, steps: list):
+        with self._connect() as conn:
+            cur = conn.cursor()
+            # Delete old steps (if editing)
+            cur.execute("DELETE FROM recipe_steps WHERE recipe_id = ?", (recipe_id,))
+            # Insert new steps
+            for step_number, step, duration in steps:
+                cur.execute("""
+                    INSERT INTO recipe_steps (recipe_id, step_number, step, duration)
+                    VALUES (?, ?, ?, ?)
+                """, (recipe_id, step_number, step, duration))
+            conn.commit()
 
-    def filterByPreference(self, pref: str) -> list[Recipe]:
-        """
-        Returns a filtered list of recipes based on a preference string.
-
-        :param pref: Search string to filter recipe names.
-        :return: A list of matching Recipe objects.
-        """
+    # --------------------------------------------------------------
+    # GET RECIPE STEPS
+    # -------------------------------------------------------------KAYO
+    def getSteps(self, recipe_id):
         with self._connect() as conn:
             cur = conn.cursor()
             cur.execute("""
-                SELECT recipe_id, recipe_name, ingredients, instructions, '' 
-                FROM recipe WHERE recipe_name LIKE ?
-            """, (f"%{pref}%",))
-            rows = cur.fetchall()
-        self.recipeList = [Recipe(*row) for row in rows]
-        print(f"🔍 Found {len(self.recipeList)} recipes matching '{pref}'.")
-        return self.recipeList
-
-    # --------------------------------------------------------------
-
-    def getRecipeById(self, recipe_id: int) -> Recipe:
-        """
-        Retrieves a single Recipe object from the database by ID.
-
-        :param recipe_id: The recipe's unique ID.
-        :return: Recipe object if found, otherwise None.
-        """
-        with self._connect() as conn:
-            cur = conn.cursor()
-            cur.execute("""
-                SELECT recipe_id, recipe_name, ingredients, instructions, ''
-                FROM recipe WHERE recipe_id = ?
+                SELECT step_id, step_number, step, duration
+                FROM recipe_steps
+                WHERE recipe_id = ?
+                ORDER BY step_number ASC
             """, (recipe_id,))
-            row = cur.fetchone()
-
-        if row:
-            print(f"✅ Found recipe ID {recipe_id}.")
-            return Recipe(*row)
-        else:
-            print(f"⚠️ Recipe ID {recipe_id} not found.")
-            return None
-
-    # --------------------------------------------------------------
-
-    def getAllRecipes(self) -> list[Recipe]:
-        """
-        Retrieves all recipes from the database.
-
-        :return: A list of Recipe objects.
-        """
-        with self._connect() as conn:
-            cur = conn.cursor()
-            cur.execute("""
-                SELECT recipe_id, recipe_name, ingredients, instructions, ''
-                FROM recipe
-            """)
-            rows = cur.fetchall()
-
-        self.recipeList = [Recipe(*row) for row in rows]
-        print(f"📖 Loaded {len(self.recipeList)} recipes from the database.")
-        return self.recipeList
-
-    #kayo -
-    #todo write class to convert instructions to individual steps and the getSteps.
+            return cur.fetchall()
 

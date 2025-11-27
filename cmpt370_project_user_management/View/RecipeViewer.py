@@ -6,7 +6,7 @@ Responsible for displaying recipe-related information to the user.
 Acts as the presentation layer between the RecipeManager (controller) and the UI.
 """
 
-from cmpt370_project_user_management.FlaskConnections.RecipeManager import RecipeManager
+from FlaskConnections import RecipeManager
 
 
 class RecipeViewer:
@@ -24,7 +24,7 @@ class RecipeViewer:
 
     # --------------------------------------------------------------
 
-    def showRecipeList(self) -> None:
+    def shoeRecipeList(self) -> None:
         """
         Displays all recipes retrieved from the RecipeManager.
 

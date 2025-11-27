@@ -10,17 +10,16 @@ body{
     margin:0;
     padding:0;
 }
-
 main{
-    max-width: 900px;
+    max-width: 1300px;
     margin: 2rem auto;
     padding: 1.5rem;
 }
-
 #calendar{
     background: #ffffff;
     border-radius: 6px;
     padding: 1rem;
+
 }
 /*
 Forms - Jordan
@@ -46,6 +45,12 @@ button:hover{
     background: #d9534f;
 }
 #deleteBtn:hover{
+    background: #c9302c;
+}
+#deleteSeriesBtn{
+    background: #d9534f;
+}
+#deleteSeriesBtn:hover{
     background: #c9302c;
 }
 input, select{
@@ -96,7 +101,7 @@ Modals - Jordan
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 1001;
 }
 .modal-content{
     background:#fff;
@@ -108,8 +113,6 @@ Modals - Jordan
 .hidden{
     display: none;
 }
-
-
 /* Topnav bar. -Randi */
 .topnav {
     position: fixed;
@@ -120,8 +123,6 @@ Modals - Jordan
     padding: 15px;
     z-index: 1000;
 }
-
-
 /* Topnav links. -Randi */
 .topnav a {
     float: left;

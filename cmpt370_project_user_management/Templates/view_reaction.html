@@ -1,11 +1,29 @@
-<!-- View a reaction page. Started not completed -Randi -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Reactions</title>
 </head>
 <body>
+    <h1>Reactions for Recipe</h1>
 
+    {% if com_data %}
+        <ul>
+        {% for reaction, username, created_at in com_data %}
+            <li>
+                <strong>{{ username }}</strong> said:
+                "{{ reaction }}" <br>
+                <small>Posted on: {{ created_at }}</small>
+            </li>
+            <br>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No reactions yet.</p>
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('create_reaction', recipe_id=recipe_id) }}">Add a Reaction</a><br>
+    <a href="{{ url_for('view_recipe', recipe_id=recipe_id) }}">Back to Recipe</a>
 </body>
 </html>
