@@ -11,35 +11,37 @@
 <body>
     <div class="topnav">
         <a href="/login_page" id="login">Login</a>
-        <a href="/user_list_for_testing" id="see_users">About Us</a>
+        <a href="/about_us" id="about_us">About Us</a>
         <a href="/" id="home">Home</a>
     </div>
 
-    <div class="content">
-        <form method="POST" class="login-form">
-            <h2>Create Profile</h2>
-            <label for="username">User Name:</label><br>
-            <input type="text" id="username" name="username" required><br>
+    <div class="page-content">
+        <div class="container d-flex justify-content-center align-items-center gap-2">
+            <form method="POST" class="login-form">
+                <h2>Create Profile</h2>
+                <label class="fw-bold" for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
 
-            <label for="email">Email:</label><br>
-            <input type="email" id="email" name="email" required><br>
+                <label class="fw-bold" for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
 
-            <label for="password">Password:</label><br>
-            <input type="password" id="password" name="password" required><br>
+                <label class="fw-bold" for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
 
-            <button type="submit">Submit</button>
-        </form>
+                <button type="submit">Submit</button>
+            </form>
 
-        {% with message = get_flashed_messages() %}
-            {% if message %}
-            <div id="popup" class="popup">
-                <div class="popup-content">
-                    <p>{{ message[0] }}</p>
-                    <button onclick="closePopup()">Close</button>
+            {% with message = get_flashed_messages() %}
+                {% if message %}
+                <div id="popup" class="popup">
+                    <div class="popup-content">
+                        <p>{{ message[0] }}</p>
+                        <button onclick="closePopup()">Close</button>
+                    </div>
                 </div>
-            </div>
-            {% endif %}
-        {% endwith %}
+                {% endif %}
+            {% endwith %}
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>

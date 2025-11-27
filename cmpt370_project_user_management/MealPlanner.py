@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import sqlite3
 import bcrypt
@@ -44,18 +45,12 @@ def filter_list_python(recipes, sort_by, diet_filter):
 # -------------------------------------------------------------
 @app.route('/')
 def home():
-    if 'username' in session:
-        return redirect(url_for('login_landing_page'))
-
-    # If not logged in, show the public home page
     return render_template('use_home_page.html')
-
 
 # Old home page (legacy)
 @app.route('/old_home')
 def old_home():
     return render_template('homePage.html')
-
 
 @app.route('/about_us')
 def about_us():
@@ -170,6 +165,7 @@ def remove_grocery_item():
             current_user_id = user_result[0]
 
             # Securely delete the item
+            # This query ensures a user can ONLY delete their own items
             cursor.execute("DELETE FROM grocery_list WHERE item_id = ? AND user_id = ?", (item_id, current_user_id))
             conn.commit()
 
@@ -241,7 +237,7 @@ def login():
                 user_id = cur.execute("""SELECT user_id FROM user_profile WHERE username =?""",
                                       (userName,)).fetchone()[0]
             session['username'] = userName
-            session.permanent = True
+            session.permanent=True
             session['user_id'] = user_id
             return redirect(url_for('login_landing_page'))  # ✅ redirect after successful login
         else:
@@ -307,9 +303,11 @@ def login_landing_page():
         random.shuffle(fav_recipes)
         random.shuffle(all_recipes)
 
-    my_recipes = my_recipes[:10]
-    fav_recipes = fav_recipes[:10]
-    all_recipes = all_recipes[:10]
+    my_recipes = my_recipes[:4]
+    fav_recipes = fav_recipes[:4]
+    all_recipes = all_recipes[:4]
+
+
 
     return render_template(
         'login_landing_page.html',
@@ -334,7 +332,6 @@ def user_list_for_testing():
     rows = cur.fetchall()
     return render_template("user_list_for_testing.html", data=rows)
 
-
 # -------------------------------------------------------------
 # ROUTES: MEAL PLAN CREATION, VIEWING AND SHARING - Randi
 # -------------------------------------------------------------
@@ -342,6 +339,8 @@ def user_list_for_testing():
 # Create a new meal plan - Randi
 @app.route('/create_meal_plan', methods=['GET', 'POST'])
 def create_meal_plan():
+    print("DEBUG route triggered, request.form:", request.form)
+    print("DEBUG route triggered, request.args:", request.args)
     # Check if user is logged in.
     username = session.get('username')
     if not username:
@@ -349,14 +348,16 @@ def create_meal_plan():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        plan_name = request.form['plan_name']
+        print("DEBUG form keys:", request.form.keys())
+        plan_name = request.form.get('plan_name')
+        print("DEBUG plan_name:", plan_name)
 
         # Get user ID
         with sqlite3.connect(DB_NAME) as conn:
             cur = conn.cursor()
             creator_id = cur.execute(
                 "SELECT user_id FROM user_profile WHERE username = ?",
-                (session['username'],)
+                (username,)
             ).fetchone()
 
             if creator_id is None:
@@ -395,7 +396,7 @@ def create_meal_plan():
         flash("Meal plan created!")
         return redirect(url_for('view_meal_plan', meal_plan_id=meal_plan_id))
 
-    return render_template("create_meal_plan.html")
+    return render_template("create_meal_plan.html",)
 
 
 # Generate the invite code - Randi
@@ -660,7 +661,8 @@ def create_comment(recipe_id):
                     (user_id, recipe_id, comment,))
         conn.commit()
 
-    flash("Comment added successfully!")
+
+    print("Comment added successfully!")
     return redirect(request.referrer)
 
 
@@ -724,8 +726,9 @@ def create_reaction(recipe_id):
 
         conn.commit()
     print(f"User {user_id} reacted {reaction} to recipe {recipe_id}")
-    flash("Reaction added successfully!")
+    print("Reaction added successfully!")
     return redirect(request.referrer)
+
 
 
 def view_reaction(recipe_list):
@@ -914,6 +917,12 @@ def view_recipe(recipe_id):
     steps = manager.getSteps(recipe_id)
 
     images = manager.getImagesForRecipe(recipe_id)
+
+    # get comments
+    recipe_list = [recipe]
+    view_comment(recipe_list)
+    view_reaction(recipe_list)
+    favorite_recipe(recipe_id)
 
     return render_template('recipe_view.html', recipe=recipe, steps= steps, images=images)
 
