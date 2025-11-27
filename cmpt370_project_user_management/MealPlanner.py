@@ -1009,9 +1009,11 @@ def calendar_view():
         cursor = connection.cursor()
         cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (username,))
         user_id = cursor.fetchone()
+        print("User id:",user_id)
         # get meal_plan_id to show single calendar for grouped meal plan
         cursor.execute("SELECT meal_plan_id FROM meal_plan_access WHERE user_id = ?", (user_id[0],))
         meal_plan_id = cursor.fetchone()
+        print("Meal plan_id:",meal_plan_id[0])
         # Check for error in getting user_id / meal_plan_id
         if not meal_plan_id:
             print("Error in calendar view route - meal_plan_id missing")
