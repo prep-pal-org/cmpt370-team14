@@ -303,9 +303,9 @@ def login_landing_page():
         random.shuffle(fav_recipes)
         random.shuffle(all_recipes)
 
-    my_recipes = my_recipes[:10]
-    fav_recipes = fav_recipes[:10]
-    all_recipes = all_recipes[:10]
+    my_recipes = my_recipes[:4]
+    fav_recipes = fav_recipes[:4]
+    all_recipes = all_recipes[:4]
 
 
 
@@ -917,6 +917,12 @@ def view_recipe(recipe_id):
     steps = manager.getSteps(recipe_id)
 
     images = manager.getImagesForRecipe(recipe_id)
+
+    # get comments
+    recipe_list = [recipe]
+    view_comment(recipe_list)
+    view_reaction(recipe_list)
+    favorite_recipe(recipe_id)
 
     return render_template('recipe_view.html', recipe=recipe, steps= steps, images=images)
 

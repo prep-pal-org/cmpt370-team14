@@ -405,5 +405,20 @@ button:hover{
     .page-content {
         margin-top: 100px;
     }
+
+    .popout-card {
+        margin-top: -10px;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+
+    .comment-box {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    height: 150px;
+    max-height: 150px;
+    overflow-y: auto;
+}
 }
 

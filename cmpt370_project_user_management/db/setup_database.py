@@ -250,7 +250,7 @@ def create_tables(connection):
         #TODO - add tables created to this list
         table_list = [create_calendar_event, create_calendar_schedule, create_recurring_event, create_user_profile, create_recipe_table,
                       create_recipe_image_table, create_grocery_list, meal_plan, meal_plan_access,
-                      use_recipe_reaction, recipe_comment, favorite_recipes_use]
+                      use_recipe_reaction, recipe_comment, favorite_recipes_use, create_steps_table]
 
 
         #Loop through list for execute, actually creating tables

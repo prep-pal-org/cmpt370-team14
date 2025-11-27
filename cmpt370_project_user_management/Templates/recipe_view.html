@@ -22,14 +22,12 @@
 
 <!-- Nav bar -->
 <div class="topnav">
-    <a href="/login_page">Login</a>
-    <a href="/user_list_for_testing">About Us</a>
-    <a href="/">Home</a>
+    <a href="/logout">Logout</a>
+    <a href="/login_landing_page">Home</a>
+    <a href="{{ url_for('grocery_list') }}">Grocery List</a>
     <a href="/recipes">All Recipes</a>
-    {% if session.get('username') %}
-        <a href="/my_recipes">My Recipes</a>
-    {% endif %}
-    <a href="/old_home">Old Home Page</a>
+    <a href="/my_recipes">My Recipes</a>
+    <a href="/favorite_recipes">Favorite Recipes</a>
 </div>
 
 <div class="recipe-background">
@@ -67,19 +65,20 @@
             <p class="recipe-textarea" style="white-space: pre-line">{{ recipe.instructions }}</p>
 
             <h2>{{ recipe.name }} – Cooking Steps</h2>
+            <div class="container">
+                <ol>
+                    {% for step in steps %}
+                        <li>
+                            <b>Step {{ step[1] }}:</b> {{ step[2] }} <br>
+                            Time: {{ step[3] }} seconds
 
-            <ol>
-                {% for step in steps %}
-                    <li>
-                        <b>Step {{ step[1] }}:</b> {{ step[2] }} <br>
-                        Time: {{ step[3] }} seconds
-
-                        <button onclick="startTimer({{ step[3] }}, {{ step[1] }})">
-                            Start Timer
-                        </button>
-                    </li>
-                {% endfor %}
-            </ol>
+                            <button onclick="startTimer({{ step[3] }}, {{ step[1] }})">
+                                Start Timer
+                            </button>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </div>
 
 
         <!-- DELETE RECIPE BUTTON -->
@@ -114,6 +113,61 @@
         {% endif %}
 
         <br>
+        <!-- Add comments. -->
+        {% set comment_count = recipe.comments|length %}
+        <a class="btn btn-info btn-sm mt-2 btn-outline-primary" data-bs-toggle="collapse" href="#comments_{{ recipe.recipe_id }}" role="button" aria-expanded="false" aria-controls="comments_{{ recipe.recipe_id }}">
+            💬
+            {% if comment_count > 0 %}
+                <sup class="text-dark">{{ comment_count }}</sup>
+            {% endif %}
+        </a>
+        <div class="collapse card p-2 border shadow-sm" id="comments_{{ recipe.recipe_id }}">
+            <div class="card popout-card p-2 mt-n1" style="max-height: 300px; overflow-y: auto;">
+
+                {% if recipe.comments %}
+                    {% for c in recipe.comments %}
+                        <div class="border rounded p-2 mb-2">
+                            <strong>{{ c[1] }}</strong>
+                            <small class="text-muted">{{ c[2] }}</small>
+                            <p class="fs-6"> {{ c[0] }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted fs-5">No comments yet.</p>
+                {% endif %}
+
+                <form action="{{ url_for('create_comment', recipe_id=recipe.recipe_id) }}" method="POST" class="mt-2">
+                    <div class="form-floating">
+                        <textarea class="form-control" name="comment" style="height:100px; resize:none;" placeholder="Leave a comment" maxlength="140"></textarea>
+                        <label>Comment</label>
+                        <small class="form-text text-muted">Max. 140 characters.</small>
+                    </div>
+                    <button class="btn btn-success btn-sm" type="submit">Add</button>
+                </form>
+            </div>
+             <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
+                <div class="mt-2">
+                    <form action="{{ url_for('favorite_recipe', recipe_id=recipe.recipe_id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm {% if recipe.is_favorite %}btn-transparent active{% else %}btn-transparent{% endif %}">💖</button>
+                    </form>
+                    {% for reaction, emoji, btn_class in [('like','👍','btn-transparent'), ('dislike','👎','btn-transparent')] %}
+                        {% set count = 0 %}
+                        {% for r_type, r_count in recipe.reactions %}
+                            {% if r_type == reaction %}
+                                {% set count = r_count %}
+                            {% endif %}
+
+                        {% endfor %}
+                        <form action="{{ url_for('create_reaction', recipe_id=recipe.recipe_id) }}" method="POST" class="d-inline">
+                            <button type="submit" name="reaction" value="{{ reaction }}" class="btn btn-sm {{ btn_class }}">
+                                {{ emoji }} {{ recipe.reactions_dict.get(reaction, 0) }}
+                            </button>
+                        </form>
+                    {% endfor %}
+                </div>
+             </div>
+        </div>
+    </div>
         <a class="btn-link" href="{{ url_for('recipe_list') }}">⬅ Back</a>
 
     </div>

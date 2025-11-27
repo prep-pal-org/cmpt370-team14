@@ -23,15 +23,12 @@
 
 <!-- nav bar -->
 <div class="topnav">
-    <a href="/login_page">Login</a>
-    <a href="/user_list_for_testing">About Us</a>
-    <a href="/">Home</a>
+    <a href="/logout">Logout</a>
+    <a href="/login_landing_page">Home</a>
     <a href="{{ url_for('grocery_list') }}">Grocery List</a>
     <a href="/recipes">All Recipes</a>
-    {% if session.get('username') %}
-        <a href="/my_recipes">My Recipes</a>
-    {% endif %}
-    <a href="/old_home">Old Home Page</a>
+    <a href="/my_recipes">My Recipes</a>
+
 </div>
 
 <div class="recipe-background">

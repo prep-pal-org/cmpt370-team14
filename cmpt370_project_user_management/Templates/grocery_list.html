@@ -18,9 +18,11 @@
 <body>
     <div class="topnav">
         <a href="/logout" id="logout">Logout</a>
-        <a href="/about_us" id="about_us">About Us</a>
         <a href="/login_landing_page" id="home">Home</a>
         <a href="{{ url_for('grocery_list') }}">Grocery List</a>
+        <a href="/recipes">All Recipes</a>
+        <a href="/my_recipes">My Recipes</a>
+        <a href="/favorite_recipes">Favorite Recipes</a>
     </div>
     <div class="center-column">
         <h1>My Grocery List</h1>
@@ -60,5 +62,6 @@
             <button>Back to Home</button>
         </a>
     </div>
+
 </body>
 </html>
