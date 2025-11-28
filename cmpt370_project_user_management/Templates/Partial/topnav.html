@@ -1,28 +1,15 @@
 <!-- topnav partial -->
 
-<!-- topnav partial -->
-
-<!-- topnav partial -->
 <div class="topnav">
     <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
-
-        <!-- HOME -->
-        <a href="{{ url_for('login_landing_page') }}">Home</a>
-
-        <!-- Recipes -->
+        <a href="/logout">Logout</a>
+        <a href="/login_landing_page">Home</a>
+        <a onclick="history.back()">Back</a>
         <a href="{{ url_for('add_recipe') }}">Add Recipe</a>
-        <a href="{{ url_for('my_recipes') }}">My Recipes</a>
-        <a href="{{ url_for('favorite_recipes') }}">Favorite Recipes</a>
-        <a href="{{ url_for('all_recipes') }}">All Recipes</a>
-
-        <!-- Grocery -->
+        <a href="/my_recipes">My Recipes</a>
+        <a href="/favorite_recipes">Favorite Recipes</a>
+        <a href="/recipes">All Recipes</a>
         <a href="{{ url_for('grocery_list') }}">Grocery List</a>
-
-        <!-- Meal Plans -->
-        <a href="{{ url_for('list_meal_plans') }}">Meal Plans</a>
-
-        <!-- Logout -->
-        <a href="{{ url_for('logout') }}">Logout</a>
-
+        <a href="/meal_plans">Meal Plans</a>
     </div>
 </div>
