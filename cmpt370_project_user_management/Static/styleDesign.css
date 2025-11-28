@@ -279,11 +279,11 @@ button:hover{
     left: 0;
     width: 100%;
     background: transparent;
-    padding: 10px;
+    padding: 0px;
     z-index: 1000;
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: left;
 
 }
 
@@ -484,3 +484,40 @@ button:hover{
 }
 }
 
+/* Meal plan table design. */
+.plan_table{
+    font-family: Arial, sans-serif;
+    border-collapse: collapse;
+    width: 80%;
+}
+
+.plan_table td, .plan_table th {
+    border: 1px solid #000000;
+    padding: 8px
+}
+.plan_table tr:nth-child(even) {
+    background-color: #04AA6D;
+}
+.plan_table tr:nth-child(odd){
+    background-color: #3A7734;
+}
+.plan_table tr:hover {
+    background-color: #4CAF50;
+}
+.plan_table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #004d00;
+    color: white;
+
+}
+
+.plan_btn {
+    padding: 12px 18px;
+    font-size: 15px;
+    width: 150px;
+    margin-bottom: 3px;
+    margin-right: 3px;
+
+}
