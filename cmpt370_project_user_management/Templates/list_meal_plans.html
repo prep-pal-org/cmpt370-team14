@@ -10,31 +10,32 @@
   <body>
     {% include 'Partial/topnav.html' %}
 
-    <div class="page-content">
-            <table class="plan_table">
-      <thead>
-        <tr>
-          <th scope="col">Plan Name</th>
-          <th scope="col">Options</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for created_list in created %}
-        <tr class="hover:bg-gray-100">
+    <div class="table-wrapper" style="background-color: transparent; width: 90%">
+        <h1>Were is this?</h1>
+        <table class="plan_table">
+            <thead>
+            <tr>
+              <th scope="col">Plan Name</th>
+              <th scope="col">Options</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for created_list in created %}
+            <tr class="hover:bg-gray-100">
 
 
-            <td class="border px-4 py-2 text-blue-600">
-                        <a href="{{ url_for('view_meal_plan', meal_plan_id=created_list.meal_plan_id) }}">
-              {{ created_list.plan_name }}
-            </a>
-            </td>
-            <td class="border px-4 py-2 space-x-2">
-            <a href="{{ url_for('delete_meal_plan', meal_plan_id=created_list.meal_plan_id) }}" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Delete</a>
-          </td>
-        </tr>
-        {%  endfor %}
-      </tbody>
-    </table>
+                <td class="border px-4 py-2 text-blue-600">
+                            <a href="{{ url_for('view_meal_plan', meal_plan_id=created_list.meal_plan_id) }}">
+                  {{ created_list.plan_name }}
+                </a>
+                </td>
+                <td class="border px-4 py-2 space-x-2">
+                <a href="{{ url_for('delete_meal_plan', meal_plan_id=created_list.meal_plan_id) }}" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Delete</a>
+              </td>
+            </tr>
+            {%  endfor %}
+          </tbody>
+        </table>
 
     <table class="plan_table">
       <thead>
@@ -54,14 +55,12 @@
             </a>
             </td>
             <td class="border px-4 py-2">{{ invited_list.creator_name }}</td>
-
-
-
         </tr>
         {%  endfor %}
       </tbody>
     </table>
     </div>
+
 
 
 
