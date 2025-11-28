@@ -1,4 +1,4 @@
-<!-- Add Recipe Page - Baraa -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styleDesign.css') }}">
 
     <style>
-        /* backgroud */
         body {
             background-image: url("{{ url_for('static', filename='home_page_image.jpg') }}");
             background-size: cover;
@@ -22,7 +21,6 @@
 
 <body>
 
-    <!-- nav bar -->
     {% include 'Partial/topnav.html' %}
 
     <div class="recipe-background">
@@ -41,24 +39,25 @@
                 <label>Instructions:</label>
                 <textarea class="recipe-textarea" name="instructions" required></textarea>
 
+                <!-- NEW DIETARY / ALLERGY TAGS -->
+                <label>Dietary / Allergy Tags:</label><br>
+                <input type="checkbox" name="diet[]" value="Gluten Free"> Gluten Free<br>
+                <input type="checkbox" name="diet[]" value="Lactose Free"> Lactose Free<br>
+                <input type="checkbox" name="diet[]" value="Peanut Allergy"> Peanut Allergy<br>
+
+                <br>
+
                 <label>Upload Image(s):</label>
 
-                <!-- Button + Drag-drop -->
                 <div style="display:flex; gap:10px; align-items:center;">
-
-                    <button type="button" id="open-file-picker" class="small-btn">
-                        📎 Select Image(s)
-                    </button>
+                    <button type="button" id="open-file-picker" class="small-btn">📎 Select Image(s)</button>
 
                     <div id="drop-zone" class="image-drop-zone" style="flex-grow:1;">
                         <p>Drag & drop recipe images here</p>
                     </div>
-
                 </div>
 
-                <!-- Hidden file input -->
-                <input id="recipe-images" type="file" name="recipe_images"
-                       accept="image/*" multiple style="display:none;">
+                <input id="recipe-images" type="file" name="recipe_images" accept="image/*" multiple style="display:none;">
 
                 <br><br>
                 <button type="submit">Add Recipe</button>
@@ -74,21 +73,19 @@
         const fileInput = document.getElementById('recipe-images');
         const openButton = document.getElementById('open-file-picker');
 
-        if (openButton) {
-            openButton.addEventListener('click', () => fileInput.click());
-        }
+        if (openButton) openButton.addEventListener('click', () => fileInput.click());
 
         if (dropZone && fileInput) {
             dropZone.addEventListener('click', () => fileInput.click());
 
-            ['dragenter', 'dragover'].forEach(evt => {
+            ['dragenter','dragover'].forEach(evt => {
                 dropZone.addEventListener(evt, e => {
                     e.preventDefault();
                     dropZone.classList.add('dragover');
                 });
             });
 
-            ['dragleave', 'drop'].forEach(evt => {
+            ['dragleave','drop'].forEach(evt => {
                 dropZone.addEventListener(evt, e => {
                     e.preventDefault();
                     dropZone.classList.remove('dragover');
@@ -99,14 +96,12 @@
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
                     fileInput.files = files;
-                    dropZone.querySelector('p').textContent =
-                        files.length + " file(s) selected";
+                    dropZone.querySelector('p').textContent = files.length + " file(s) selected";
                 }
             });
         }
     </script>
 
-    <!-- Handle Flash Messages. -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <div id="popup" class="popup">
@@ -118,7 +113,7 @@
         {% endif %}
     {% endwith %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>
 
 </body>

@@ -7,7 +7,7 @@
 
     <style>
         body {
-             background-image: url("{{ url_for('static', filename='home_page_image.jpg') }}");
+            background-image: url("{{ url_for('static', filename='home_page_image.jpg') }}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -19,7 +19,6 @@
 
 <body>
 
-    <!-- Top Navigation. -->
     {% include 'Partial/topnav.html' %}
 
     <div class="recipe-background">
@@ -38,7 +37,22 @@
                 <label>Instructions:</label>
                 <textarea class="recipe-textarea" name="instructions">{{ recipe.instructions }}</textarea>
 
-                <br><br>
+                <!-- NEW DIET / ALLERGY TAGS -->
+                <label>Dietary / Allergy Tags:</label><br>
+
+                <input type="checkbox" name="diet[]" value="Gluten Free"
+                       {% if recipe.category and 'Gluten Free' in recipe.category %}checked{% endif %}>
+                       Gluten Free<br>
+
+                <input type="checkbox" name="diet[]" value="Lactose Free"
+                       {% if recipe.category and 'Lactose Free' in recipe.category %}checked{% endif %}>
+                       Lactose Free<br>
+
+                <input type="checkbox" name="diet[]" value="Peanut Allergy"
+                       {% if recipe.category and 'Peanut Allergy' in recipe.category %}checked{% endif %}>
+                       Peanut Allergy<br>
+
+                <br>
                 <button type="submit">Save Changes</button>
             </form>
 
@@ -55,12 +69,9 @@
                             <form method="POST"
                                   action="{{ url_for('add_ingredient_to_list') }}"
                                   style="display:flex; align-items:center; gap:5px; margin:0;">
-
                                 <input type="hidden" name="ingredient" value="{{ ing }}">
-
                                 <input type="text" name="quantity" value="1" min="1"
-                                       style="width: 60px; padding: 5px; border-radius: 5px; border: 1px solid #ccc;">
-
+                                       style="width:60px; padding:5px; border-radius:5px; border:1px solid #ccc;">
                                 <button type="submit" class="small-btn">Add +</button>
                             </form>
                         </div>
@@ -88,9 +99,7 @@
                                  class="recipe-img-preview">
 
                             <form method="POST"
-                                  action="{{ url_for('delete_image',
-                                                     recipe_id=recipe.recipe_id,
-                                                     image_id=img.image_id) }}">
+                                  action="{{ url_for('delete_image', recipe_id=recipe.recipe_id, image_id=img.image_id) }}">
                                 <button class="delete-img-btn" type="submit">🗑 Delete</button>
                             </form>
                         </div>
@@ -130,14 +139,14 @@
         if (dropZone && fileInput) {
             dropZone.addEventListener('click', () => fileInput.click());
 
-            ['dragenter', 'dragover'].forEach(evt =>
+            ['dragenter','dragover'].forEach(evt =>
                 dropZone.addEventListener(evt, e => {
                     e.preventDefault();
                     dropZone.classList.add('dragover');
                 })
             );
 
-            ['dragleave', 'drop'].forEach(evt =>
+            ['dragleave','drop'].forEach(evt =>
                 dropZone.addEventListener(evt, e => {
                     e.preventDefault();
                     dropZone.classList.remove('dragover');
@@ -148,25 +157,24 @@
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
                     fileInput.files = files;
-                    dropZone.querySelector('p').textContent =
-                        files.length + " file(s) selected";
+                    dropZone.querySelector('p').textContent = files.length + " file(s) selected";
                 }
             });
         }
     </script>
 
-        <!-- Handle Flash Messages. -->
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
             <div id="popup" class="popup">
                 <div class="popup-content">
                     <p>{{ messages[0] }}</p>
                     <button onclick="closePopup()">Close</button>
                 </div>
             </div>
-            {% endif %}
-        {% endwith %}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+        {% endif %}
+    {% endwith %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>
 
 </body>

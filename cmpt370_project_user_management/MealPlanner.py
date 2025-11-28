@@ -815,6 +815,8 @@ def recipe_list():
     try:
         # Use the new advanced filter method
         recipes = manager.getFilteredRecipes(search_query, sort_by, diet_filter)
+        recipes = view_comment(recipes)
+        recipes = view_reaction(recipes)
 
     except sqlite3.Error as e:
         print(f"Error searching recipes: {e}")
@@ -840,25 +842,20 @@ def add_recipe():
         diet_tags = request.form.getlist('diet[]')
         category = ",".join(diet_tags)
 
+        # Required text fields validation
         if not name or not ingredients or not instructions:
             flash("All fields are required.")
             return redirect(url_for('add_recipe'))
 
-        # get the logged-in user id
+        # Get user_id
         conn = database_connection(DB_NAME)
         cur = conn.cursor()
         cur.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
         user_id = cur.fetchone()[0]
         conn.close()
 
-        # create recipe WITHOUT image_path in constructor
-        new_recipe = Recipe(
-            recipe_id=None,
-            name=name,
-            ingredients=ingredients,
-            instructions=instructions
-        )
-        # attach extra attributes so RecipeManager can still use them
+        # Create recipe
+        new_recipe = Recipe(None, name, ingredients, instructions)
         new_recipe.category = category
         new_recipe.user_id = user_id
 
@@ -866,7 +863,7 @@ def add_recipe():
         recipe_id = manager.addRecipe(new_recipe)
 
         # ---------------------------
-        # Handle images
+        # Handle images (with validation)
         # ---------------------------
         files = request.files.getlist('recipe_images')
 
@@ -876,14 +873,27 @@ def add_recipe():
 
             with sqlite3.connect(DB_NAME) as conn:
                 cur = conn.cursor()
+
                 for file in files:
-                    if not file or file.filename == '':
+                    if not file or file.filename == "":
                         continue
+
+                    # Validate extension
                     if not allowed_file(file.filename):
+                        flash("Invalid file skipped (allowed: png, jpg, jpeg, gif).")
+                        continue
+
+                    # Validate size
+                    if file_too_big(file):
+                        flash("Image skipped: file too large (max 3MB). Please resize the image before uploading.")
                         continue
 
                     safe = secure_filename(file.filename)
-                    unique = f"recipe_{recipe_id}_{safe}"
+                    base_name = f"recipe_{recipe_id}_{safe}"
+
+                    # Prevent overwriting
+                    unique = generate_unique_filename(upload_folder, base_name)
+
                     abs_path = os.path.join(upload_folder, unique)
                     rel_path = f"recipe_images/{unique}"
 
@@ -896,11 +906,10 @@ def add_recipe():
 
                 conn.commit()
 
-        # After adding, go back to list
         return redirect(url_for('recipe_list'))
 
-    # On GET, just show the form
     return render_template('recipe_add.html')
+
 
 
 # -------------------------------------------------------------
@@ -914,17 +923,26 @@ def view_recipe(recipe_id):
     if not recipe:
         return "Recipe not found", 404
 
+    # Recipe steps + images
     steps = manager.getSteps(recipe_id)
-
     images = manager.getImagesForRecipe(recipe_id)
 
-    # get comments
+    # Attach comments + reactions
     recipe_list = [recipe]
     view_comment(recipe_list)
     view_reaction(recipe_list)
-    favorite_recipe(recipe_id)
 
-    return render_template('recipe_view.html', recipe=recipe, steps= steps, images=images)
+    # Determine viewer user (used for enabling/disabling edit button)
+    current_user_id = session.get('user_id')
+
+    return render_template(
+        'recipe_view.html',
+        recipe=recipe,
+        steps=steps,
+        images=images,
+        current_user_id=current_user_id  # pass this to template
+    )
+
 
 
 # -------------------------------------------------------------
@@ -932,12 +950,25 @@ def view_recipe(recipe_id):
 # -------------------------------------------------------------
 @app.route('/recipes/edit/<int:recipe_id>', methods=['GET', 'POST'])
 def edit_recipe(recipe_id):
+    # Must be logged in
+    if 'user_id' not in session:
+        flash("You must be logged in to edit a recipe.")
+        return redirect(url_for('login'))
+
     manager = RecipeManager()
     recipe = manager.getRecipeById(recipe_id)
 
     if recipe is None:
         return "Recipe not found", 404
 
+    # Security check: user must OWN the recipe
+    if recipe.user_id != session['user_id']:
+        flash("You cannot edit another user's recipe.")
+        return redirect(url_for('view_recipe', recipe_id=recipe_id))
+
+    # -------------------------
+    # POST: Save updated recipe
+    # -------------------------
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         ingredients = request.form.get('ingredients', '').strip()
@@ -950,11 +981,14 @@ def edit_recipe(recipe_id):
         updated_recipe = Recipe(recipe_id, name, ingredients, instructions)
         manager.editRecipe(recipe_id, updated_recipe)
 
+        flash("Recipe updated.")
         return redirect(url_for('recipe_list'))
 
-    # Load all images for the gallery
+    # GET: render edit page
     images = manager.getImagesForRecipe(recipe_id)
     return render_template('recipe_edit.html', recipe=recipe, images=images)
+
+
 
 
 # -------------------------------------------------------------
@@ -991,10 +1025,6 @@ def delete_recipe(recipe_id):
 # -------------------------------------
 @app.route('/recipes/<int:recipe_id>/upload_image', methods=['POST'])
 def upload_image(recipe_id):
-    """
-    Handles uploading one or more images for a recipe.
-    Validates file type and saves to static/recipe_images.
-    """
     manager = RecipeManager()
     if manager.getRecipeById(recipe_id) is None:
         flash("Recipe not found.")
@@ -1012,18 +1042,27 @@ def upload_image(recipe_id):
 
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
+
         for file in files:
-            if not file or file.filename == '':
+            if not file or file.filename == "":
                 continue
 
+            # Extension check
             if not allowed_file(file.filename):
-                flash("Some files were skipped (only .png, .jpg, .jpeg, .gif allowed).")
+                flash("Skipped: invalid file type.")
+                continue
+
+            # Size check
+            if file_too_big(file):
+                flash("Skipped: one or more images exceeded 3MB. Please resize before uploading.")
                 continue
 
             safe_name = secure_filename(file.filename)
-            unique_name = f"recipe_{recipe_id}_{safe_name}"
-            abs_path = os.path.join(upload_folder, unique_name)
-            rel_path = f"recipe_images/{unique_name}"
+            base_name = f"recipe_{recipe_id}_{safe_name}"
+            unique = generate_unique_filename(upload_folder, base_name)
+
+            abs_path = os.path.join(upload_folder, unique)
+            rel_path = f"recipe_images/{unique}"
 
             file.save(abs_path)
 
@@ -1031,16 +1070,14 @@ def upload_image(recipe_id):
                 INSERT INTO recipe_image (recipe_id, image_path, upload_date)
                 VALUES (?, ?, DATE('now'))
             """, (recipe_id, rel_path))
+
             saved_any = True
 
         conn.commit()
 
-    if saved_any:
-        flash("Image(s) uploaded.")
-    else:
-        flash("No valid images uploaded.")
-
+    flash("Image(s) uploaded." if saved_any else "No valid images uploaded.")
     return redirect(url_for('edit_recipe', recipe_id=recipe_id))
+
 
 
 # -------------------------------------
@@ -1074,6 +1111,7 @@ def delete_image(recipe_id, image_id):
 
     flash("Image deleted.")
     return redirect(url_for('edit_recipe', recipe_id=recipe_id))
+
 
 
 # -------------------------------------
@@ -1110,6 +1148,7 @@ def add_ingredient_to_list():
     return redirect(request.referrer)
 
 
+
 # -------------------------------------------------------------
 # MY RECIPES — Only show recipes created by this user
 # -------------------------------------------------------------
@@ -1132,6 +1171,15 @@ def my_recipes():
 
     manager = RecipeManager()
     recipes = manager.getRecipesByUser(user_id)
+    recipes = view_comment(recipes)
+    recipes = view_reaction(recipes)
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        for r in recipes:
+            cur.execute("""SELECT user_id FROM recipe WHERE recipe_id = ?""",
+                        (r.recipe_id,))
+            r.user_id = cur.fetchone()[0]
 
     return render_template('my_recipes.html', recipes=recipes)
 
@@ -1193,6 +1241,8 @@ def all_recipes():
 
     manager = RecipeManager()
     recipes = manager.getAllRecipes()
+    recipes = view_comment(recipes)
+    recipes = view_reaction(recipes)
 
     return render_template('recipe_list.html', recipes=recipes)
 
@@ -1321,6 +1371,7 @@ def api_delete_event(event_id):
     try:
         # Get calendar_id from session - not required but check for still in session
         if "calendar_id" not in session:
+
             return redirect(url_for('home'))
         deleted_event = calendar_service.delete_calendar_event(connection, event_id)
         #return True
@@ -1400,10 +1451,33 @@ def api_delete_recurring_event(recurring_event_id):
 
 # --------- Baraa: Image upload config + validation ---------
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+MAX_IMAGE_SIZE = 3 * 1024 * 1024  # 3 MB
 
 def allowed_file(filename: str) -> bool:
-    """Check if the file extension is allowed."""
+    """Check if file extension is allowed."""
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def file_too_big(file) -> bool:
+    """Check file size exceeds 3MB."""
+    file.seek(0, os.SEEK_END)
+    size = file.tell()
+    file.seek(0)
+    return size > MAX_IMAGE_SIZE
+
+
+def generate_unique_filename(folder, base_name):
+    """Avoid filename collisions by adding (1), (2), etc."""
+    name, ext = os.path.splitext(base_name)
+    unique = base_name
+    counter = 1
+
+    while os.path.exists(os.path.join(folder, unique)):
+        unique = f"{name}({counter}){ext}"
+        counter += 1
+
+    return unique
+
 
 
 # -------------------------------------------------------------

@@ -9,26 +9,17 @@ __pycache__/
 # -----------------------------
 .idea/
 *.iml
-# Ignore all word docs
-*.docx
-
-#Ignore all PDFs
-*.pdf
-
-# Ignore all PNG files
-*.png
-
-# Ignore all TXT files
-*.txt
-
-# Ignore all xlsx files
-*.xlsx
 
 # -----------------------------
 # Virtual environments
 # -----------------------------
 venv/
 cmpt370_project_user_management/venv/
+
+# -----------------------------
+# Databases
+# -----------------------------
+*.db
 
 # -----------------------------
 # OS / misc
