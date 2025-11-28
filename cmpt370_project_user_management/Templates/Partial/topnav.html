@@ -3,7 +3,8 @@
 <div class="topnav">
     <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
         <a href="/logout">Logout</a>
-        <a href="/landing_page.css">Home</a>
+        <a href="/login_landing_page">Home</a>
+        <a onclick="history.back()">Back</a>
         <a href="{{ url_for('add_recipe') }}">Add Recipe</a>
         <a href="/my_recipes">My Recipes</a>
         <a href="/favorite_recipes">Favorite Recipes</a>

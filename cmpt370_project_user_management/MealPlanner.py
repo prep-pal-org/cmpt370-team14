@@ -815,6 +815,8 @@ def recipe_list():
     try:
         # Use the new advanced filter method
         recipes = manager.getFilteredRecipes(search_query, sort_by, diet_filter)
+        recipes = view_comment(recipes)
+        recipes = view_reaction(recipes)
 
     except sqlite3.Error as e:
         print(f"Error searching recipes: {e}")
@@ -1132,6 +1134,15 @@ def my_recipes():
 
     manager = RecipeManager()
     recipes = manager.getRecipesByUser(user_id)
+    recipes = view_comment(recipes)
+    recipes = view_reaction(recipes)
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        for r in recipes:
+            cur.execute("""SELECT user_id FROM recipe WHERE recipe_id = ?""",
+                        (r.recipe_id,))
+            r.user_id = cur.fetchone()[0]
 
     return render_template('my_recipes.html', recipes=recipes)
 
@@ -1193,6 +1204,8 @@ def all_recipes():
 
     manager = RecipeManager()
     recipes = manager.getAllRecipes()
+    recipes = view_comment(recipes)
+    recipes = view_reaction(recipes)
 
     return render_template('recipe_list.html', recipes=recipes)
 

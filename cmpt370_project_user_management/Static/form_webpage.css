@@ -10,34 +10,6 @@ body {
 
 }
 
-/* Top navigation bar style. -Randi */
-.topnav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: transparent;
-    padding: 15px;
-    z-index: 1000;
-}
-
-
-/* Top navigation bar links. -Randi */
-.topnav a {
-    float: left;
-    display: block;
-    color: black;
-    font-weight: bold;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-}
-
-/* Navigation link feedback. - Randi */
-.topnav a:hover {
-    text-decoration: underline;
-}
-
 /* Center container used to place forms in center of web page -Randi */
 .container {
   display: flex;

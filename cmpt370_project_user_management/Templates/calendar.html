@@ -8,160 +8,83 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='calendar_style.css') }}">
     <!--FullCalendar core and month view import css -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <!-- Bootstrap style import. -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styleDesign.css') }}">
 </head>
 <body>
     {% include 'Partial/topnav.html' %}
-    <main>
 
+    <div class="container-fluid">
+        <!-- Page Title -->
+        <div class="row mb-3">
 
-        <div class="container-fluid mt-4">
+        </div>
 
-            <!-- Page Title -->
-            <div class="row mb-3">
-                <div class="col-12 text-center">
-                    <h4 class="fw-bold fs-2">{{ meal_plan_name }}</h4>
-                </div>
-            </div>
-
-            <div class="row">
-                <!-- LEFT: Options (small area) -->
-                <div class="col-3">
-                    <div class="p-3 border rounded bg-light">
-                        {% if username == creator_name %}
-                            <p>You created this!</p>
-                            <p>The invite code is {{ code }}</p>
-                            <form action="{{ url_for('delete_meal_plan', meal_plan_id=meal_plan_id) }}" method="POST">
-                                <button type="submit" class="btn btn-small btn-primary btn-outline-primary" >Delete</button>
+        <div class="row">
+            <!-- LEFT: Options (small area) -->
+            <div class="col-3">
+                <div class="p-3 border rounded bg-light">
+                    <div class="col-12 text-center">
+                        <h4 class="fw-bold fs-2">{{ meal_plan_name }}</h4>
+                    </div>
+                    {% if username == creator_name %}
+                        <p>You created this plan!</p>
+                        <div class="mt-auto pt-2 d-flex align-items-center">
+                            <p>The invite code is: </p>
+                            <p class="fw-bold ms-2"> {{ code }} </p>
+                        </div>
+                        <form action="{{ url_for('delete_meal_plan', meal_plan_id=meal_plan_id) }}" method="POST">
+                            <button type="submit" class="btn btn-small btn-danger" >Delete</button>
+                        </form>
+                    {% else %}
+                        <p>Created by {{ creator_name }}</p>
+                    {% endif %}
+                    <div class="col">
+                        <div class="mt-auto pt-2 d-flex align-items-center">
+                            <form action="{{ url_for('list_meal_plans')}}">
+                                <button class="plan_btn">View Plans</button>
                             </form>
-                        {% else %}
-                            <p>Created by {{ creator_name }}</p>
-                        {% endif %}
-                        <a href="{{ url_for('add_recipe') }}">Add Recipe (To be Removed)</a>
-                        <a href="{{ url_for('recipe_list') }}">View Recipe (To be Removed)</a>
-                        <a href="{{ url_for('grocery_list') }}">Grocery List (To be Removed)</a>
+                            <form action="{{ url_for('my_recipes')}}">
+                                <button class="plan_btn">My Recipes</button>
+                            </form>
+                        </div>
+                        <div class="mt-auto pt-2 d-flex align-items-center">
+                            <form action="{{ url_for('favorite_recipes')}}">
+                                <button class="plan_btn">Favorite Recipes</button>
+                            </form>
+                            <form action="{{ url_for('all_recipes')}}">
+                                <button class="plan_btn">All Recipes</button>
+                            </form>
+                        </div>
+                        <div class="mt-auto pt-2 d-flex align-items-center">
+                            <form action="{{ 'grocery_list' }}">
+                                <button class="plan_btn">Grocery List</button>
+                            </form>
+                            <form action="{{ url_for('add_recipe')}}">
+                                <button class="plan_btn">Add Recipe</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-
-
-
-                <!-- RIGHT: Calendar (large area) -->
-                <div class="col-9">
-                    <div id="calendar"></div>
-                </div>
             </div>
 
-        </div>
-
-
-
-        <!-- Add Event Modal-->
-        <div id="addModal" class="modal hidden">
-            <div class="modal-content">
-                <h3>Add to Calendar</h3>
-                <form id="addForm">
-                    <label>Date:
-                        <input type="date" id="addDate" readonly>
-                    </label>
-                    <br>
-                    <label>Time Slot:
-                        <select id="addTimeSlot">
-                            <option value="Breakfast">Breakfast</option>
-                            <option value="Lunch">Lunch</option>
-                            <option value="Dinner">Dinner</option>
-                            <option value="Snack">Snack</option>
-                        </select>
-                    </label>
-                    <br>
-                    <label>Select Recipe:
-                        <select id="recipeSelect" required>
-                            <!-- Options in eventHandling.js -->
-                        </select>
-                    </label>
-                    <br>
-                    <button type="submit">Submit</button>
-                    <button type="button" id="addCancel">Cancel</button>
-                </form>
+            <!-- RIGHT: Calendar (large area) -->
+            <div class="col-9">
+                <div id="calendar"></div>
             </div>
         </div>
+    </div>
 
-        <!-- View Recipe Event Modal-->
-        <div id="viewModal" class="modal hidden">
-            <div class="modal-content">
-                <h3 id="viewTitle"></h3>
-                <p>Date: <span id="viewDate"></span></p>
-                <p>Time: <span id="viewTime"></span></p>
-                <p>Recipe ID: <span id="viewRecipe"></span></p>
-                <br>
-                <button type="button" id="editBtn">Edit Calendar Event</button>
-                <br>
-                <button type="button" id="recurringBtn">Set Repeating Event</button>
-                <br>
-                <button type="button" id="deleteBtn">Delete Calendar Event</button>
-                <br>
-                <p id="recurrenceInfo" class="hidden"></p>
-                <button type="button" id="deleteSeriesBtn" class="hidden">Delete All Events in Series</button>
-                <br>
-                <button type="button" id="viewClose">Close</button>
-            </div>
-        </div>
 
-        <!-- Edit Recipe Event Modal-->
-        <div id="editModal" class="modal hidden">
-            <div class="modal-content">
-                <h3>Edit Event:</h3>
-                <form id="editForm">
-                    <label>Date:
-                        <input type="date" id="editDate" required></label>
-                    <br>
-                    <label>Time Slot:
-                        <select id="editTimeSlot" required>
-                            <option value="Breakfast">Breakfast</option>
-                            <option value="Lunch">Lunch</option>
-                            <option value="Dinner">Dinner</option>
-                            <option value="Snack">Snack</option>
-                        </select>
-                    </label>
-                    <br>
-                    <label>Select Recipe:
-                        <select id="editRecipeSelect" required></select>
-                    </label>
-                    <br>
-                    <button type="submit">Save</button>
-                    <button type="button" id="editCancel">Cancel</button>
-                </form>
-            </div>
-        </div>
 
-        <!-- Recurring Event Modal-->
-        <div id="recurringModal" class="modal hidden">
-            <div class="modal-content">
-                <h3 id="recurring_title">Recurring Event</h3>
-                <form id="recurringForm">
-                    <label for="frequency">Frequency:</label>
-                    <select id="recurringFrequency" required>
-                        <option value="Daily">Daily</option>
-                        <option value="Weekly">Weekly</option>
-                        <option value="Monthly">Monthly</option>
-                    </select>
-                    <br>
-                    <label for="duration">Repeat Quantity: (Max 52) </label>
-                    <input type="number" id="recurringDuration" min="1" max="52" required>
-                    <br>
-                    <button type="submit" id="recurringSubmit">Submit</button>
-                    <button type="button" id="recurringCancel">Cancel</button>
-                </form>
-            </div>
-        </div>
 
-        <!-- Error Modal -->
-        <div id="alertModal" class="modal hidden">
-            <div class="modal-content">
-                <h3 id="alert_title">Error</h3>
-                <p id="alert_message"></p>
-                <button type="button" id="alert_close">Close</button>
-            </div>
-        </div>
-    </main>
+    <!-- The modal. -->
+    {% include 'Partial/calender_model.html' %}
+
+
+
+
     <!-- Script sources, for Full Calendar and document event handling -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>
