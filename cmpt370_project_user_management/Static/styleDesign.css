@@ -488,7 +488,12 @@ button:hover{
 .plan_table{
     font-family: Arial, sans-serif;
     border-collapse: collapse;
-    width: 80%;
+    width: 100%;
+}
+
+.table-wrapper {
+    width: 90%;
+    margin: 20px auto;
 }
 
 .plan_table td, .plan_table th {
@@ -504,6 +509,18 @@ button:hover{
 .plan_table tr:hover {
     background-color: #4CAF50;
 }
+.plan_table td:nth-child(1){
+    width: 40%
+}
+.plan_table td:nth-child(2){
+    width: 40%
+}
+.plan_table td:nth-child(3){
+    width: 20%
+}
+
+
+
 .plan_table th {
     padding-top: 12px;
     padding-bottom: 12px;
