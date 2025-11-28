@@ -13,22 +13,48 @@ from cmpt370_project_user_management.Model.calendar_service import CalendarServi
 
 app = Flask(__name__)
 app.secret_key = "saucy"
+
+# Calculate absolute path to DB to avoid errors
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_NAME = os.path.join(BASE_DIR, "db/saucyapp.db")
+DB_NAME = os.path.join(BASE_DIR, "db", "saucyapp.db")
+
 calendar_service = CalendarService()
+
+
+# -------------------------------------------------------------
+# HELPER: Python-side Filtering (for My Recipes / Favorites)
+# -------------------------------------------------------------
+def filter_list_python(recipes, sort_by, diet_filter):
+    # 1. Filter
+    if diet_filter == "gluten_free":
+        recipes = [r for r in recipes if r.category and "Gluten Free" in r.category]
+    elif diet_filter == "lactose_free":
+        recipes = [r for r in recipes if r.category and "Lactose Free" in r.category]
+
+    # 2. Sort
+    if sort_by == "az":
+        recipes.sort(key=lambda x: x.name.lower())
+    elif sort_by == "za":
+        recipes.sort(key=lambda x: x.name.lower(), reverse=True)
+
+    return recipes
+
 
 # -------------------------------------------------------------
 # ROUTE: New Updated Home Page - Randi
 # -------------------------------------------------------------
 @app.route('/')
 def home():
-    session.clear()
     return render_template('use_home_page.html')
 
 # Old home page (legacy)
 @app.route('/old_home')
 def old_home():
     return render_template('homePage.html')
+
+@app.route('/about_us')
+def about_us():
+    return render_template('about_us.html')
 
 
 # -------------------------------------------------------------
@@ -206,7 +232,13 @@ def login():
             stored_hash = stored_hash.encode("utf-8")
 
         if bcrypt.checkpw(entered_password.encode("utf-8"), stored_hash):
+            with sqlite3.connect(DB_NAME) as conn:
+                cur = conn.cursor()
+                user_id = cur.execute("""SELECT user_id FROM user_profile WHERE username =?""",
+                                      (userName,)).fetchone()[0]
             session['username'] = userName
+            session.permanent=True
+            session['user_id'] = user_id
             return redirect(url_for('login_landing_page'))  # ✅ redirect after successful login
         else:
             flash("Invalid password. Try again.")
@@ -215,39 +247,74 @@ def login():
     # GET request
     return render_template('login_page.html')
 
-# Login landing page -Randi
+
+# Login landing page - Randi (Updated with Filters)
 @app.route('/login_landing_page')
 def login_landing_page():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    userName = session.get('username')
+    user_name = session['username']
+
+    # Get Filter Params
+    sort_by = request.args.get('sort', 'newest')
+    diet_filter = request.args.get('diet', '')
 
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
         creator_id = cur.execute(
             "SELECT user_id FROM user_profile WHERE username = ?",
-            (session['username'],)
-        ).fetchone()
-
-        if creator_id is None:
-            flash("You must be logged in to create meal plan.")
+            (user_name,)).fetchone()
+        if not creator_id:
+            flash("User not found")
             return redirect(url_for('login'))
-
         user_id = creator_id[0]
 
-
     manager = RecipeManager()
-    all_recipes = manager.getAllRecipes()
-    my_recipes = manager.getRecipesByUser(user_id)
-    fav_recipes = manager.getFavoriteRecipesByUser(user_id)
 
-    print([(r.name, r.image_path) for r in all_recipes])# Returns Recipe objects
+    # 1. ALL RECIPES (Use SQL Filtering)
+    all_recipes = manager.getFilteredRecipes(search_query="", sort_by=sort_by, diet_filter=diet_filter)
+    all_recipes = view_comment(all_recipes)
+    all_recipes = view_reaction(all_recipes)
+
+    # 2. MY RECIPES (Fetch then Python Filter)
+    my_recipes = manager.getRecipesByUser(user_id)
+    my_recipes = filter_list_python(my_recipes, sort_by, diet_filter)
+    my_recipes = view_comment(my_recipes)
+    my_recipes = view_reaction(my_recipes)
+
+    # 3. FAVORITE RECIPES (Fetch then Python Filter)
+    fav_recipes = manager.getFavoriteRecipesByUser(user_id)
+    fav_recipes = filter_list_python(fav_recipes, sort_by, diet_filter)
+    fav_recipes = view_comment(fav_recipes)
+    fav_recipes = view_reaction(fav_recipes)
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        for r in all_recipes + my_recipes + fav_recipes:
+            # Optimization: This query inside loop is slow, but keeping existing logic for safety
+            cur.execute("SELECT user_id FROM recipe WHERE recipe_id = ?", (r.recipe_id,))
+            res = cur.fetchone()
+            if res: r.user_id = res[0]
+
+    # Only shuffle if sorting is NOT active (Newest/Default)
+    if sort_by == 'newest':
+        random.shuffle(my_recipes)
+        random.shuffle(fav_recipes)
+        random.shuffle(all_recipes)
+
+    my_recipes = my_recipes[:4]
+    fav_recipes = fav_recipes[:4]
+    all_recipes = all_recipes[:4]
+
+
 
     return render_template(
         'login_landing_page.html',
         all_recipes=all_recipes, my_recipes=my_recipes, fav_recipes=fav_recipes,
-        userName=userName)
+        username=user_name, user_id=user_id,
+        current_sort=sort_by, current_diet=diet_filter)
+
 
 # User logout. -Randi
 @app.route('/logout')
@@ -272,6 +339,8 @@ def user_list_for_testing():
 # Create a new meal plan - Randi
 @app.route('/create_meal_plan', methods=['GET', 'POST'])
 def create_meal_plan():
+    print("DEBUG route triggered, request.form:", request.form)
+    print("DEBUG route triggered, request.args:", request.args)
     # Check if user is logged in.
     username = session.get('username')
     if not username:
@@ -279,14 +348,16 @@ def create_meal_plan():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        plan_name = request.form['plan_name']
+        print("DEBUG form keys:", request.form.keys())
+        plan_name = request.form.get('plan_name')
+        print("DEBUG plan_name:", plan_name)
 
         # Get user ID
         with sqlite3.connect(DB_NAME) as conn:
             cur = conn.cursor()
             creator_id = cur.execute(
                 "SELECT user_id FROM user_profile WHERE username = ?",
-                (session['username'],)
+                (username,)
             ).fetchone()
 
             if creator_id is None:
@@ -306,7 +377,7 @@ def create_meal_plan():
 
             # Enforce the 6-plan limit
             if count >= 50:
-                flash("You can only have up to 6 meal plans.")
+                flash("You can only have up to 50 meal plans.")
                 return redirect(url_for('list_meal_plans'))
 
             # Create unique invite code
@@ -325,7 +396,7 @@ def create_meal_plan():
         flash("Meal plan created!")
         return redirect(url_for('view_meal_plan', meal_plan_id=meal_plan_id))
 
-    return render_template("create_meal_plan.html")
+    return render_template("create_meal_plan.html",)
 
 
 # Generate the invite code - Randi
@@ -404,7 +475,7 @@ def join_meal_plan():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        code = request.form.get('invite_code','').strip()
+        code = request.form.get('invite_code', '').strip()
 
         if not code:
             flash("Invite code cannot be empty.")
@@ -467,7 +538,6 @@ def list_meal_plans():
 
         user_id = user[0]
 
-
         # Meal plans created by the user
         created = cur.execute("""
             SELECT meal_plan_id, plan_name, creator_id
@@ -487,7 +557,8 @@ def list_meal_plans():
         # Add creator names for created plans
         created_with_names = []
         for plan in created:
-            creator_name = cur.execute("SELECT username FROM user_profile WHERE user_id = ?", (plan[2],)).fetchone()[0]
+            creator_name = cur.execute("SELECT username FROM user_profile WHERE user_id = ?",
+                                       (plan[2],)).fetchone()[0]
             created_with_names.append({
                 "meal_plan_id": plan[0],
                 "plan_name": plan[1],
@@ -502,7 +573,6 @@ def list_meal_plans():
                 "creator_name": plan[3]
             })
 
-
     return render_template("list_meal_plans.html",
                            created=created_with_names,
                            invited=invited_with_names, username=username)
@@ -511,7 +581,6 @@ def list_meal_plans():
 # Delete a meal plan - only creator allowed
 @app.route('/delete_meal_plan/<int:meal_plan_id>', methods=['POST'])
 def delete_meal_plan(meal_plan_id):
-    # Check if user is logged in.
     username = session.get('username')
     if not username:
         flash("You must be logged in to delete a meal plan.")
@@ -523,8 +592,7 @@ def delete_meal_plan(meal_plan_id):
         # Get logged-in user id
         user = cur.execute(
             "SELECT user_id FROM user_profile WHERE username = ?",
-            (session['username'],)
-        ).fetchone()
+            (username,)).fetchone()
         if user is None:
             flash("You must be logged in.")
             return redirect(url_for('login'))
@@ -558,6 +626,7 @@ def delete_meal_plan(meal_plan_id):
         )
 
         conn.commit()
+    print("Session contents:", dict(session))
 
     flash("Meal plan deleted successfully!")
     return redirect(url_for('list_meal_plans'))
@@ -567,7 +636,7 @@ def delete_meal_plan(meal_plan_id):
 # ROUTES: CREATE AND VIEW COMMENTS AND REACTIONS - Randi
 # -------------------------------------------------------------
 # Create a comment - Randi
-@app.route('/create_comment/<int:recipe_id>',methods=['GET', 'POST'])
+@app.route('/create_comment/<int:recipe_id>', methods=['POST'])
 def create_comment(recipe_id):
     # Check if user is logged in.
     username = session.get('username')
@@ -575,46 +644,60 @@ def create_comment(recipe_id):
         flash("You must be logged in to create a comment.")
         return redirect(url_for('login'))
 
-    if request.method == 'POST':
-        # add a line to get the name of the commenter
-        comment = request.form['comment']
-        with sqlite3.connect(DB_NAME) as conn:
-            cur = conn.cursor()
-            user = cur.execute("SELECT user_id FROM user_profile WHERE username = ?",
-                               (session['username'],)).fetchone()
-            if user is None:
-                flash("User not found")
-                return redirect(url_for('create_comment'))
-            user_id = user[0]
+    comment = request.form.get('comment')
+    if comment is None:
+        return redirect(request.referrer)
 
-            cur.execute(" INSERT INTO recipe_comment (user_id, recipe_id, comment) VALUES (?, ?, ?)",
-                        (user_id, recipe_id, comment,))
-            conn.commit()
-        flash("Comment added successfully!")
-        return redirect(url_for('view_recipe', recipe_id=recipe_id))
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        user = cur.execute("""SELECT user_id FROM user_profile WHERE username = ?""",
+                           (session['username'],)).fetchone()
+        if user is None:
+            flash("User not found")
+            return redirect(request.referrer)
+        user_id = user[0]
 
-    return render_template('create_comment.html', recipe_id=recipe_id)
+        cur.execute(""" INSERT INTO recipe_comment (user_id, recipe_id, comment) VALUES (?, ?, ?)""",
+                    (user_id, recipe_id, comment,))
+        conn.commit()
+
+
+    print("Comment added successfully!")
+    return redirect(request.referrer)
 
 
 # View a comment - Randi
-@app.route('/view_comments/<int:recipe_id>')
-def view_comment(recipe_id):
-    # Check if user is logged in.
-    username = session.get('username')
-    if not username:
-        flash("You must be logged in to view comments.")
-        return redirect(url_for('login'))
-    connect = sqlite3.connect(DB_NAME)
-    cur = connect.cursor()
-    comments = cur.execute("""SELECT rc.comment, u.username, rc.created_at FROM recipe_comment rc JOIN user_profile u 
-                            ON rc.user_id = u.user_id WHERE rc.recipe_id = ? ORDER BY rc.created_at DESC """,
-                             (recipe_id,)).fetchall()
+def view_comment(recipe_list):
+    """Attach comments to each recipe object in recipe_list."""
+    if not recipe_list:
+        return recipe_list
 
-    return render_template("view_comments.html", com_data=comments, recipe_id=recipe_id)
+    recipe_ids = [r.recipe_id for r in recipe_list]
+    placeholders = ','.join(['?'] * len(recipe_ids))
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        rows = cur.execute(f"""
+            SELECT rc.recipe_id, rc.comment, u.username, rc.created_at
+            FROM recipe_comment rc
+            JOIN user_profile u ON rc.user_id = u.user_id
+            WHERE rc.recipe_id IN ({placeholders})
+            ORDER BY rc.created_at DESC
+        """, recipe_ids).fetchall()
+
+    comments_by_recipe = {}
+    for recipe_id, comment, username, created_at in rows:
+        comments_by_recipe.setdefault(recipe_id, []).append((comment, username, created_at))
+
+    # Attach to recipe objects
+    for r in recipe_list:
+        r.comments = comments_by_recipe.get(r.recipe_id, [])
+
+    return recipe_list
 
 
 # Create a reaction - Randi
-@app.route('/create_reaction/<int:recipe_id>',methods=['GET', 'POST'])
+@app.route('/create_reaction/<int:recipe_id>', methods=['POST'])
 def create_reaction(recipe_id):
     # Check if user is logged in.
     username = session.get('username')
@@ -622,40 +705,66 @@ def create_reaction(recipe_id):
         flash("You must be logged in to add a reaction.")
         return redirect(url_for('login'))
 
-    if request.method == 'POST':
-        reaction = request.form['reaction']
-        with sqlite3.connect(DB_NAME) as conn:
-            cur = conn.cursor()
-            user = cur.execute("SELECT user_id FROM user_profile WHERE username = ?",
-                               (session['username'],)).fetchone()
-            if user is None:
-                flash("User not found")
-                return redirect(url_for('create_reaction'))
-            user_id = user[0]
+    reaction = request.form.get('reaction')
+    if reaction not in ['like', 'dislike']:
+        flash("Invalid Reaction")
+        return redirect(request.referrer)
 
-            cur.execute(" INSERT INTO recipe_reaction (user_id, recipe_id, reaction) VALUES (?, ?, ?)",
-                        (user_id, recipe_id, reaction,))
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        user = cur.execute("""SELECT user_id FROM user_profile WHERE username = ?""",
+                           (session['username'],)).fetchone()
+        if user is None:
+            flash("User not found")
+            return redirect(request.referrer)
+        user_id = user[0]
 
-            conn.commit()
-        flash("Reaction added successfully!")
-        return redirect(url_for('view_recipe', recipe_id=recipe_id))
-    return render_template('create_reaction.html', recipe_id=recipe_id)
+        cur.execute(""" INSERT INTO use_recipe_reaction (user_id, recipe_id, reaction) VALUES (?, ?, ?) 
+                    ON CONFLICT (recipe_id, user_id) DO UPDATE SET 
+                    reaction = excluded.reaction, created_at = CURRENT_TIMESTAMP""",
+                    (user_id, recipe_id, reaction,))
+
+        conn.commit()
+    print(f"User {user_id} reacted {reaction} to recipe {recipe_id}")
+    print("Reaction added successfully!")
+    return redirect(request.referrer)
 
 
-@app.route('/view_reactions/<int:recipe_id>')
-def view_reaction(recipe_id):
-    # Check if user is logged in.
-    username = session.get('username')
-    if not username:
-        flash("You must be logged in to view a reaction.")
-        return redirect(url_for('login'))
-    connect = sqlite3.connect(DB_NAME)
-    cur = connect.cursor()
-    react_rows = cur.execute("""SELECT rr.reaction, u.username, rr.created_at FROM recipe_reaction rr JOIN user_profile u 
-                                        ON rr.user_id = u.user_id WHERE rr.recipe_id = ? ORDER BY rr.created_at DESC""",
-                                        (recipe_id,)).fetchall()
 
-    return render_template("view_reactions.html", com_data=react_rows, recipe_id=recipe_id)
+def view_reaction(recipe_list):
+    """Attach reaction counts to each recipe object in recipe_list."""
+    if not recipe_list:
+        return recipe_list
+
+    recipe_ids = [r.recipe_id for r in recipe_list if hasattr(r, 'recipe_id') and r.recipe_id is not None]
+    if not recipe_ids:
+        return recipe_list
+
+    placeholders = ','.join(['?'] * len(recipe_ids))
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        query = f"""
+            SELECT recipe_id, reaction, COUNT(*) 
+            FROM use_recipe_reaction
+            WHERE recipe_id IN ({placeholders})
+            GROUP BY recipe_id, reaction
+        """
+        rows = cur.execute(query, recipe_ids).fetchall()
+
+    # Build dict of reactions for each recipe
+    reactions_by_recipe = {rid: {} for rid in recipe_ids}
+    for recipe_id, reaction, count in rows:
+        reactions_by_recipe[recipe_id][reaction] = count
+
+    # Attach reactions to each recipe object
+    for r in recipe_list:
+        r.reactions_dict = reactions_by_recipe.get(r.recipe_id, {})
+        # Optionally, also keep list of tuples for backwards compatibility
+        r.reactions = list(r.reactions_dict.items())
+
+    return recipe_list
+
 
 @app.route('/favorite_recipe/<int:recipe_id>', methods=["POST"])
 def favorite_recipe(recipe_id):
@@ -667,20 +776,29 @@ def favorite_recipe(recipe_id):
     if request.method == "POST":
         with sqlite3.connect(DB_NAME) as conn:
             cur = conn.cursor()
-            user = cur.execute("SELECT user_id FROM user_profile WHERE username = ?",
+            user = cur.execute("""SELECT user_id FROM user_profile WHERE username = ?""",
                                (session['username'],)).fetchone()
             if user is None:
                 flash("User not found")
                 return redirect(url_for('favorite_recipe'))
             user_id = user[0]
 
-            cur.execute(" INSERT OR IGNORE INTO favorite_recipes (user_id, recipe_id) VALUES (?, ?)",
-                        (user_id, recipe_id,))
+            already_a_favorite = cur.execute("""SELECT 1 FROM favorite_recipes_use WHERE
+                                                user_id = ? AND recipe_id = ?""",
+                                             (user_id, recipe_id)).fetchone()
+            if already_a_favorite:
+                cur.execute("""DELETE FROM favorite_recipes_use WHERE user_id = ? AND recipe_id = ?""",
+                            (user_id, recipe_id))
+                flash("Recipe removed from favorites")
+
+            else:
+                cur.execute(""" INSERT INTO favorite_recipes_use (user_id, recipe_id) VALUES (?, ?)""",
+                            (user_id, recipe_id,))
+                flash("Recipe has been added to favorites")
 
             conn.commit()
-        flash("Recipe added to favorites!")
-        return redirect(url_for('view_recipe', recipe_id=recipe_id))
-    return render_template('favorite_recipe', recipe_id=recipe_id)
+
+    return redirect(request.referrer)
 
 
 # -------------------------------------
@@ -689,24 +807,24 @@ def favorite_recipe(recipe_id):
 @app.route('/recipes')
 def recipe_list():
     search_query = request.args.get('search_query', '')
+    sort_by = request.args.get('sort', 'newest')
+    diet_filter = request.args.get('diet', '')
 
     manager = RecipeManager()
 
     try:
-        # Check if a search is being performed
-        if search_query:
-            # Use the manager's filter method
-            recipes = manager.filterByPreference(search_query)
-        else:
-            # If no search, get all recipes
-            recipes = manager.getAllRecipes()
+        # Use the new advanced filter method
+        recipes = manager.getFilteredRecipes(search_query, sort_by, diet_filter)
 
     except sqlite3.Error as e:
         print(f"Error searching recipes: {e}")
         flash("An error occurred while searching for recipes.")
         recipes = []
 
-    return render_template('recipe_list.html', recipes=recipes, search_query=search_query)
+    return render_template('recipe_list.html', recipes=recipes,
+                           search_query=search_query,
+                           current_sort=sort_by,
+                           current_diet=diet_filter)
 
 
 # -------------------------------------------------------------
@@ -783,6 +901,30 @@ def add_recipe():
 
     # On GET, just show the form
     return render_template('recipe_add.html')
+
+
+# -------------------------------------------------------------
+# VIEW RECIPE — Kayo
+# -------------------------------------------------------------
+@app.route('/recipes/<int:recipe_id>')
+def view_recipe(recipe_id):
+    manager = RecipeManager()
+    recipe = manager.getRecipeById(recipe_id)
+
+    if not recipe:
+        return "Recipe not found", 404
+
+    steps = manager.getSteps(recipe_id)
+
+    images = manager.getImagesForRecipe(recipe_id)
+
+    # get comments
+    recipe_list = [recipe]
+    view_comment(recipe_list)
+    view_reaction(recipe_list)
+    favorite_recipe(recipe_id)
+
+    return render_template('recipe_view.html', recipe=recipe, steps= steps, images=images)
 
 
 # -------------------------------------------------------------
@@ -933,6 +1075,7 @@ def delete_image(recipe_id, image_id):
     flash("Image deleted.")
     return redirect(url_for('edit_recipe', recipe_id=recipe_id))
 
+
 # -------------------------------------
 # ROUTE: Integrating Grocery list - Baraa
 # -------------------------------------
@@ -943,6 +1086,7 @@ def add_ingredient_to_list():
         return redirect(url_for('login'))
 
     ingredient = request.form['ingredient'].strip()
+    quantity = request.form.get('quantity', '1').strip()
 
     if ingredient == "":
         flash("Invalid ingredient.")
@@ -955,9 +1099,9 @@ def add_ingredient_to_list():
     user_id = cur.fetchone()[0]
 
     cur.execute("""
-        INSERT INTO grocery_list (user_id, item_text, quantity)
-        VALUES (?, ?, ?)
-    """, (user_id, ingredient, "1"))
+            INSERT INTO grocery_list (user_id, item_text, quantity)
+            VALUES (?, ?, ?)
+        """, (user_id, ingredient, quantity))
 
     conn.commit()
     conn.close()
@@ -990,6 +1134,67 @@ def my_recipes():
     recipes = manager.getRecipesByUser(user_id)
 
     return render_template('my_recipes.html', recipes=recipes)
+
+
+# -------------------------------------------------------------
+# FAVORITE RECIPES — Show a users favorite recipes
+# -------------------------------------------------------------
+@app.route('/favorite_recipes')
+def favorite_recipes():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    # find the logged-in user's ID
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+        result = cur.fetchone()
+
+        if not result:
+            flash("Error: Could not find user.")
+            return redirect(url_for('logout'))
+
+        user_id = result[0]
+
+    manager = RecipeManager()
+    recipes = manager.getFavoriteRecipesByUser(user_id)
+    recipes = view_comment(recipes)
+    recipes = view_reaction(recipes)
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        for r in recipes:
+            cur.execute("""SELECT user_id FROM recipe WHERE recipe_id = ?""",
+                        (r.recipe_id,))
+            r.user_id = cur.fetchone()[0]
+
+    return render_template('favorite_recipes.html', recipes=recipes)
+
+
+# -------------------------------------------------------------
+# MY RECIPES — Only show recipes created by this user
+# -------------------------------------------------------------
+@app.route('/all_recipes')
+def all_recipes():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    # find the logged-in user's ID
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM user_profile WHERE username = ?", (session['username'],))
+        result = cur.fetchone()
+
+        if not result:
+            flash("Error: Could not find user.")
+            return redirect(url_for('logout'))
+
+        user_id = result[0]
+
+    manager = RecipeManager()
+    recipes = manager.getAllRecipes()
+
+    return render_template('recipe_list.html', recipes=recipes)
 
 
 # -------------------------------------------------------------

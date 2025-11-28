@@ -10,27 +10,29 @@
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 </head>
 <body>
+    {% include 'Partial/topnav.html' %}
     <main>
-        <!-- Top Navigation -->
-        <div class="topnav">
-        <a href="/login_page" id="login">Login</a>
-        <a href="/user_list_for_testing" id="see_users">About Us</a>
-        <a href="/login_landing_page">Home</a>
-        </div>
-        <br>
+
 
         <div class="container-fluid mt-4">
-            <div class="row">
 
+            <!-- Page Title -->
+            <div class="row mb-3">
+                <div class="col-12 text-center">
+                    <h4 class="fw-bold fs-2">{{ meal_plan_name }}</h4>
+                </div>
+            </div>
+
+            <div class="row">
                 <!-- LEFT: Options (small area) -->
-                <div class="col-md-3">
+                <div class="col-3">
                     <div class="p-3 border rounded bg-light">
-                        <h4>{{ meal_plan_name }}</h4>
                         {% if username == creator_name %}
                             <p>You created this!</p>
                             <p>The invite code is {{ code }}</p>
-                            <button>Edit</button>
-                            <button>Delete</button>
+                            <form action="{{ url_for('delete_meal_plan', meal_plan_id=meal_plan_id) }}" method="POST">
+                                <button type="submit" class="btn btn-small btn-primary btn-outline-primary" >Delete</button>
+                            </form>
                         {% else %}
                             <p>Created by {{ creator_name }}</p>
                         {% endif %}
@@ -45,6 +47,8 @@
                 <!-- RIGHT: Calendar (large area) -->
                 <div class="col-md-9">
                     <div id="calendar" data-recipe-id="{{ recipe_id|default('') }}"></div>
+                <div class="col-9">
+                    <div id="calendar"></div>
                 </div>
             </div>
 

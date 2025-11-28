@@ -42,3 +42,15 @@ class Recipe:
                 f"Name: {self.name}\n"
                 f"Ingredients: {self.ingredients}\n"
                 f"Instructions: {self.instructions}\n")
+
+    # --------------------------------------------------------------kayo
+
+    def break_into_steps(self):
+        """
+        Split instructions (a big block of text) into a list of separate steps.
+        """
+        if not self.instructions:
+            return []
+        import re
+        steps = [s.strip() for s in re.split(r'[.\n;]', self.instructions) if s.strip()]
+        return steps
