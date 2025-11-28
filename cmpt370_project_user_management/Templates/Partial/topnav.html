@@ -2,20 +2,25 @@
 
 <!-- topnav partial -->
 
-<!-- topnav partial -->
 <div class="topnav">
     <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
 
-        <!-- HOME -->
+        <!-- HOME (Landing Page) -->
         <a href="{{ url_for('login_landing_page') }}">Home</a>
 
-        <!-- Recipes -->
+        <!-- Add Recipe -->
         <a href="{{ url_for('add_recipe') }}">Add Recipe</a>
+
+        <!-- My Recipes -->
         <a href="{{ url_for('my_recipes') }}">My Recipes</a>
+
+        <!-- Favorites -->
         <a href="{{ url_for('favorite_recipes') }}">Favorite Recipes</a>
+
+        <!-- All Recipes -->
         <a href="{{ url_for('all_recipes') }}">All Recipes</a>
 
-        <!-- Grocery -->
+        <!-- Grocery List -->
         <a href="{{ url_for('grocery_list') }}">Grocery List</a>
 
         <!-- Meal Plans -->

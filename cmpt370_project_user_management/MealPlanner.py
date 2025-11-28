@@ -1344,6 +1344,7 @@ def api_delete_event(event_id):
     try:
         # Get calendar_id from session - not required but check for still in session
         if "calendar_id" not in session:
+
             return redirect(url_for('home'))
         deleted_event = calendar_service.delete_calendar_event(connection, event_id)
         # return True
