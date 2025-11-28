@@ -9,6 +9,8 @@ __pycache__/
 # -----------------------------
 .idea/
 *.iml
+# Ignore db files
+ *.db
 # Ignore all word docs
 *.docx
 
