@@ -1,6 +1,6 @@
 <!--Partial for filtering. -->
 <div class="container mb-4" style="max-width: 800px;">
-    <form action="{{ url_for('request') }}" method="GET" class="row g-2 justify-content-center">
+    <form action="{{ url_for('login_landing_page') }}" method="GET" class="row g-2 justify-content-center">
         <div class="col-auto">
             <select name="sort" class="form-select">
                 <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
