@@ -2,7 +2,7 @@
 Kayo
 Recipe_Step Class -  represents a single step of a Recipe. Each step has a step number
 """
-class RecipeStep:
+class Recipe_Step:
 
     def __init__(
             self,
