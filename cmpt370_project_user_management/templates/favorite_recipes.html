@@ -21,7 +21,7 @@
 
 <body>
 
-    {% include 'Partial/topnav.html' %}
+    {% include 'partial/topnav.html' %}
 
     <div class="recipe-background" style="padding-top:80px;">
         <h1 style="text-align:center; margin-bottom:30px;">My Favorite Recipes</h1>
@@ -31,7 +31,7 @@
                 <div class="row g-4">
                     {% for recipe in recipes %}
                         {% set current_user=userName %}
-                        {% include 'Partial/recipe_card.html' %}
+                        {% include 'partial/recipe_card.html' %}
                     {% endfor %}
                 </div>
             </div>

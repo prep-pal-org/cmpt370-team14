@@ -15,7 +15,7 @@
 <body>
 
     <!-- nav -->
-    {% include 'Partial/topnav.html' %}
+    {% include 'partial/topnav.html' %}
 
     <div class="recipe-background">
         <div class="container" style="padding-top: 120px; padding-bottom:40px;">
@@ -60,7 +60,7 @@
 
                         {% for recipe in recipes %}
                             {% set current_user = session['username'] %}
-                            {% include 'Partial/recipe_card.html' %}
+                            {% include 'partial/recipe_card.html' %}
                         {% endfor %}
 
                     </div>
