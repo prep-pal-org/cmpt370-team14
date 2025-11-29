@@ -14,7 +14,7 @@ from cmpt370_project_user_management.Model.Recipe import Recipe
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "db", "saucyapp.db")
-print("🗂 Using database at:", DB_PATH)
+print("Using database at:", DB_PATH)
 
 
 class RecipeManager:

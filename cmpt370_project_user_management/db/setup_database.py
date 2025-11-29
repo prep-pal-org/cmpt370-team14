@@ -5,7 +5,7 @@ from _sqlite3 import Error
 # ✅ Build a consistent path: cmpt370_project_user_management/db/saucyapp.db
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "saucyapp.db")
-print("🗂 Using database at:", DB_PATH)
+print("Using database at:", DB_PATH)
 
 
 """
