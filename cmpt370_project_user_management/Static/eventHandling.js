@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded',function(){
             openViewModal(info.event)
         },
         eventOrder: function( a, b){
-            const order = {"Breakfast": 1, "Lunch": 2, "Dinner": 3, "Snack": 4};
+            const order = {"Breakfast": 1, "Lunch": 2, "Dinner": 3, "Appetizer": 4, "Dessert": 5, "Snack": 6};
             const timeA = order[a.extendedProps.timeSlot] || 999;
             const timeB = order[b.extendedProps.timeSlot] || 999;
             return timeA - timeB;
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded',function(){
      */
     async function loadRecipes(){
         //Fetch recipes from manager
-        const response = await fetch('api/recipes');
+        const response = await fetch('/api/recipes');
         //Check response - if ok, send to helper to populate options list
         if (response.ok) {
             recipeList = await response.json();

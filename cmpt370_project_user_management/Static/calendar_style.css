@@ -2,19 +2,7 @@
 Style for Calendar View - Jordan
 Body styled same as Landing page and rest of site
  */
-body{
-    background-image: url("home_page_image.jpg");
-    background-size: cover;
-    background-repeat: no-repeat;
-    color: #333;
-    margin:0;
-    padding:0;
-}
-main{
 
-    margin: 2rem auto;
-    padding: 1.5rem;
-}
 #calendar{
     background: #ffffff;
     border-radius: 6px;

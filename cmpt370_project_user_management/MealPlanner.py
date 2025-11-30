@@ -452,7 +452,10 @@ def view_meal_plan(meal_plan_id):
         meal_plan_name = meal_plan[0]
         code = meal_plan[2]
 
-    return render_template("calendar.html", meal_plan_name=meal_plan_name, meal_plan_id=meal_plan_id,
+        calendar_id = calendar_service.create_or_get_calendar(conn, meal_plan_id)
+        session["calendar_id"] = calendar_id
+
+        return render_template("calendar.html", meal_plan_name=meal_plan_name, meal_plan_id=meal_plan_id,
                            creator_name=creator_name[0], username=username, code=code)
 
 
@@ -1250,41 +1253,63 @@ def all_recipes():
 # -------------------------------------------------------------
 # Calendar Routes - Jordan
 # -------------------------------------------------------------
-# calendar view - determines calendar_id, sets in session, then renders calendar
-@app.route('/calendar')
+# calendar view - used for render calendar from recipe_view with preloaded recipe_id
+@app.route('/calendar', methods=["POST"])
 def calendar_view():
+    # Get recipe_id, ensure user and calendar both in session or redirect
     recipe_id = request.args.get('recipe_id')
-
+    username = session.get('username')
+    if username is None:
+        flash("You need to login first.")
+        return redirect(url_for('login'))
+    calendar_id = session.get('calendar_id')
+    if calendar_id is None:
+        flash("Calendar not loaded, select meal plan first")
+        return redirect(url_for('list_meal_plans'))
 
     # Open database connection
     connection = sqlite3.connect(DB_NAME)
     try:
-        # get user_id integer from username in session and user_profile table
-        username = session.get('username')
+        #get user_id, meal_plan_id and other parameters for calendar render
         cursor = connection.cursor()
         cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (username,))
         user_id = cursor.fetchone()
-        print("User id:",user_id)
-        # get meal_plan_id to show single calendar for grouped meal plan
-        cursor.execute("SELECT meal_plan_id FROM meal_plan_access WHERE user_id = ?", (user_id[0],))
+        cursor.execute("SELECT meal_plan_id FROM calendar_schedule WHERE calendar_id = ?", (calendar_id,))
         meal_plan_id = cursor.fetchone()
-        print("Meal plan_id:",meal_plan_id[0])
+
         # Check for error in getting user_id / meal_plan_id
         if not meal_plan_id:
             print("Error in calendar view route - meal_plan_id missing")
             return redirect(url_for("home"))
-        # Else get/create the calendar_id for this meal_plan_id and set session variable, render calendar
-        calendar_id = calendar_service.create_or_get_calendar(connection, meal_plan_id[0])
-        session["calendar_id"] = calendar_id
-        print("Calendar ID:",calendar_id)
-        if recipe_id is not None:
-            session["cal_rec_id"] = recipe_id
-            print("Rec ID",recipe_id)
-            cursor.execute("SELECT recipe_name FROM recipe WHERE recipe_id = ?", (recipe_id,))
-            recipe_name = cursor.fetchone()
-            session["cal_rec_name"] = recipe_name[0]
-            print("Recipe name:",recipe_name)
-        return render_template("calendar.html", calendar_id=calendar_id, recipe_id=recipe_id)
+
+        # Check access permission
+        if not user_has_access(user_id[0], meal_plan_id[0]):
+            flash("You do not have permission to view this meal plan.")
+            return redirect(url_for('list_meal_plans'))
+
+        # If allowed → show the plan
+        meal_plan = cursor.execute("""SELECT plan_name, creator_id, invite_code FROM meal_plan WHERE meal_plan_id = ?""",
+                                (meal_plan_id[0],)).fetchone()
+
+        if meal_plan is None:
+            flash("Meal plan no longer exists. Creator may have deleted the plan. Select a different plan.")
+            return redirect(url_for('list_meal_plans'))
+
+        creator_name = cursor.execute("""SELECT username FROM user_profile WHERE user_id = ?""",
+                                   (meal_plan[1],)).fetchone()
+
+        meal_plan_name = meal_plan[0]
+        code = meal_plan[2]
+
+        # Get recipe name for calendar
+        if recipe_id is None:
+            print("Recipe_id is missing")
+            return redirect(url_for("recipe_list"))
+        cursor.execute("SELECT recipe_name FROM recipe WHERE recipe_id = ?", (recipe_id,))
+        recipe_name = cursor.fetchone()
+
+        return render_template("calendar.html", calendar_id=calendar_id, recipe_id=recipe_id, recipe_name=recipe_name[0], meal_plan_name=meal_plan_name, meal_plan_id=meal_plan_id[0],
+                           creator_name=creator_name[0], username=username, code=code)
     finally:
         # Close connection when done
         connection.close()

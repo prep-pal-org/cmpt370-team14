@@ -281,6 +281,22 @@ def update_tables(connection: sqlite3.Connection):
     except sqlite3.OperationalError as e:
         print("Error while dropping user_interaction table:", e)
 
+    # Drop old recipe_reaction table - Randi
+    try:
+        cursor.execute("DROP TABLE IF EXISTS recipe_reaction;")
+        connection.commit()
+        print("old recipe_reaction table removed")
+    except sqlite3.OperationalError as e:
+        print("Error while dropping recipe_reaction table:", e)
+
+    # Drop old favorite_recipe table - Randi
+    try:
+        cursor.execute("DROP TABLE IF EXISTS favorite_recipes;")
+        connection.commit()
+        print("old favorite_reaction table removed")
+    except sqlite3.OperationalError as e:
+        print("Error while dropping recipe_reaction table:", e)
+
     #Rename calendar_schedule column "user_id" to "meal_plan_id" - if not previously done - Jordan
     try:
         #Get table columns
@@ -341,37 +357,10 @@ def main():
     #Check connection established
     if connection is not None:
 
-        cursor = connection.cursor()
-        # Drop the old user_interaction table if it exists - Randi
-        try:
-            cursor.execute("DROP TABLE IF EXISTS user_interaction;")
-            connection.commit()
-            print("user_interaction table removed")
-        except sqlite3.OperationalError as e:
-            print("Error while dropping user_interaction table:", e)
-
-        # Drop old recipe_reaction table - Randi
-        try:
-            cursor.execute("DROP TABLE IF EXISTS recipe_reaction;")
-            connection.commit()
-            print("old recipe_reaction table removed")
-        except sqlite3.OperationalError as e:
-            print("Error while dropping recipe_reaction table:", e)
-
-        # Drop old favorite_recipe table - Randi
-        try:
-            cursor.execute("DROP TABLE IF EXISTS favorite_recipes;")
-            connection.commit()
-            print("old recipe_reaction table removed")
-        except sqlite3.OperationalError as e:
-            print("Error while dropping recipe_reaction table:", e)
-
-        #Update calendar tables - Jordan
-        update_calendar(connection, cursor)
-
         #If successful, try to create tables
         if create_tables(connection):
             print('Tables created')
+
         else:
             print('Tables not created')
 
