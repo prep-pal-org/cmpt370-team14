@@ -11,9 +11,9 @@ def extract_duration(text: str) -> int | None:
     text = text.lower()
 
     patterns = [
-        (r"(\d+)\s*hours?|hrs?|hr?|hr?", 3600),
-        (r"(\d+)\s*mins?|minutes?|minute?|min?", 60),
-        (r"(\d+)\s*secs?|seconds?|sec?|second?", 1),
+        (r"(\d+)\s*(?:hours|hrs|hr|hr)", 3600),
+        (r"(\d+)\s*(?:mins|minutes|minute|min)", 60),
+        (r"(\d+)\s*(?:secs|seconds|sec|second)", 1),
     ]
 
     total_seconds = 0
@@ -22,8 +22,9 @@ def extract_duration(text: str) -> int | None:
     for pattern, multiplier in patterns:
         matches = re.findall(pattern, text)
         for m in matches:
-            total_seconds += int(m) * multiplier
-            found = True
+            if m.isdigit():
+                total_seconds += int(m) * multiplier
+                found = True
 
     return total_seconds if found else None
 
@@ -42,6 +43,6 @@ def split_into_steps(instructions: str):
     Removes empty lines.
     Returns list of clean steps.
     """
-    raw_parts = re.split(r"[.\n,;]+", instructions)
+    raw_parts = re.split(r"[.\n!;]+", instructions)
     steps = [p.strip() for p in raw_parts if p.strip()]
     return steps
