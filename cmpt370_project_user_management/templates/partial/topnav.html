@@ -3,25 +3,45 @@
 <!-- topnav partial -->
 
 <div class="topnav">
-    <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <!-- Logout -->
+            <a href="{{ url_for('logout') }}">Logout</a>
 
-        <!-- HOME (Landing Page) -->
-        <a href="{{ url_for('login_landing_page') }}">Home</a>
+            <!-- Back -->
+            <a href="javascript:history.back()" class="button">Back</a>
 
-        <!-- Add Recipe -->
-        <a href="{{ url_for('add_recipe') }}">Add Recipe</a>
+            <!-- HOME (Landing Page) -->
+            <a href="{{ url_for('login_landing_page') }}">Home Page</a>
 
-        <!-- My Recipes -->
-        <a href="{{ url_for('my_recipes') }}">My Recipes</a>
+            <!-- Grocery List -->
+            <a href="{{ url_for('grocery_list') }}">Grocery List</a>
 
-        <!-- Favorites -->
-        <a href="{{ url_for('favorite_recipes') }}">Favorite Recipes</a>
+            <!-- Meal Plans -->
+            <div class="dropdown">
+                <a class="dropdown-toggle" href="#" id="planDropdown" role="button"
+                   data-bs-toggle="dropdown" aria-expanded="false">
+                    Meal Plans
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="planDropdown" style="background-color: darkgreen">
+                    <li><a class="dropdown-item" href="{{ url_for('create_meal_plan') }}">Create Meal Plan</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('join_meal_plan') }}">Join Meal Plan</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('list_meal_plans') }}">All Meal Plans</a></li>
+                </ul>
+            </div>
 
-        <!-- All Recipes -->
-        <a href="{{ url_for('all_recipes') }}">All Recipes</a>
-
-        <!-- Grocery List -->
-        <a href="{{ url_for('grocery_list') }}">Grocery List</a>
-        <a href="/meal_plans">Meal Plans</a>
+            <!-- Recipe Drop Down -->
+            <div class="dropdown">
+                <a class="dropdown-toggle" href="#" id="recipesDropdown" role="button"
+                   data-bs-toggle="dropdown" aria-expanded="false">
+                    Recipes
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="recipesDropdown" style="background-color: darkgreen">
+                    <li><a class="dropdown-item" href="{{ url_for('add_recipe') }}">Add Recipe</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('all_recipes') }}">All Recipes</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('favorite_recipes') }}">Favorite Recipes</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('my_recipes') }}">My Recipes</a></li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>

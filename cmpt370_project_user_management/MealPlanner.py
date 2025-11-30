@@ -375,9 +375,9 @@ def create_meal_plan():
 
             count = creator_count + invited_count
 
-            # Enforce the 6-plan limit
+            # Enforce the 50-plan limit
             if count >= 50:
-                flash("You can only have up to 50 meal plans.")
+                flash("You can only have up to 50 meal plans. Please delete or leave some plans.")
                 return redirect(url_for('list_meal_plans'))
 
             # Create unique invite code
@@ -519,6 +519,35 @@ def join_meal_plan():
 
     return render_template('join_meal_plan.html')
 
+# Leave a meal plan
+@app.route('/leave_meal_plan/<int:meal_plan_id>', methods=['POST'])
+def leave_meal_plan(meal_plan_id):
+    # Check if user is logged in
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to leave a meal plan.")
+        return redirect(url_for('login'))
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+
+        # Find the user ID
+        user = cur.execute("SELECT user_id FROM user_profile WHERE username = ?", (username,)).fetchone()
+        if user is None:
+            session.clear()
+            flash("Error: Cannot find user. You have been logged out, please log back in.")
+            return redirect(url_for('login'))
+
+        user_id = user[0]
+
+        # Remove access to the meal plan
+        cur.execute("DELETE FROM meal_plan_access WHERE meal_plan_id = ? AND user_id = ?", (meal_plan_id, user_id))
+        conn.commit()
+
+    flash("You have left the meal plan.")
+    return redirect(url_for('list_meal_plans'))
+
+
 
 # List Meal Plans - Randi
 @app.route('/meal_plans')
@@ -543,7 +572,7 @@ def list_meal_plans():
 
         # Meal plans created by the user
         created = cur.execute("""
-            SELECT meal_plan_id, plan_name, creator_id
+            SELECT meal_plan_id, plan_name, creator_id, invite_code
             FROM meal_plan
             WHERE creator_id = ?
         """, (user_id,)).fetchall()
@@ -565,7 +594,8 @@ def list_meal_plans():
             created_with_names.append({
                 "meal_plan_id": plan[0],
                 "plan_name": plan[1],
-                "creator_name": creator_name
+                "creator_name": creator_name,
+                "invite_code": plan[3]
             })
 
         invited_with_names = []
