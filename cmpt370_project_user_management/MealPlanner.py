@@ -866,16 +866,27 @@ def add_recipe():
         # CREATE STEPS FROM INSTRUCTIONS
         # --------------------------------------------kayo
 
-        import re
+        # import re
+        #
+        # raw_steps = re.split(r'[.\n,;]+', instructions)
+        # clean_steps = [s.strip() for s in raw_steps if s.strip()]
+        #
+        # steps_list = []
+        # for idx, text in enumerate(clean_steps, start=1):
+        #     steps_list.append((idx, text, 0))  # 0 = default duration
+        #
+        # manager.saveSteps(recipe_id, steps_list)
 
-        raw_steps = re.split(r'[.\n,;]+', instructions)
-        clean_steps = [s.strip() for s in raw_steps if s.strip()]
+        from Model.step_helper import split_into_steps, extract_duration
 
-        steps_list = []
-        for idx, text in enumerate(clean_steps, start=1):
-            steps_list.append((idx, text, 0))  # 0 = default duration
+        steps_raw = split_into_steps(instructions)
 
-        manager.saveSteps(recipe_id, steps_list)
+        final_steps = []
+        for i, s in enumerate(steps_raw, start=1):
+            d = extract_duration(s)  # None if no timing
+            final_steps.append((i, s, d))
+
+        manager.saveSteps(recipe_id, final_steps)
 
         # ---------------------------
         # Handle images (with validation)
