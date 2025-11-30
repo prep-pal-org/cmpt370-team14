@@ -11,57 +11,79 @@
     {% include 'partial/topnav.html' %}
 
     <div class="table-wrapper" style="background-color: transparent; width: 90%">
-        <h1>Were is this?</h1>
+        <div class ="row mb-4">
+            <div class="col d-flex justify-content-center align-items-center flex-wrap gap-3">
+                <h1 class="fw-bold mb-0" style="font-size: 2rem; margin-bottom:30px; margin-top: 30px">Your Plans</h1>
+                <form action="{{ url_for('create_meal_plan', meal_plan_id=meal_plan_id) }}" class="mb-0">
+                    <button type="submit" class="btn-sm fs-6">Create New Plan</button>
+                </form>
+            </div>
+        </div>
+
         <table class="plan_table">
             <thead>
-            <tr>
-              <th scope="col">Plan Name</th>
-              <th scope="col">Options</th>
-            </tr>
-          </thead>
+                <tr>
+                  <th scope="col" class="space-x-2">Plan Name</th>
+                  <th scope="col" class="space-x-2">Invite Code</th>
+                  <th scope="col" class="space-x-2">Option</th>
+                </tr>
+            </thead>
           <tbody>
             {% for created_list in created %}
-            <tr class="hover:bg-gray-100">
-
-
-                <td class="border px-4 py-2 text-blue-600">
-                            <a href="{{ url_for('view_meal_plan', meal_plan_id=created_list.meal_plan_id) }}">
-                  {{ created_list.plan_name }}
-                </a>
-                </td>
-                <td class="border px-4 py-2 space-x-2">
-                <a href="{{ url_for('delete_meal_plan', meal_plan_id=created_list.meal_plan_id) }}" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Delete</a>
-              </td>
-            </tr>
+                <tr class="hover:bg-gray-100">
+                    <td class="border px-4 py-2 text-blue-600">
+                        <a href="{{ url_for('view_meal_plan', meal_plan_id=created_list.meal_plan_id) }}">
+                            {{ created_list.plan_name }}
+                        </a>
+                    </td>
+                    <td class="border px-4 py-2 space-x-2">{{ created_list.invite_code }}</td>
+                    <td class="border px-4 py-2 space-x-2" style="text-align: center">
+                        <form action="{{ url_for('delete_meal_plan', meal_plan_id=created_list.meal_plan_id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
             {%  endfor %}
           </tbody>
         </table>
+    </div>
 
-    <table class="plan_table">
-      <thead>
-        <tr>
-          <th scope="col">Plan Name</th>
-          <th scope="col">Creator</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for invited_list in invited %}
-        <tr class="hover:bg-gray-100">
+    <div class="table-wrapper" style="background-color: transparent; width: 90%">
+        <div class="row mb-4">
+            <div class="col d-flex justify-content-center align-items-center flex-wrap gap-3">
+                <h1 class="fw-bold mb-0" style="font-size: 2rem; margin-bottom:30px; margin-top: 30px">Invited Plans</h1>
+                <form action="{{ url_for('join_meal_plan') }}" class="mb-0">
+                    <button type="submit" class="btn-sm fs-6">Join Plan</button>
+                </form>
+            </div>
+        </div>
 
-
-            <td class="border px-4 py-2 text-blue-600">
+        <table class="plan_table">
+            <thead>
+                <tr>
+                  <th scope="col">Plan Name</th>
+                  <th scope="col">Creator</th>
+                  <th scope="col">Option</th>
+                </tr>
+          </thead>
+          <tbody>
+            {% for invited_list in invited %}
+                <tr class="hover:bg-gray-100">
+                    <td class="border px-4 py-2 text-green-600">
                         <a href="{{ url_for('view_meal_plan', meal_plan_id=invited_list.meal_plan_id) }}">
-              {{ invited_list.plan_name }}
-            </a>
-            </td>
-            <td class="border px-4 py-2">{{ invited_list.creator_name }}</td>
-
-
-
-        </tr>
-        {%  endfor %}
-      </tbody>
-    </table>
+                      {{ invited_list.plan_name }}
+                        </a>
+                    </td>
+                    <td class="border px-4 py-2 space-x-2">{{ invited_list.creator_name }}</td>
+                    <td class="border px-4 py-2 space-x-2" style="text-align: center">
+                        <form action="{{ url_for('leave_meal_plan', meal_plan_id=invited_list.meal_plan_id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">Leave</button>
+                        </form>
+                    </td>
+                </tr>
+            {%  endfor %}
+          </tbody>
+        </table>
     </div>
 
 

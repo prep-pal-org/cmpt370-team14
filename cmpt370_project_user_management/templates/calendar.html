@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Meal Planning App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--Calendar CSS Style  -->
     <link rel="stylesheet" href="{{ url_for('static', filename='calendar_style.css') }}">
     <!--FullCalendar core and month view import css -->
@@ -15,11 +16,7 @@
 <body>
     {% include 'partial/topnav.html' %}
 
-    <div class="container-fluid">
-        <!-- Page Title -->
-        <div class="row mb-3">
-
-        </div>
+    <div class="container-fluid" style="margin-top: 15px; margin-bottom: 15px">
 
         <div class="row">
             <!-- LEFT: Options (small area) -->
@@ -35,37 +32,51 @@
                             <p class="fw-bold ms-2"> {{ code }} </p>
                         </div>
                         <form action="{{ url_for('delete_meal_plan', meal_plan_id=meal_plan_id) }}" method="POST">
-                            <button type="submit" class="btn btn-small btn-danger" >Delete</button>
+                            <button type="submit" class="btn btn-small btn-danger" style="margin-bottom: 5px">Delete</button>
                         </form>
                     {% else %}
-                        <p>Created by {{ creator_name }}</p>
+                        <div class="mt-auto pt-2 d-flex align-items-center">
+                            <p>Created by {{ creator_name }}</p>
+                        </div>
+                        <form action="{{ url_for('leave_meal_plan', meal_plan_id=meal_plan_id) }}" method="POST">
+                            <button type="submit" class="btn btn-small btn-danger" style="margin-bottom: 5px">Leave</button>
+                        </form>
                     {% endif %}
                     <div class="col">
-                        <div class="mt-auto pt-2 d-flex align-items-center">
-                            <form action="{{ url_for('list_meal_plans')}}">
-                                <button class="plan_btn">View Plans</button>
-                            </form>
-                            <form action="{{ url_for('my_recipes')}}">
-                                <button class="plan_btn">My Recipes</button>
-                            </form>
+                      <div class="row g-2">
+                        <div class="col-12 col-md-6">
+                          <form action="{{ url_for('list_meal_plans') }}">
+                            <button class="plan_btn w-100">View Plans</button>
+                          </form>
                         </div>
-                        <div class="mt-auto pt-2 d-flex align-items-center">
-                            <form action="{{ url_for('favorite_recipes')}}">
-                                <button class="plan_btn">Favorite Recipes</button>
-                            </form>
-                            <form action="{{ url_for('all_recipes')}}">
-                                <button class="plan_btn">All Recipes</button>
-                            </form>
+                        <div class="col-12 col-md-6">
+                          <form action="{{ url_for('my_recipes') }}">
+                            <button class="plan_btn w-100">My Recipes</button>
+                          </form>
                         </div>
-                        <div class="mt-auto pt-2 d-flex align-items-center">
-                            <form action="{{ 'grocery_list' }}">
-                                <button class="plan_btn">Grocery List</button>
-                            </form>
-                            <form action="{{ url_for('add_recipe')}}">
-                                <button class="plan_btn">Add Recipe</button>
-                            </form>
+                        <div class="col-12 col-md-6">
+                          <form action="{{ url_for('favorite_recipes') }}">
+                            <button class="plan_btn w-100">Favorite Recipes</button>
+                          </form>
                         </div>
+                        <div class="col-12 col-md-6">
+                          <form action="{{ url_for('all_recipes') }}">
+                            <button class="plan_btn w-100">All Recipes</button>
+                          </form>
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <form action="{{ url_for('grocery_list') }}">
+                            <button class="plan_btn w-100">Grocery List</button>
+                          </form>
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <form action="{{ url_for('add_recipe') }}">
+                            <button class="plan_btn w-100">Add Recipe</button>
+                          </form>
+                        </div>
+                      </div>
                     </div>
+
                 </div>
             </div>
 
