@@ -75,8 +75,9 @@
 
             <!-- RIGHT: Calendar (large area) -->
             <div class="col-9">
-                <div id="calendar"></div>
-                <!-- The modal. -->
+                <div id="calendar"
+                    data-recipe-id="{{ recipe_id }}"></div>
+                <!-- Calendar Modals -->
                 {% include 'Partial/calendar_modal.html' %}
             </div>
         </div>

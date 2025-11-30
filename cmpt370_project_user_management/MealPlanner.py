@@ -1301,14 +1301,7 @@ def calendar_view():
         meal_plan_name = meal_plan[0]
         code = meal_plan[2]
 
-        # Get recipe name for calendar
-        if recipe_id is None:
-            print("Recipe_id is missing")
-            return redirect(url_for("recipe_list"))
-        cursor.execute("SELECT recipe_name FROM recipe WHERE recipe_id = ?", (recipe_id,))
-        recipe_name = cursor.fetchone()
-
-        return render_template("calendar.html", calendar_id=calendar_id, recipe_id=recipe_id, recipe_name=recipe_name[0], meal_plan_name=meal_plan_name, meal_plan_id=meal_plan_id[0],
+        return render_template("calendar.html", calendar_id=calendar_id, recipe_id=recipe_id, meal_plan_name=meal_plan_name, meal_plan_id=meal_plan_id[0],
                            creator_name=creator_name[0], username=username, code=code)
     finally:
         # Close connection when done
