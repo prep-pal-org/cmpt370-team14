@@ -80,21 +80,45 @@
 
         <!-- Steps -->
         <h2>{{ recipe.name }} – Cooking Steps</h2>
-        <div class="container">
+
+        <div>
             <ol>
                 {% for step in steps %}
                     <li>
-                        <b>Step {{ step[1] }}:</b> {{ step[2] }} <br>
-                        Time: {{ step[3] }} seconds
 
-                        <button onclick="startTimer({{ step[3] }}, {{ step[1] }})">
-                            Start Timer
-                        </button>
+                        {{ step[2] }}
+
+                        {% if step[3] and step[3] > 0 %}
+                            <div>
+
+                                <span id="display-{{ step[1] }}">
+                                    {{ (step[3] // 60)|int }}:{{ ("%02d"|format(step[3] % 60)) }}
+                                </span>
+
+                                <button id="start-{{ step[1] }}"
+                                        onclick="startTimer({{ step[3] }}, '{{ step[1] }}')">
+                                    ▶ Start
+                                </button>
+
+                                <button id="pause-{{ step[1] }}"
+                                        onclick="pauseTimer('{{ step[1] }}')"
+                                        style="display:none;">
+                                    ⏸ Pause
+                                </button>
+
+                                <button id="resume-{{ step[1] }}"
+                                        onclick="resumeTimer('{{ step[1] }}')"
+                                        style="display:none;">
+                                    ⏵ Resume
+                                </button>
+
+                            </div>
+                        {% endif %}
+
                     </li>
                 {% endfor %}
             </ol>
         </div>
-
         <hr>
 
         <!-- DELETE RECIPE (owner only) -->
