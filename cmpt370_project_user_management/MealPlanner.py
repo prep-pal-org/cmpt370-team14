@@ -863,20 +863,8 @@ def add_recipe():
         recipe_id = manager.addRecipe(new_recipe)
 
         # --------------------------------------------
-        # CREATE STEPS FROM INSTRUCTIONS
+        # CREATE  AND SAVE STEPS FROM INSTRUCTIONS
         # --------------------------------------------kayo
-
-        # import re
-        #
-        # raw_steps = re.split(r'[.\n,;]+', instructions)
-        # clean_steps = [s.strip() for s in raw_steps if s.strip()]
-        #
-        # steps_list = []
-        # for idx, text in enumerate(clean_steps, start=1):
-        #     steps_list.append((idx, text, 0))  # 0 = default duration
-        #
-        # manager.saveSteps(recipe_id, steps_list)
-
         from Model.step_helper import split_into_steps, extract_duration
 
         steps_raw = split_into_steps(instructions)
