@@ -1,21 +1,58 @@
 //for the timer function
 
-function startTimer(seconds, displayId) {
-    let timeLeft = seconds;
+// Track all intervals + remaining time
+let timers = {};
 
-    const interval = setInterval(() => {
-        const minutes = Math.floor(timeLeft / 60);
-        const sec = timeLeft % 60;
+function startTimer(seconds, stepId) {
+    clearInterval(timers[stepId]?.interval);
 
-        document.getElementById(displayId).innerText =
-            `${minutes}:${sec.toString().padStart(2,'0')}`;
+    timers[stepId] = {
+        remaining: seconds,
+        interval: null,
+        isPaused: false
+    };
 
-        timeLeft--;
+    // Button visibility
+    document.getElementById(`start-${stepId}`).style.display = "none";
+    document.getElementById(`pause-${stepId}`).style.display = "inline-block";
+    document.getElementById(`resume-${stepId}`).style.display = "none";
 
-        if (timeLeft < 0) {
-            clearInterval(interval);
-            alert("Step finished!");
+    timers[stepId].interval = setInterval(() => {
+        if (!timers[stepId].isPaused) {
+            updateTimerDisplay(stepId);
+
+            timers[stepId].remaining--;
+
+            if (timers[stepId].remaining < 0) {
+                clearInterval(timers[stepId].interval);
+                alert("Step finished!");
+            }
         }
     }, 1000);
+
+    updateTimerDisplay(stepId);
 }
 
+function pauseTimer(stepId) {
+    timers[stepId].isPaused = true;
+
+    document.getElementById(`pause-${stepId}`).style.display = "none";
+    document.getElementById(`resume-${stepId}`).style.display = "inline-block";
+}
+
+function resumeTimer(stepId) {
+    timers[stepId].isPaused = false;
+
+    document.getElementById(`pause-${stepId}`).style.display = "inline-block";
+    document.getElementById(`resume-${stepId}`).style.display = "none";
+}
+
+function updateTimerDisplay(stepId) {
+    const display = document.getElementById(`display-${stepId}`);
+
+    let sec = timers[stepId].remaining;
+    let m = Math.floor(sec / 60);
+    let s = sec % 60;
+
+    display.innerText = `${m}:${s.toString().padStart(2, "0")}`;
+}

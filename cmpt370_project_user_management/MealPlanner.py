@@ -865,6 +865,20 @@ def add_recipe():
         manager = RecipeManager()
         recipe_id = manager.addRecipe(new_recipe)
 
+        # --------------------------------------------
+        # CREATE  AND SAVE STEPS FROM INSTRUCTIONS
+        # --------------------------------------------kayo
+        from Model.step_helper import split_into_steps, extract_duration
+
+        steps_raw = split_into_steps(instructions)
+
+        final_steps = []
+        for i, s in enumerate(steps_raw, start=1):
+            d = extract_duration(s)  # None if no timing
+            final_steps.append((i, s, d))
+
+        manager.saveSteps(recipe_id, final_steps)
+
         # ---------------------------
         # Handle images (with validation)
         # ---------------------------
