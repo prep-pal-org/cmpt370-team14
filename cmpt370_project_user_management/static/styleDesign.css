@@ -207,6 +207,21 @@ button:hover{
     background-color: black;
 }
 
+/* Edit recipe button */
+.edit-recipe-btn {
+    background-color: darkblue;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    width: 100%;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.edit-recipe-btn:hover {
+    background-color: black;
+}
+
 /* ===== RECIPE CARD FIXES (Baraa) ===== */
 
 .card {

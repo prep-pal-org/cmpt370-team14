@@ -59,13 +59,14 @@ class RecipeManager:
     # --------------------------------------------------------------
     def _buildRecipe(self, row):
         """
-        Expects row: (recipe_id, name, ingredients, instructions, image_path, category)
+        Expects row: (recipe_id, name, ingredients, instructions, image_path, category, user_id)
         """
-        recipe_id, name, ingredients, instructions, image_path, category = row
+        recipe_id, name, ingredients, instructions, image_path, category, user_id = row
 
         r = Recipe(recipe_id, name, ingredients, instructions)
         r.image_path = image_path
         r.category = category if category else ""
+        r.user_id = user_id
         return r
 
     # --------------------------------------------------------------
@@ -77,7 +78,8 @@ class RecipeManager:
             cur.execute("""
                 SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
                        COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
-                       r.category
+                       r.category,
+                       r.user_id
                 FROM recipe r
                 WHERE r.recipe_id = ?
             """, (recipe_id,))
@@ -95,7 +97,8 @@ class RecipeManager:
             cur.execute("""
                 SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
                        COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
-                       r.category
+                       r.category,
+                       r.user_id
                 FROM recipe r
             """)
             rows = cur.fetchall()
@@ -112,7 +115,8 @@ class RecipeManager:
         sql = """
             SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
                    COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
-                   r.category
+                   r.category,
+                   r.user_id
             FROM recipe r
             WHERE 1=1
         """
@@ -168,7 +172,8 @@ class RecipeManager:
             cur.execute("""
                 SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
                        COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
-                       r.category
+                       r.category,
+                       r.user_id
                 FROM recipe r
                 WHERE r.user_id = ?
             """, (user_id,))
@@ -184,7 +189,8 @@ class RecipeManager:
             cur.execute("""
                 SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
                        COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
-                       r.category
+                       r.category,
+                       r.user_id
                 FROM recipe r
                 JOIN favorite_recipes_use f ON r.recipe_id = f.recipe_id
                 WHERE f.user_id = ?
