@@ -19,11 +19,6 @@
         <!-- Search and Filtering.-->
         <div class="container mb-4" style="max-width: 1000px;">
             <form action="{{ url_for('favorite_recipes') }}" method="GET" class="row g-2 justify-content-center">
-                <div class="col-md-5">
-                    <input type="text" name="search_query" class="form-control"
-                                       placeholder="Search by name or ingredient..."
-                                       value="{{ search_query }}">
-                </div>
                 <div class="col-auto">
                     <select name="sort" class="form-select">
                         <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>

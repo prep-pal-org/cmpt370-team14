@@ -953,7 +953,7 @@ def add_recipe():
 
                 conn.commit()
 
-        return redirect(url_for('recipe_list'))
+        return redirect(request.referrer)
 
     return render_template('recipe_add.html')
 
@@ -1029,7 +1029,7 @@ def edit_recipe(recipe_id):
         manager.editRecipe(recipe_id, updated_recipe)
 
         flash("Recipe updated.")
-        return redirect(url_for('recipe_list'))
+        return redirect(request.referrer)
 
     # GET: render edit page
     images = manager.getImagesForRecipe(recipe_id)
@@ -1204,6 +1204,10 @@ def my_recipes():
     if 'username' not in session:
         return redirect(url_for('login'))
 
+    search_query = request.args.get('search_query', '')
+    sort_by = request.args.get('sort', 'newest')
+    diet_filter = request.args.get('diet', '')
+
     # find the logged-in user's ID
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
@@ -1218,6 +1222,7 @@ def my_recipes():
 
     manager = RecipeManager()
     recipes = manager.getRecipesByUser(user_id)
+    recipes = filter_list_python(recipes, sort_by, diet_filter)
     recipes = view_comment(recipes)
     recipes = view_reaction(recipes)
 
@@ -1239,6 +1244,10 @@ def favorite_recipes():
     if 'username' not in session:
         return redirect(url_for('login'))
 
+
+    sort_by = request.args.get('sort', 'newest')
+    diet_filter = request.args.get('diet', '')
+
     # find the logged-in user's ID
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
@@ -1253,8 +1262,10 @@ def favorite_recipes():
 
     manager = RecipeManager()
     recipes = manager.getFavoriteRecipesByUser(user_id)
+    recipes = filter_list_python(recipes, sort_by, diet_filter)
     recipes = view_comment(recipes)
     recipes = view_reaction(recipes)
+
 
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
