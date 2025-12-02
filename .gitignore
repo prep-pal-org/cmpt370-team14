@@ -1,32 +1,52 @@
 # -----------------------------
-# Python cache
+# Python cache / bytecode
 # -----------------------------
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
 # -----------------------------
-# IDE files
+# IDE files (PyCharm / IntelliJ)
 # -----------------------------
 .idea/
 *.iml
+*.ipr
+*.iws
 
 # -----------------------------
 # Virtual environments
 # -----------------------------
 venv/
+.env/
+.venv/
 cmpt370_project_user_management/venv/
 
 # -----------------------------
 # Databases
 # -----------------------------
 *.db
+*.sqlite3
+
+# -----------------------------
+# Project-specific ignores
+# -----------------------------
+cmpt370_project_user_management/static/recipe_images/
+cmpt370_project_user_management/tests/
 
 # -----------------------------
 # OS / misc
 # -----------------------------
 *.DS_Store
+Thumbs.db
 
 # -----------------------------
-# Project-specific ignores
+# Logs
 # -----------------------------
-cmpt370_project_user_management/tests/
+*.log
+
+# -----------------------------
+# Byte-compiled files in hidden folders
+# -----------------------------
+**/__pycache__/
+**/*.pyc
