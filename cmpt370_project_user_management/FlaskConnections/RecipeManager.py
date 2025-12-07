@@ -51,7 +51,7 @@ class RecipeManager:
             recipe_id = cur.lastrowid
             conn.commit()
 
-        print(f"✅ Added recipe '{r.name}' with ID {recipe_id}")
+        print(f"Added recipe '{r.name}' with ID {recipe_id}")
         return recipe_id
 
     # --------------------------------------------------------------
