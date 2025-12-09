@@ -24,6 +24,12 @@ class Recipe:
         self.ingredients = ingredients
         self.instructions = instructions
 
+        self.image_path = ""
+        self.category = ""
+        self.user_id = None
+
+        # prevents Render crash
+        self.reactions_dict = {}
     # --------------------------------------------------------------
 
     def displayRecipe(self) -> None:
