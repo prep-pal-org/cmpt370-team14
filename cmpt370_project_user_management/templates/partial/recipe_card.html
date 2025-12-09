@@ -1,0 +1,85 @@
+<!-- Recipe Cards partial -->
+<div class="col" style="flex: 0 0 25%; max-width: 25%;">
+    <div class="card mb-0 rounded-3">
+        {% if recipe.image_path %}
+            <img src="{{ url_for('static', filename=recipe.image_path) }}" class="card-img-top rounded-3" style="height:180px; object-fit:cover;">
+        {% else %}
+            <img src="{{ url_for('static', filename='No_Image.jpg') }}" class="card-img-top rounded-3" style="height:180px; object-fit:cover;">
+        {% endif %}
+
+        <div class="card-body">
+             <div class="d-flex justify-content-between align-items-center">
+                 <form action="{{ url_for('view_recipe', recipe_id=recipe.recipe_id) }}" method="GET" class="d-inline">
+                    <button type="submit" class="btn btn-lg fw-bold fs-5 ">{{ recipe.name }}</button>
+                </form>
+
+                {% if recipe.user_id == session.get('user_id')|int %}
+                    <a href="{{ url_for('edit_recipe', recipe_id=recipe.recipe_id) }}" class="btn btn-primary btn-sm">Edit</a>
+                {% endif %}
+             </div>
+             <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
+                <div class="mt-2">
+                    <form action="{{ url_for('favorite_recipe', recipe_id=recipe.recipe_id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm fs-5">💖</button>
+                    </form>
+                    {% for reaction, emoji, btn_class in [('like','👍','btn-transparent fs-5'), ('dislike','👎','btn-transparent fs-5')] %}
+                        {% set count = 0 %}
+                        {% for r_type, r_count in recipe.reactions %}
+                            {% if r_type == reaction %}
+                                {% set count = r_count %}
+                            {% endif %}
+
+                        {% endfor %}
+                        <form action="{{ url_for('create_reaction', recipe_id=recipe.recipe_id) }}" method="POST" class="d-inline">
+                            <button type="submit" name="reaction" value="{{ reaction }}" class="btn btn-sm {{ btn_class }}">
+                                {{ emoji }} <sup>{{ recipe.reactions_dict.get(reaction, 0) }}</sup>
+                            </button>
+                        </form>
+                    {% endfor %}
+                </div>
+
+
+                 {% set comment_count = recipe.comments|length %}
+                 <form class="mt-2">
+                     <button class="btn btn-transparent btn-sm fs-5"
+                             type="button"
+                             data-bs-toggle="collapse"
+                             data-bs-target="#comments_{{ recipe.recipe_id }}"
+                             aria-expanded="false"
+                             aria-controls="comments_{{ recipe.recipe_id }}">
+                         💬
+                         {% if comment_count > 0 %}
+                             <sup class="text-dark">{{ comment_count }}</sup>
+                         {% endif %}
+                     </button>
+                 </form>
+             </div>
+        </div>
+    </div>
+
+    <!-- Pop comments out below the card. -->
+
+    <div class="collapse card p-2 border shadow-sm" id="comments_{{ recipe.recipe_id }}">
+        <div class="card popout-card p-2 mt-n1" style="max-height: 300px; overflow-y: auto;">
+            <form action="{{ url_for('create_comment', recipe_id=recipe.recipe_id) }}" method="POST" class="mt-2">
+                <div class="form-floating">
+                    <textarea class="form-control" name="comment" style="height:100px; resize:none;" placeholder="Leave a comment" maxlength="140"></textarea>
+                    <label>Comment</label>
+                    <small class="form-text text-muted">Max. 140 characters.</small>
+                </div>
+                <button class="btn btn-success btn-sm" type="submit">Add</button>
+            </form>
+            {% if recipe.comments %}
+                {% for c in recipe.comments %}
+                    <div class="border rounded p-2 mb-2">
+                        <strong>{{ c[1] }}</strong>
+                        <small class="text-muted">{{ c[2] }}</small>
+                        <p class="fs-6"> {{ c[0] }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted fs-5">No comments yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login Landing Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styleDesign.css') }}">
+  </head>
+  <body>
+    {% include 'partial/topnav.html' %}
+
+    <div class="table-wrapper" style="background-color: transparent; width: 90%">
+        <div class ="row mb-4">
+            <div class="col d-flex justify-content-center align-items-center flex-wrap gap-3">
+                <h1 class="fw-bold mb-0" style="font-size: 2rem; margin-bottom:30px; margin-top: 30px">Your Plans</h1>
+                <form action="{{ url_for('create_meal_plan', meal_plan_id=meal_plan_id) }}" class="mb-0">
+                    <button type="submit" class="btn-sm fs-6">Create New Plan</button>
+                </form>
+            </div>
+        </div>
+
+        <table class="plan_table">
+            <thead>
+                <tr>
+                  <th scope="col" class="space-x-2">Plan Name</th>
+                  <th scope="col" class="space-x-2">Invite Code</th>
+                  <th scope="col" class="space-x-2">Option</th>
+                </tr>
+            </thead>
+          <tbody>
+            {% for created_list in created %}
+                <tr class="hover:bg-gray-100">
+                    <td class="border px-4 py-2 text-blue-600">
+                        <a href="{{ url_for('view_meal_plan', meal_plan_id=created_list.meal_plan_id) }}">
+                            {{ created_list.plan_name }}
+                        </a>
+                    </td>
+                    <td class="border px-4 py-2 space-x-2">{{ created_list.invite_code }}</td>
+                    <td class="border px-4 py-2 space-x-2" style="text-align: center">
+                        <form action="{{ url_for('delete_meal_plan', meal_plan_id=created_list.meal_plan_id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            {%  endfor %}
+          </tbody>
+        </table>
+    </div>
+
+    <div class="table-wrapper" style="background-color: transparent; width: 90%">
+        <div class="row mb-4">
+            <div class="col d-flex justify-content-center align-items-center flex-wrap gap-3">
+                <h1 class="fw-bold mb-0" style="font-size: 2rem; margin-bottom:30px; margin-top: 30px">Invited Plans</h1>
+                <form action="{{ url_for('join_meal_plan') }}" class="mb-0">
+                    <button type="submit" class="btn-sm fs-6">Join Plan</button>
+                </form>
+            </div>
+        </div>
+
+        <table class="plan_table">
+            <thead>
+                <tr>
+                  <th scope="col">Plan Name</th>
+                  <th scope="col">Creator</th>
+                  <th scope="col">Option</th>
+                </tr>
+          </thead>
+          <tbody>
+            {% for invited_list in invited %}
+                <tr class="hover:bg-gray-100">
+                    <td class="border px-4 py-2 text-green-600">
+                        <a href="{{ url_for('view_meal_plan', meal_plan_id=invited_list.meal_plan_id) }}">
+                      {{ invited_list.plan_name }}
+                        </a>
+                    </td>
+                    <td class="border px-4 py-2 space-x-2">{{ invited_list.creator_name }}</td>
+                    <td class="border px-4 py-2 space-x-2" style="text-align: center">
+                        <form action="{{ url_for('leave_meal_plan', meal_plan_id=invited_list.meal_plan_id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">Leave</button>
+                        </form>
+                    </td>
+                </tr>
+            {%  endfor %}
+          </tbody>
+        </table>
+    </div>
+
+
+
+    <!-- Handle Flash Messages. -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div id="popup" class="popup">
+                <div class="popup-content">
+                    <p>{{ messages[0] }}</p>
+                    <button onclick="closePopup()">Close</button>
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='eventHandling.js') }}"></script>
+
+</body>
+</html>

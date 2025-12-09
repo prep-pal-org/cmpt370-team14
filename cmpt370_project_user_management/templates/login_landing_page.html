@@ -9,50 +9,27 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styleDesign.css') }}">
   </head>
   <body>
-    {% include 'Partial/topnav.html' %}
+    <!--topnav-->
+    {% include 'partial/topnav.html' %}
 
     <div class="page-content">
-        <h1 class="text-center fw-bold fs-1 mb-4"> Welcome {{ username }}!</h1>
-        <div class="container mb-4" style="max-width: 800px;">
-            <form action="{{ url_for('login_landing_page') }}" method="GET" class="row g-2 justify-content-center">
-                <div class="col-auto">
-                    <select name="sort" class="form-select">
-                        <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
-                        <option value="az" {% if current_sort == 'az' %}selected{% endif %}>A - Z</option>
-                        <option value="za" {% if current_sort == 'za' %}selected{% endif %}>Z - A</option>
-                    </select>
-                </div>
-                <div class="col-auto">
-                    <select name="diet" class="form-select">
-                        <option value="">All Diets</option>
-                        <option value="gluten_free" {% if current_diet == 'gluten_free' %}selected{% endif %}>Gluten Free</option>
-                        <option value="lactose_free" {% if current_diet == 'lactose_free' %}selected{% endif %}>Lactose Free</option>
-                    </select>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                </div>
-                <div class="col-auto">
-                     <a href="{{ url_for('login_landing_page') }}" class="btn btn-danger ">Reset</a>
-                </div>
-            </form>
-        </div>
+        <h1 class="fw-bold" style="text-align:center; margin-bottom:30px; margin-top: 30px"> Welcome {{ username }}!</h1>
         <br>
         <div class="container px-4 text-center">
             <div class="row gx-5">
                 <div class="col">
                     <form action="{{ url_for('create_meal_plan', meal_plan_id=meal_plan_id) }}" class="d-inline">
-                        <button type="submit" class="btn-lg fs-4">Create New Plan</button>
+                        <button type="submit" class="btn-lg fs-5">Create New Plan</button>
                     </form>
                 </div>
                 <div class="col">
                     <form action="{{ url_for('join_meal_plan') }}" class="d-inline">
-                        <button type="submit" class="btn-lg fs-4 ">Join Plan</button>
+                        <button type="submit" class="btn-lg fs-5">Join Plan</button>
                     </form>
                 </div>
                 <div class="col">
                     <form action="{{ url_for('list_meal_plans') }}" class="d-inline">
-                        <button type="submit" class="btn-lg fs-4 ">View Plans</button>
+                        <button type="submit" class="btn-lg fs-5">View Plans</button>
                     </form>
                 </div>
             </div>
@@ -60,7 +37,7 @@
         </div>
         <div class="d-flex justify-content-center align-items-center gap-2">
             <form action="{{ url_for('my_recipes') }}" method="GET" class="d-inline">
-                <button type="submit" class="btn btn-lg fw-bold fs-2 ">My Recipes</button>
+                <button type="submit" class="btn btn-lg fw-bold fs-2" style="margin-top: 15px; margin-bottom: 15px">My Recipes</button>
             </form>
         </div>
         <br>
@@ -69,7 +46,7 @@
                 <div class="row g-4">
                     {% for recipe in my_recipes %}
                         {% set current_user=userName %}
-                        {% include 'Partial/recipe_card.html' %}
+                        {% include 'partial/recipe_card.html' %}
                     {% endfor %}
                 </div>
             </div>
@@ -80,14 +57,12 @@
                     <button style="text-align: center"> Add Recipe </button>
                 </form>
             </div>
-
-
         {% endif %}
         <br>
         <div class="d-flex justify-content-center align-items-center gap-2">
 
             <form action="{{ url_for('favorite_recipes') }}" method="GET" class="d-inline">
-                <button type="submit" class="btn btn-lg fw-bold fs-2 ">Favorite Recipes</button>
+                <button type="submit" class="btn btn-lg fw-bold fs-2" style="margin-top: 15px; margin-bottom: 15px">Favorite Recipes</button>
             </form>
         </div>
         <br>
@@ -96,7 +71,7 @@
                 <div class="row g-4">
                     {% for recipe in fav_recipes %}
                         {% set current_user=userName %}
-                        {% include 'Partial/recipe_card.html' %}
+                        {% include 'partial/recipe_card.html' %}
                     {% endfor %}
                 </div>
             </div>
@@ -106,7 +81,7 @@
         <br>
         <div class="d-flex justify-content-center align-items-center gap-2">
             <form action="{{ url_for('all_recipes') }}" method="GET" class="d-inline">
-                <button type="submit" class="btn btn-lg fw-bold fs-2 ">All Recipes</button>
+                <button type="submit" class="btn btn-lg fw-bold fs-2" style="margin-top: 15px; margin-bottom: 15px">All Recipes</button>
             </form>
         </div>
         <br>
@@ -115,18 +90,17 @@
                 <div class="row g-4">
                     {% for recipe in all_recipes %}
                         {% set current_user=userName %}
-                        {% include 'Partial/recipe_card.html' %}
+                        {% include 'partial/recipe_card.html' %}
                     {% endfor %}
                 </div>
             </div>
         {% else %}
             <div class="center-column" style="background-color: transparent">
-                <p style="text-align:center;" class="fw-bold">You have not created any recipes yet. Why not add one now?</p>
+                <p style="text-align:center;" class="fw-bold">There are no recipes on the website yet. Would you like to add one?</p>
                 <form action="{{ url_for('add_recipe') }}">
                     <button style="text-align: center"> Add Recipe </button>
                 </form>
             </div>
-            <p style="text-align:center;" class="fw-bold">There are no recipes on the website yet. Would you like to add one?</p>
         {% endif %}
     </div>
     {% with messages = get_flashed_messages() %}

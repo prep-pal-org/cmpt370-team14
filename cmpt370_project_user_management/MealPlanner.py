@@ -8,7 +8,7 @@ import string, random
 from werkzeug.utils import secure_filename
 from cmpt370_project_user_management.Model.Recipe import Recipe
 from cmpt370_project_user_management.FlaskConnections.RecipeManager import RecipeManager
-from cmpt370_project_user_management.db.setup_database import database_connection, create_tables, main
+from cmpt370_project_user_management.db.setup_database import database_connection, create_tables, update_tables
 from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
@@ -375,9 +375,9 @@ def create_meal_plan():
 
             count = creator_count + invited_count
 
-            # Enforce the 6-plan limit
+            # Enforce the 50-plan limit
             if count >= 50:
-                flash("You can only have up to 50 meal plans.")
+                flash("You can only have up to 50 meal plans. Please delete or leave some plans.")
                 return redirect(url_for('list_meal_plans'))
 
             # Create unique invite code
@@ -452,7 +452,10 @@ def view_meal_plan(meal_plan_id):
         meal_plan_name = meal_plan[0]
         code = meal_plan[2]
 
-    return render_template("calendar.html", meal_plan_name=meal_plan_name, meal_plan_id=meal_plan_id,
+        calendar_id = calendar_service.create_or_get_calendar(conn, meal_plan_id)
+        session["calendar_id"] = calendar_id
+
+        return render_template("calendar.html", meal_plan_name=meal_plan_name, meal_plan_id=meal_plan_id,
                            creator_name=creator_name[0], username=username, code=code)
 
 
@@ -516,6 +519,35 @@ def join_meal_plan():
 
     return render_template('join_meal_plan.html')
 
+# Leave a meal plan
+@app.route('/leave_meal_plan/<int:meal_plan_id>', methods=['POST'])
+def leave_meal_plan(meal_plan_id):
+    # Check if user is logged in
+    username = session.get('username')
+    if not username:
+        flash("You must be logged in to leave a meal plan.")
+        return redirect(url_for('login'))
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+
+        # Find the user ID
+        user = cur.execute("SELECT user_id FROM user_profile WHERE username = ?", (username,)).fetchone()
+        if user is None:
+            session.clear()
+            flash("Error: Cannot find user. You have been logged out, please log back in.")
+            return redirect(url_for('login'))
+
+        user_id = user[0]
+
+        # Remove access to the meal plan
+        cur.execute("DELETE FROM meal_plan_access WHERE meal_plan_id = ? AND user_id = ?", (meal_plan_id, user_id))
+        conn.commit()
+
+    flash("You have left the meal plan.")
+    return redirect(url_for('list_meal_plans'))
+
+
 
 # List Meal Plans - Randi
 @app.route('/meal_plans')
@@ -540,7 +572,7 @@ def list_meal_plans():
 
         # Meal plans created by the user
         created = cur.execute("""
-            SELECT meal_plan_id, plan_name, creator_id
+            SELECT meal_plan_id, plan_name, creator_id, invite_code
             FROM meal_plan
             WHERE creator_id = ?
         """, (user_id,)).fetchall()
@@ -562,7 +594,8 @@ def list_meal_plans():
             created_with_names.append({
                 "meal_plan_id": plan[0],
                 "plan_name": plan[1],
-                "creator_name": creator_name
+                "creator_name": creator_name,
+                "invite_code": plan[3]
             })
 
         invited_with_names = []
@@ -815,6 +848,8 @@ def recipe_list():
     try:
         # Use the new advanced filter method
         recipes = manager.getFilteredRecipes(search_query, sort_by, diet_filter)
+        recipes = view_comment(recipes)
+        recipes = view_reaction(recipes)
 
     except sqlite3.Error as e:
         print(f"Error searching recipes: {e}")
@@ -860,6 +895,20 @@ def add_recipe():
         manager = RecipeManager()
         recipe_id = manager.addRecipe(new_recipe)
 
+        # --------------------------------------------
+        # CREATE  AND SAVE STEPS FROM INSTRUCTIONS
+        # --------------------------------------------kayo
+        from Model.step_helper import split_into_steps, extract_duration
+
+        steps_raw = split_into_steps(instructions)
+
+        final_steps = []
+        for i, s in enumerate(steps_raw, start=1):
+            d = extract_duration(s)  # None if no timing
+            final_steps.append((i, s, d))
+
+        manager.saveSteps(recipe_id, final_steps)
+
         # ---------------------------
         # Handle images (with validation)
         # ---------------------------
@@ -904,7 +953,7 @@ def add_recipe():
 
                 conn.commit()
 
-        return redirect(url_for('recipe_list'))
+        return redirect(request.referrer)
 
     return render_template('recipe_add.html')
 
@@ -980,7 +1029,7 @@ def edit_recipe(recipe_id):
         manager.editRecipe(recipe_id, updated_recipe)
 
         flash("Recipe updated.")
-        return redirect(url_for('recipe_list'))
+        return redirect(request.referrer)
 
     # GET: render edit page
     images = manager.getImagesForRecipe(recipe_id)
@@ -1155,6 +1204,10 @@ def my_recipes():
     if 'username' not in session:
         return redirect(url_for('login'))
 
+    search_query = request.args.get('search_query', '')
+    sort_by = request.args.get('sort', 'newest')
+    diet_filter = request.args.get('diet', '')
+
     # find the logged-in user's ID
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
@@ -1169,6 +1222,16 @@ def my_recipes():
 
     manager = RecipeManager()
     recipes = manager.getRecipesByUser(user_id)
+    recipes = filter_list_python(recipes, sort_by, diet_filter)
+    recipes = view_comment(recipes)
+    recipes = view_reaction(recipes)
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        for r in recipes:
+            cur.execute("""SELECT user_id FROM recipe WHERE recipe_id = ?""",
+                        (r.recipe_id,))
+            r.user_id = cur.fetchone()[0]
 
     return render_template('my_recipes.html', recipes=recipes)
 
@@ -1180,6 +1243,10 @@ def my_recipes():
 def favorite_recipes():
     if 'username' not in session:
         return redirect(url_for('login'))
+
+
+    sort_by = request.args.get('sort', 'newest')
+    diet_filter = request.args.get('diet', '')
 
     # find the logged-in user's ID
     with sqlite3.connect(DB_NAME) as conn:
@@ -1195,8 +1262,10 @@ def favorite_recipes():
 
     manager = RecipeManager()
     recipes = manager.getFavoriteRecipesByUser(user_id)
+    recipes = filter_list_python(recipes, sort_by, diet_filter)
     recipes = view_comment(recipes)
     recipes = view_reaction(recipes)
+
 
     with sqlite3.connect(DB_NAME) as conn:
         cur = conn.cursor()
@@ -1230,6 +1299,8 @@ def all_recipes():
 
     manager = RecipeManager()
     recipes = manager.getAllRecipes()
+    recipes = view_comment(recipes)
+    recipes = view_reaction(recipes)
 
     return render_template('recipe_list.html', recipes=recipes)
 
@@ -1237,32 +1308,59 @@ def all_recipes():
 # -------------------------------------------------------------
 # Calendar Routes - Jordan
 # -------------------------------------------------------------
-# calendar view - determines calendar_id, sets in session, then renders calendar
-@app.route('/calendar')
+# calendar view - used for render calendar from recipe_view with preloaded recipe_id
+@app.route('/calendar', methods=["POST"])
 def calendar_view():
+    # Get recipe_id, ensure user and calendar both in session or redirect
+    recipe_id = request.args.get('recipe_id')
+    username = session.get('username')
+    if username is None:
+        flash("You need to login first.")
+        return redirect(url_for('login'))
+    calendar_id = session.get('calendar_id')
+    if calendar_id is None:
+        flash("Calendar not loaded, select meal plan first")
+        return redirect(url_for('list_meal_plans'))
+
     # Open database connection
     connection = sqlite3.connect(DB_NAME)
     try:
-        # get user_id integer from username in session and user_profile table
-        username = session.get('username')
+        #get user_id, meal_plan_id and other parameters for calendar render
         cursor = connection.cursor()
         cursor.execute("SELECT user_id FROM user_profile WHERE username = ?", (username,))
         user_id = cursor.fetchone()
-        # get meal_plan_id to show single calendar for grouped meal plan
-        # cursor.execute("SELECT meal_plan_id FROM meal_plan WHERE creator_id = ?", (user_id[0],))
-        # meal_plan_id = cursor.fetchone()
+        cursor.execute("SELECT meal_plan_id FROM calendar_schedule WHERE calendar_id = ?", (calendar_id,))
+        meal_plan_id = cursor.fetchone()
+
         # Check for error in getting user_id / meal_plan_id
-        if not user_id:
-            print("Error in calendar view route - user_id missing")
+        if not meal_plan_id:
+            print("Error in calendar view route - meal_plan_id missing")
             return redirect(url_for("home"))
-        # Else get/create the calendar_id for this user and set session variable, render calendar
-        calendar_id = calendar_service.create_or_get_calendar(connection, user_id[0])
-        session["calendar_id"] = calendar_id
-        return render_template("calendar.html", calendar_id=calendar_id)
+
+        # Check access permission
+        if not user_has_access(user_id[0], meal_plan_id[0]):
+            flash("You do not have permission to view this meal plan.")
+            return redirect(url_for('list_meal_plans'))
+
+        # If allowed → show the plan
+        meal_plan = cursor.execute("""SELECT plan_name, creator_id, invite_code FROM meal_plan WHERE meal_plan_id = ?""",
+                                (meal_plan_id[0],)).fetchone()
+
+        if meal_plan is None:
+            flash("Meal plan no longer exists. Creator may have deleted the plan. Select a different plan.")
+            return redirect(url_for('list_meal_plans'))
+
+        creator_name = cursor.execute("""SELECT username FROM user_profile WHERE user_id = ?""",
+                                   (meal_plan[1],)).fetchone()
+
+        meal_plan_name = meal_plan[0]
+        code = meal_plan[2]
+
+        return render_template("calendar.html", calendar_id=calendar_id, recipe_id=recipe_id, meal_plan_name=meal_plan_name, meal_plan_id=meal_plan_id[0],
+                           creator_name=creator_name[0], username=username, code=code)
     finally:
         # Close connection when done
         connection.close()
-
 
 # load calendar events - FullCalendar API route to load all events for current calendar_id - Jordan
 @app.route("/api/events")
@@ -1295,19 +1393,22 @@ def api_events():
         # Close connection when done
         connection.close()
 
-
 # load calendar recipes - FullCalendar API route to load all recipes into calendar - Jordan
 @app.route("/api/recipes")
 def api_recipes():
-    # Get all recipes from Recipe Manager
-    manager = RecipeManager()
-    recipes = manager.getAllRecipes()
-    # Format to required FullCalendar format
-    all_recipes = [
-        {"recipe_id": rec.recipe_id, "recipe_name": rec.name
-         } for rec in recipes]
-    return jsonify(all_recipes)
-
+    connection = sqlite3.connect(DB_NAME)
+    cursor = connection.cursor()
+    try:
+        cursor.execute("SELECT recipe_id, recipe_name FROM recipe ORDER BY recipe_id;")
+        rows = cursor.fetchall()
+        all_recipes=[]
+        for id,name in rows:
+            all_recipes.append({"recipe_id": id, "recipe_name": name})
+        return jsonify(all_recipes)
+    except sqlite3.OperationalError:
+        return jsonify([])
+    finally:
+        connection.close()
 
 # add calendar event - FullCalendar API route to add new event for current calendar_id - Jordan
 @app.route("/api/events", methods=["POST"])
@@ -1335,7 +1436,6 @@ def api_add_event():
         # Close connection when done
         connection.close()
 
-
 # delete calendar event - FullCalendar API route to delete event for current calendar_id - Jordan
 @app.route("/api/events/<int:event_id>", methods=["DELETE"])
 def api_delete_event(event_id):
@@ -1347,12 +1447,11 @@ def api_delete_event(event_id):
 
             return redirect(url_for('home'))
         deleted_event = calendar_service.delete_calendar_event(connection, event_id)
-        # return True
+        #return True
         return jsonify({"event_deleted": True})
     finally:
         # Close connection when done
         connection.close()
-
 
 # update calendar event - FullCalendar API route to update event for current calendar_id - Jordan
 @app.route("/api/events/<int:event_id>", methods=["PATCH"])
@@ -1380,7 +1479,6 @@ def api_update_event(event_id):
         # Close connection when done
         connection.close()
 
-
 # add recurring event - FullCalendar API route to add new recurring event for current calendar_id - Jordan
 @app.route("/api/recurring", methods=["POST"])
 def api_add_recurring():
@@ -1396,19 +1494,16 @@ def api_add_recurring():
         frequency = data["frequency"]
         duration = data["duration"]
         start_date = data["start_date"]
-        # Insert recurring event details into database recurring_event table
-        recurring_event_id = calendar_service.insert_recurring_event(connection, parent_event_id, frequency, duration,
-                                                                     start_date)
-        # Generate calendar events based on recurrence details
-        calendar_service.generate_recurring_events(connection, parent_event_id, recurring_event_id, frequency, duration,
-                                                   start_date)
+        #Insert recurring event details into database recurring_event table
+        recurring_event_id = calendar_service.insert_recurring_event(connection, parent_event_id, frequency, duration, start_date)
+        #Generate calendar events based on recurrence details
+        calendar_service.generate_recurring_events(connection,parent_event_id, recurring_event_id,frequency, duration, start_date)
         return jsonify({"recurring_event_id": recurring_event_id})
     except CalendarError as e:
         return jsonify({"error": str(e)}), 409
     finally:
-        # Close connection when done
+        #Close connection when done
         connection.close()
-
 
 # delete recurring event series - FullCalendar API route to delete all recurring event for current calendar_id & recurring_event_id
 @app.route("/api/recurring/<int:recurring_event_id>", methods=["DELETE"])
@@ -1430,7 +1525,6 @@ def api_delete_recurring_event(recurring_event_id):
 # --------- Baraa: Image upload config + validation ---------
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 MAX_IMAGE_SIZE = 3 * 1024 * 1024  # 3 MB
-
 
 def allowed_file(filename: str) -> bool:
     """Check if file extension is allowed."""
@@ -1465,7 +1559,8 @@ def generate_unique_filename(folder, base_name):
 if __name__ == '__main__':
     conn = database_connection(DB_NAME)
     if conn is not None:
-        # calls main in setup_database - which creates tables and applies updates
-        main()
+        # creates tables and apply updates
+        create_tables(conn)
+        update_tables(conn)
         conn.close()
     app.run(debug=True)

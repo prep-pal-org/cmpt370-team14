@@ -59,9 +59,10 @@ function closePopup() {
  * Implemented by Jordan
  */
 document.addEventListener('DOMContentLoaded',function(){
-    //declare instance variable of the calendar element, list of all recipes
+    //declare instance variable of the calendar element, list of all recipes, potential preloaded recipe from search/view
     const calendarEl = document.getElementById('calendar');
     let recipeList = [];
+    let loaded_recipe_id = calendarEl.getAttribute('data-recipe-id') || null;
 
     /**
      * Initialize FullCalendar - Initial (and only) view set to day grid per one month; local timezone;
@@ -86,7 +87,7 @@ document.addEventListener('DOMContentLoaded',function(){
             openViewModal(info.event)
         },
         eventOrder: function( a, b){
-            const order = {"Breakfast": 1, "Lunch": 2, "Dinner": 3, "Snack": 4};
+            const order = {"Breakfast": 1, "Lunch": 2, "Dinner": 3, "Appetizer": 4, "Dessert": 5, "Snack": 6};
             const timeA = order[a.extendedProps.timeSlot] || 999;
             const timeB = order[b.extendedProps.timeSlot] || 999;
             return timeA - timeB;
@@ -106,15 +107,17 @@ document.addEventListener('DOMContentLoaded',function(){
      */
     async function loadRecipes(){
         //Fetch recipes from manager
-        const response = await fetch('api/recipes');
+        const response = await fetch('/api/recipes');
         //Check response - if ok, send to helper to populate options list
         if (response.ok) {
             recipeList = await response.json();
             populateOptions(document.getElementById('recipeSelect'), recipeList);
             populateOptions(document.getElementById('editRecipeSelect'), recipeList);
+            return true;
         }
         else{
             alert("Failed to Load recipes to calendar");
+            return false;
         }
     }
 
@@ -129,7 +132,7 @@ document.addEventListener('DOMContentLoaded',function(){
         //Iterate through recipe list, creating and adding each option
         recipes.forEach((recipe, index) => {
             const option = document.createElement('option');
-            option.value = recipe.recipe_id; //ID passed to event
+            option.value = String(recipe.recipe_id); //ID passed to event
             option.textContent = `${index +1}. ${recipe.recipe_name}`;
             selectElement.appendChild(option)
         });
@@ -158,7 +161,7 @@ document.addEventListener('DOMContentLoaded',function(){
      * Form is cleared on opening, other than date parameter
      * @param dateStr - date string YYYY-MM-DD passed from FullCalendar that was clicked on
      */
-    function openAddModal(dateStr){
+    async function openAddModal(dateStr){
         document.getElementById('addForm').reset();
         //Set date based on clicked date, make read only
         const dateInput = document.getElementById('addDate');
@@ -168,7 +171,17 @@ document.addEventListener('DOMContentLoaded',function(){
         addModal.classList.remove('hidden');
         //Load Recipe List
         if (recipeList.length ===0){
-            loadRecipes();
+            const recipesLoaded = await loadRecipes();
+            // Exit if recipes could not be loaded
+            if (!recipesLoaded) {
+                return;
+            }
+        }
+        // Prepopulate the recipe select element if loaded_recipe_id is set
+        const recipeSelect = document.getElementById('recipeSelect');
+        populateOptions(recipeSelect,recipeList);
+        if (loaded_recipe_id !== null) {
+            recipeSelect.value = String(loaded_recipe_id);
         }
     }
 
@@ -178,6 +191,7 @@ document.addEventListener('DOMContentLoaded',function(){
         //Declare instance variables of recipeSelect and selected option
         const recipeSelect = document.getElementById('recipeSelect');
         const selectedRecipe = recipeSelect.options[recipeSelect.selectedIndex];
+
         //Format user fields for payload
         const payload = {
             recipe_id: parseInt(recipeSelect.value,10),
@@ -248,9 +262,19 @@ document.addEventListener('DOMContentLoaded',function(){
             recurrenceInfo.classList.add('hidden');
             recurringDeleteButton.classList.add('hidden');
         }
+        //Set-up view recipe details button with recipe id
+        const viewRecipeBtn = document.getElementById('viewRecipeBtn');
+        viewRecipeBtn.dataset.recipeId = eventObj.extendedProps.recipe_id;
+
         //Make viewable
         viewModal.classList.remove('hidden');
     }
+
+    //Set up view recipe details button to send to recipe_view
+    document.getElementById('viewRecipeBtn').addEventListener('click', e =>{
+        const recipeId = e.target.dataset.recipeId;
+        window.location.href = `/recipes/${encodeURIComponent(recipeId)}`;
+    });
 
     //Set up Delete button listener for the View Modal
     document.getElementById('deleteBtn').addEventListener('click', async (e) =>{

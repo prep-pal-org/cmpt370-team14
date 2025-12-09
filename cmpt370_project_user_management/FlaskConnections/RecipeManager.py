@@ -14,7 +14,7 @@ from cmpt370_project_user_management.Model.Recipe import Recipe
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "db", "saucyapp.db")
-print("🗂 Using database at:", DB_PATH)
+print("Using database at:", DB_PATH)
 
 
 class RecipeManager:
@@ -53,11 +53,14 @@ class RecipeManager:
     # BUILD RECIPE OBJECT
     # --------------------------------------------------------------
     def _buildRecipe(self, row):
+        """
+        Expects row: (recipe_id, name, ingredients, instructions, image_path, category, user_id)
+        """
         recipe_id, name, ingredients, instructions, image_path, category, user_id = row
 
         r = Recipe(recipe_id, name, ingredients, instructions)
         r.image_path = image_path
-        r.category = category or ""
+        r.category = category if category else ""
         r.user_id = user_id
         return r
 
@@ -69,9 +72,7 @@ class RecipeManager:
             cur = conn.cursor()
             cur.execute("""
                 SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
-                       COALESCE((SELECT image_path FROM recipe_image i 
-                                 WHERE i.recipe_id = r.recipe_id 
-                                 ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
                        r.category,
                        r.user_id
                 FROM recipe r
@@ -90,9 +91,7 @@ class RecipeManager:
             cur = conn.cursor()
             cur.execute("""
                 SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
-                       COALESCE((SELECT image_path FROM recipe_image i 
-                                 WHERE i.recipe_id = r.recipe_id 
-                                 ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
                        r.category,
                        r.user_id
                 FROM recipe r
@@ -109,9 +108,7 @@ class RecipeManager:
 
         sql = """
             SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
-                   COALESCE((SELECT image_path FROM recipe_image i 
-                             WHERE i.recipe_id = r.recipe_id 
-                             ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                   COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
                    r.category,
                    r.user_id
             FROM recipe r
@@ -165,9 +162,7 @@ class RecipeManager:
             cur = conn.cursor()
             cur.execute("""
                 SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
-                       COALESCE((SELECT image_path FROM recipe_image i 
-                                 WHERE i.recipe_id = r.recipe_id 
-                                 ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
                        r.category,
                        r.user_id
                 FROM recipe r
@@ -185,9 +180,7 @@ class RecipeManager:
             cur = conn.cursor()
             cur.execute("""
                 SELECT r.recipe_id, r.recipe_name, r.ingredients, r.instructions,
-                       COALESCE((SELECT image_path FROM recipe_image i 
-                                 WHERE i.recipe_id = r.recipe_id 
-                                 ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
+                       COALESCE((SELECT image_path FROM recipe_image i WHERE i.recipe_id = r.recipe_id ORDER BY upload_date DESC, image_id DESC LIMIT 1), '') AS image_path,
                        r.category,
                        r.user_id
                 FROM recipe r
