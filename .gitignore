@@ -5,6 +5,8 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+**/__pycache__/
+**/*.pyc
 
 # -----------------------------
 # IDE files (PyCharm / IntelliJ)
@@ -25,7 +27,6 @@ cmpt370_project_user_management/venv/
 # -----------------------------
 # Databases
 # -----------------------------
-
 *.sqlite3
 
 # -----------------------------
@@ -46,7 +47,7 @@ Thumbs.db
 *.log
 
 # -----------------------------
-# Byte-compiled files in hidden folders
+# SECRET KEYS (never commit)
 # -----------------------------
-**/__pycache__/
-**/*.pyc
+secret_key.py
+cmpt370_project_user_management/secret_key.py

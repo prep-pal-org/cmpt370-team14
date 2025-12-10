@@ -1,5 +1,7 @@
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from datetime import timedelta
+from secret_key import SECRET_KEY
 import sqlite3
 import bcrypt
 import os
@@ -12,8 +14,9 @@ from cmpt370_project_user_management.db.setup_database import database_connectio
 from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
-app.secret_key = "saucy"
-
+from secret_key import SECRET_KEY
+app.secret_key = SECRET_KEY
+app.permanent_session_lifetime = timedelta(days=30)
 # Calculate absolute path to DB to avoid errors
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_NAME = os.path.join(BASE_DIR, "db", "saucyapp.db")
@@ -954,7 +957,7 @@ def add_recipe():
 
                 conn.commit()
         flash("Recipe added successfully!")
-        return redirect(request.referrer)
+        return redirect(url_for('login_landing_page'))
 
     return render_template('recipe_add.html')
 
@@ -1030,7 +1033,7 @@ def edit_recipe(recipe_id):
         manager.editRecipe(recipe_id, updated_recipe)
 
         flash("Recipe updated.")
-        return redirect(request.referrer)
+        return redirect(url_for('view_recipe', recipe_id=recipe_id))
 
     # GET: render edit page
     images = manager.getImagesForRecipe(recipe_id)
@@ -1065,7 +1068,7 @@ def delete_recipe(recipe_id):
     manager.deleteRecipe(recipe_id)
 
     flash("Recipe and its images deleted.")
-    return redirect(url_for('recipe_list'))
+    return redirect(url_for('login_landing_page'))
 
 
 # -------------------------------------
@@ -1560,8 +1563,9 @@ def generate_unique_filename(folder, base_name):
 if __name__ == '__main__':
     conn = database_connection(DB_NAME)
     if conn is not None:
-        # creates tables and apply updates
-        create_tables(conn)
-        update_tables(conn)
+        create_tables(conn)   # SAFE
+        # ❌ DO NOT RUN update_tables() AUTOMATICALLY
         conn.close()
-    app.run(debug=True)
+
+    # Prevent double-execution of startup code
+    app.run(debug=True, use_reloader=False)
