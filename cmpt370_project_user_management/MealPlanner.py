@@ -953,7 +953,7 @@ def add_recipe():
                     """, (recipe_id, rel_path))
 
                 conn.commit()
-
+        flash("Recipe added successfully!")
         return redirect(request.referrer)
 
     return render_template('recipe_add.html')
