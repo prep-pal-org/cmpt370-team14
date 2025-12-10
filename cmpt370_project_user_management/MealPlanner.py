@@ -898,7 +898,8 @@ def add_recipe():
         # --------------------------------------------
         # CREATE  AND SAVE STEPS FROM INSTRUCTIONS
         # --------------------------------------------kayo
-        from Model.step_helper import split_into_steps, extract_duration
+        from cmpt370_project_user_management.Model.step_helper import split_into_steps, extract_duration
+
 
         steps_raw = split_into_steps(instructions)
 
