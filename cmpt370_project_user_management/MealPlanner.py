@@ -1,7 +1,6 @@
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from datetime import timedelta
-from secret_key import SECRET_KEY
 import sqlite3
 import bcrypt
 import os
@@ -14,12 +13,12 @@ from cmpt370_project_user_management.db.setup_database import database_connectio
 from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
-from secret_key import SECRET_KEY
-app.secret_key = SECRET_KEY
+
+app.secret_key = os.environ.get("SECRET_KEY", "fallback-local-key")
 app.permanent_session_lifetime = timedelta(days=30)
 # Calculate absolute path to DB to avoid errors
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_NAME = os.path.join(BASE_DIR, "db", "saucyapp.db")
+DB_NAME = os.environ.get("DATABASE_PATH", os.path.join(BASE_DIR, "db", "saucyapp.db"))
 
 calendar_service = CalendarService()
 
@@ -1566,6 +1565,5 @@ if __name__ == '__main__':
         create_tables(conn)   # SAFE
         # ❌ DO NOT RUN update_tables() AUTOMATICALLY
         conn.close()
-
-    # Prevent double-execution of startup code
-    app.run(debug=True, use_reloader=False)
+    #to avoid failed deployments on render
+    app.run(host="0.0.0.0", port=5000)
