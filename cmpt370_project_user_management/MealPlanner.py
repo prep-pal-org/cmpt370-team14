@@ -32,6 +32,8 @@ def filter_list_python(recipes, sort_by, diet_filter):
         recipes = [r for r in recipes if r.category and "Gluten Free" in r.category]
     elif diet_filter == "lactose_free":
         recipes = [r for r in recipes if r.category and "Lactose Free" in r.category]
+    elif diet_filter == "peanut_allergy":
+        recipes = [r for r in recipes if r.category and "Peanut Allergy" in r.category]
 
     # 2. Sort
     if sort_by == "az":
