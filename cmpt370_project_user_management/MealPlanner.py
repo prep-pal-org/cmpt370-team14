@@ -11,7 +11,7 @@ from cmpt370_project_user_management.FlaskConnections.RecipeManager import Recip
 from cmpt370_project_user_management.db.setup_database import database_connection, create_tables, update_tables
 from cmpt370_project_user_management.Model.calendar_service import CalendarService, CalendarError
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = "saucy"
 
 # Calculate absolute path to DB to avoid errors
