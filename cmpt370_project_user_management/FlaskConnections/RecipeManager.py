@@ -132,6 +132,8 @@ class RecipeManager:
             sql += " AND r.category LIKE '%Gluten Free%'"
         elif diet_filter == "lactose_free":
             sql += " AND r.category LIKE '%Lactose Free%'"
+        elif diet_filter == "peanut_allergy":
+            sql += " AND r.category LIKE '%Peanut Allergy%'"
 
         # 3. Sorting
         if sort_by == "az":
