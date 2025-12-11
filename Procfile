@@ -1,0 +1,1 @@
+web: gunicorn cmpt370_project_user_management.MealPlanner:app
