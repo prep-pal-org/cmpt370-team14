@@ -448,7 +448,7 @@ document.addEventListener('DOMContentLoaded',function(){
             return;
         }
         //Send delete request - await response
-        const response = await fetch(`api/recurring/${recurring_event_id}`,{
+        const response = await fetch(`/api/recurring/${recurring_event_id}`,{
             method: 'DELETE'
         });
         //Check response if successful, remove recurring events from FullCalendar
